@@ -10,6 +10,7 @@
 # ==============================================================================
 import urllib
 import requests
+import six
 
 # ==============================================================================
 
@@ -141,7 +142,7 @@ def ws_germplasms(session_id, experiment_uri=None, species_uri=None, project_nam
     """
     if experiment_uri is None and species_uri is None and germplasm_uri is None:
         raise Exception("You must specify one of experiment_uri, species_uri or germplasms_uri")
-    if isinstance(germplasm_uri, basestring):
+    if isinstance(germplasm_uri, six.string_types):
         return get_all_data(address, 'germplasms/' + urllib.quote_plus(germplasm_uri), sessionId=session_id)
     else:
         if isinstance(experiment_uri, list):
@@ -172,7 +173,7 @@ def ws_environment(session_id, experiment_uri=None, variable_category=None, vari
     """
     if isinstance(variables, list):
         variables = ','.join(variables)
-    if isinstance(plant_uri, basestring):
+    if isinstance(plant_uri, six.string_types):
         return get_all_data(address, 'plants/' + urllib.quote_plus(plant_uri) + '/environment', timeout=20.,
                             sessionId=session_id, experimentURI=experiment_uri, variableCategory=variable_category,
                             variables=variables, facility=facility, startDate=start_date, endDate=end_date)
@@ -215,7 +216,7 @@ def ws_experiments(session_id, project_name=None, season=None, experiment_uri=No
     """
     if project_name is None and season is None and experiment_uri is None:
         raise Exception("You must specify one parameter of project_name, season or experiment_uri")
-    if isinstance(experiment_uri, basestring):
+    if isinstance(experiment_uri, six.string_types):
         return get_all_data(address, 'experiments/' + urllib.quote_plus(experiment_uri) + '/details',
                             sessionId=session_id)
     else:
@@ -285,7 +286,7 @@ def ws_plants(session_id, experiment_uri, plant_alias=None, germplasms_uri=None,
     :return:
         (list of dict) plants information
     """
-    if isinstance(plant_uri, basestring):
+    if isinstance(plant_uri, six.string_types):
         return get_all_data(address, 'plants/' + urllib.quote_plus(plant_uri), sessionId=session_id,
                             experimentURI=experiment_uri)
     else:
@@ -330,7 +331,7 @@ def ws_watering(session_id, experiment_uri, date=None, provider=None, variables_
     """
     if isinstance(variables_name, list):
         variables_name = ','.join(variables_name)
-    if isinstance(plant_uri, basestring):
+    if isinstance(plant_uri, six.string_types):
         return get_all_data(address, 'plants/' + urllib.quote_plus(plant_uri) + '/watering', timeout=30.,
                             sessionId=session_id, experimentURI=experiment_uri, date=date, provider=provider,
                             variablesName=variables_name)
@@ -358,7 +359,7 @@ def ws_images_analysis(session_id, experiment_uri, date=None, provider=None, lab
     """
     if isinstance(variables_name, list):
         variables_name = ','.join(variables_name)
-    if isinstance(plant_uri, basestring):
+    if isinstance(plant_uri, six.string_types):
         return get_all_data(address, 'plants/' + urllib.quote_plus(plant_uri) + '/phenotypes', timeout=30.,
                             sessionId=session_id, experimentURI=experiment_uri, date=date, provider=provider,
                             labelView=label_view, variablesName=variables_name)
