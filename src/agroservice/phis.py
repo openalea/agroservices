@@ -13,7 +13,7 @@ import requests
 
 # ==============================================================================
 
-_ws_address = 'http://147.99.7.5:8080/phenomeapi/resources'
+_ws_address = 'http://147.100.179.156:8080/phenomeapi/resources'
 
 
 def post_json(address, web_service, json_txt, timeout=10., overwriting=False, **kwargs):
@@ -93,7 +93,7 @@ def get_all_data(address, web_service, timeout=10., **kwargs):
     return values
 
 
-def ws_token(username, password, address=_ws_address):
+def ws_token(username='guestphis@supagro.inra.fr', password='guestphis', address=_ws_address):
     """ Get token for PHIS web service
         See http://147.99.7.5:8080/phenomeapi/api-docs/#/ for exact documentation
 
