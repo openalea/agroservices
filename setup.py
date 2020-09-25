@@ -34,7 +34,7 @@ setup(
     long_description="",
 
     author="* Christian Fournier\n"
-           "* Labadie Marc\n"
+           "* Marc Labadie\n"
            "* Christophe Pradal\n",
 
     author_email="",
@@ -49,7 +49,7 @@ setup(
     packages=packages,
     package_dir=package_dir,
     zip_safe=False,
-    ext_modules=cythonize(extentions),
+    #ext_modules=cythonize(extentions),
 
     # See MANIFEST.in
     include_package_data=True,
