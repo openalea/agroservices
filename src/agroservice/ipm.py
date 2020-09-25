@@ -102,8 +102,12 @@ def weatheradapter_fmi(ignoreErrors=True,interval=3600,parameters='1001',timeEnd
 def weatheradapter_yr(altitude = 56, latitude=43.36 ,longitude=3.52 ):
     return get(address= _ws_address, web_service="weatheradapter/yr", altitude=altitude, longitude = longitude, latitude=latitude).json()
 
-from bioservices.services import REST
 
+
+
+################## Interface Python IPM using Bioservice ########################################################
+
+from bioservices.services import REST
 
 __all__ = ["IPM"]
 
