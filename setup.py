@@ -37,7 +37,9 @@ setup(
            "* Marc Labadie\n"
            "* Christophe Pradal\n",
 
-    author_email="",
+    author_email="* christian.fournier@inrae.fr\n"
+                 "*marc.labadie@inrae.fr\n"
+                 "christophe.pradal@cirad.fr\n",
     maintainer="",
     maintainer_email="",
 
