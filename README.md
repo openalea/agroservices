@@ -6,7 +6,7 @@
 * Christophe Pradal (christophe.pradal@inrae.fr)       
 
 **Institutes:** INRAE   
-**Licence:**[CeCILL-C](https://raw.githubusercontent.com/H2020-IPM-openalea/weatherdata/master/LICENSE.txt)   
+**Licence:**[CeCILL-C](https://cecill.info/licences/Licence_CeCILL-C_V1-en.html)   
 **Status:** python package   
 **Citation:**(DOI)
 
@@ -52,4 +52,4 @@ cd test; pytest
 * bioservice
 
 ## Documentation
-not available for the moment. However each function are documented
+not available for the moment. However each function are documented by docstring
