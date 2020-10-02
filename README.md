@@ -5,7 +5,7 @@
 * Christian Fournier (christian.fournier@inrae.fr)
 * Christophe Pradal (christophe.pradal@inrae.fr)       
 
-**Institutes:** INRAE   
+**Institutes:** INRAE/CIRAD   
 **Licence:**[CeCILL-C](https://cecill.info/licences/Licence_CeCILL-C_V1-en.html)   
 **Status:** python package   
 **Citation:**(DOI)
