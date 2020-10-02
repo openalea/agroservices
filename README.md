@@ -16,10 +16,10 @@ AgroService is a Python package that provides access to IPM Web Services (at lea
 
 ## Install
 
-* **Install conda**  
+### Install conda  
 Follow official website instruction to install miniconda : http://conda.pydata.org/miniconda.html
 
-#### User
+### User
 
 **Create a new environment with agroservice installed in there :**
 ```
@@ -31,7 +31,7 @@ conda activate agroservice
 conda install -c conda-forge agroservice
 ```
 
-#### From source
+### From source
 ```
 # Install dependency with conda
 conda create -n agroservice -c conda-forge python=3
