@@ -1,3 +1,3 @@
-* Fournier	    Christian	(christian.fournier@inra.fr)
-* Christophe    Pradal
-* Marc Labadie
+* Fournier Christian (christian.fournier@inrae.fr)
+* Christophe Pradal (christophe.pradal@cirad.fr)
+* Marc Labadie (marc.labadie@inrae.fr)
