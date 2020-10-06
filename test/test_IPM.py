@@ -65,8 +65,8 @@ def test_get_weatheradapter_fmi():
     assert type(res) is dict
     assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData', 'qc'))
     assert res['weatherParameters']==[1002,3002]
-    assert res['timeStart']== '2020-06-12T00:00:00+03:00'
-    assert res['timeEnd']== '2020-06-12T00:00:00+03:00'
+    assert res['timeStart']== "2020-06-11T21:00:00Z"
+    assert res['timeEnd']== "2020-07-02T21:00:00Z"
 
 def test_post_weatheradapter_fmi():
     """todo"""
