@@ -10,40 +10,58 @@
 
 from bioservices.services import REST
 
-__all__ = ["IPM_weather","IPM_DSS"]
+__all__ = ["IPM"]
 
-class IPM_weather(REST):
+class IPM(REST):
     """
-    Interface to the IPM weather https://ipmdecisions.nibio.no/api/wx/rest
+    Interface to the IPM weather https://ipmdecisions.nibio.no/api
 
     ..doctest::
         >>> from agroservice.ipm import IPM
-        >>> ws = IPM_weather()
+        >>> ipm = IPM()
 
         MetaDataService
         ----------------
-        >>> ws.get_parameter()
-        >>> ws.get_qc()
-        >>> ws.get_schema_weatherdata() TypeError:get_schema_weatherdata() takes 0 positional arguments but 1 was given
-        >>> ws.post_schema_weatherdata_validate() TODO
+        >>> ipm.get_parameter()
+        >>> ipm.get_qc()
+        >>> ipm.get_schema_weatherdata() TypeError:get_schema_weatherdata() takes 0 positional arguments but 1 was given
+        >>> ipm.post_schema_weatherdata_validate() TODO
         
         WeatherAdaptaterService
         ------------------------
-        >>> ws.get_weatheradapter_fmi(ignoreErrors=True,interval= 3600,parameters=1001,timeEnd= "2020-07-03T00:00:00+03:00",timeStart= "2020-06-12T00:00:00+03:00",weatherStationId=101533)
-        >>> ws.post_weatheradapter_fmi() TODO
-        >>> ws.get_weatheradapter_fmi_forecasts(latitude=43.36, longitude=3.52)
-        >>> ws.post_weatheradapter_fmi_forecasts() TODO
-        >>> ws.get_weatheradapter_yr(altitude=56, latitude=43.36, longitude=3.52)
-        >>> ws.post_weatheradapter_yr() TODO
+        >>> ipm.get_weatheradapter_fmi(ignoreErrors=True,interval= 3600,parameters=1001,timeEnd= "2020-07-03T00:00:00+03:00",timeStart= "2020-06-12T00:00:00+03:00",weatherStationId=101533)
+        >>> ipm.post_weatheradapter_fmi() TODO
+        >>> ipm.get_weatheradapter_fmi_forecasts(latitude=43.36, longitude=3.52)
+        >>> ipm.post_weatheradapter_fmi_forecasts() TODO
+        >>> ipm.get_weatheradapter_yr(altitude=56, latitude=43.36, longitude=3.52)
+        >>> ipm.post_weatheradapter_yr() TODO
 
         WeatherDataService
         ------------------
-        >>> ws.get_weatherdatasource()
-        >>> ws.post_weatherdatasource_location(tolerence=0) TODO
-        >>> ws.get_weatherdatasource_location_point(latitude=43.36, longitude=3.52,tolerence=0)
+        >>> ipm.get_weatherdatasource()
+        >>> ipm.post_weatherdatasource_location(tolerence=0) TODO
+        >>> ipm.get_weatherdatasource_location_point(latitude=43.36, longitude=3.52,tolerence=0)
+
+        DSSService
+        ----------
+        >>> ipm.get_crop()
+        >>> ipm.get_dss()
+        >>> ipm.get_pest()
+        >>> ipm.post_dss_location()
+        >>> ipm.get_dssId()
+        >>> ipm.get_cropCode()
+        >>> ipm.get_dss_location_point()
+        >>> ipm.get_pestCode()
+        >>> ipm.get_model()
+
+        MetaDataService
+        ---------------
+        >>> dss.get_schema_fieldobservation()
+        >>> dss.get_schema_modeloutput()
+        >>> dss.post_schema_modeloutput_validate()
     """
 
-    _url = "https://ipmdecisions.nibio.no/api/wx/rest"
+    _url = "https://ipmdecisions.nibio.no/api"
 
     def __init__(self, verbose=False, cache=False):
         """**Constructor**
@@ -51,7 +69,7 @@ class IPM_weather(REST):
     
         """
         
-        self.services = REST(name="IPM_weather", url=IPM_weather._url,
+        self.services = REST(name="IPM", url=IPM._url,
             verbose=verbose, cache=cache)
         
         self.callback = None #use in all methods)
@@ -71,7 +89,7 @@ class IPM_weather(REST):
             a list of all the weather parameters used in the platform in json format
         """    
 
-        res = self.services.http_get("parameter", frmt='json',
+        res = self.services.http_get("/wx/rest/parameter", frmt='json',
                 headers=self.services.get_headers(content='json'),
                 params={'callback':self.callback})
         return res
@@ -89,7 +107,7 @@ class IPM_weather(REST):
             return a list of QC code used in plateform in json format
         """
 
-        res = self.services.http_get("qc", frmt=frmt,
+        res = self.services.http_get("wx/rest/qc", frmt=frmt,
                 headers=self.services.get_headers(content=frmt),
                 params={'callback':self.callback})
         return res
@@ -108,7 +126,7 @@ class IPM_weather(REST):
         --------
             return the schema that describes the IPM Decision platform's format for exchange of weather data in json format
         """
-        res = self.services.http_get("/schema/weatherdata", frmt=frmt,
+        res = self.services.http_get("wx/rest/schema/weatherdata", frmt=frmt,
                 headers=self.services.get_headers(content=frmt),
                 params={'callback':self.callback})
         return res 
@@ -127,7 +145,7 @@ class IPM_weather(REST):
         -------
             {"isValid":"true"} if the data is valid, {"isValid":"false"} otherwise
         '''
-        res = self.services.http_post('/schema/weatherdata/validate',frmt='json',data=None)
+        res = self.services.http_post('wx/rest/schema/weatherdata/validate',frmt='json',data=None)
         return res 
 
     ###################### WeatherAdaptaterService #############################
@@ -152,10 +170,10 @@ class IPM_weather(REST):
          weather observations in the IPM Decision's weather data format from the Finnish Meteorological Institute https://en.ilmatieteenlaitos.fi/ in json format
 
         """
-        res = self.services.http_get("weatheradapter/fmi", frmt=frmt,
+        res = self.services.http_get("wx/rest/weatheradapter/fmi", frmt=frmt,
                 headers=self.services.get_headers(content=frmt),
                 params={'callback':self.callback,
-                "ignoreErrors":ignoreErrors,"interval":int(interval),"parameters":parameters,"timeEnd":timeEnd,"timeStart":timeStart,"weatherStationId":int(weatherStationId)})
+                "ignoreErrors":ignoreErrors,"interval":interval,"parameters":parameters,"timeEnd":timeEnd,"timeStart":timeStart,"weatherStationId":weatherStationId})
         return res
     
     def post_weatheradapter_fmi():
@@ -189,7 +207,7 @@ class IPM_weather(REST):
             36 hour forecasts from FMI (The Finnish Meteorological Institute), using their OpenData services at https://en.ilmatieteenlaitos.fi/open-data
             the weather forecast formatted in the IPM Decision platform's weather data format
         """
-        res = self.services.http_get("weatheradapter/fmi/forecasts", frmt=frmt,
+        res = self.services.http_get("wx/rest/weatheradapter/fmi/forecasts", frmt=frmt,
                 headers=self.services.get_headers(content=frmt),
                 params={'callback':self.callback,"latitude":latitude, "longitude":longitude})
         return res
@@ -223,7 +241,7 @@ class IPM_weather(REST):
             9 day weather forecasts from The Norwegian Meteorological Institute's Locationforecast API 
             the weather forecast formatted in the IPM Decision platform's weather data format (json)
         """
-        res = self.services.http_get("weatheradapter/yr", frmt=frmt,
+        res = self.services.http_get("wx/rest/weatheradapter/yr", frmt=frmt,
                 headers=self.services.get_headers(content=frmt),
                 params={'callback':self.callback,
                 "altitude":altitude,"longitude":longitude,"latitude":latitude})
@@ -259,7 +277,7 @@ class IPM_weather(REST):
         --------
         return list of all the available weather data sources in json
         """
-        res = self.services.http_get("/weatherdatasource", frmt=frmt,
+        res = self.services.http_get("wx/rest/weatherdatasource", frmt=frmt,
                 headers=self.services.get_headers(content=frmt),
                 params={'callback':self.callback})
         return res
@@ -291,53 +309,11 @@ class IPM_weather(REST):
         --------
             A list of all the matching weather data sources in json format    
         """
-        res = self.services.http_get("weatherdatasource/location/point", frmt=frmt,
+        res = self.services.http_get("wx/rest/weatherdatasource/location/point", frmt=frmt,
                 headers=self.services.get_headers(content=frmt),
                 params={'callback':self.callback, "latitude":latitude, "longitude":longitude, "tolerance":tolerance})
         return res
-
-class IPM_DSS(REST):
-
-    """
-    Interface to the IPM DSS https://ipmdecisions.nibio.no/api/dss/rest/
-
-    ..doctest::
-        >>> from agroservice.ipm import IPM_DSS
-        >>> dss = IPM_DSS()
-
-        DSSService
-        ----------
-        >>> dss.get_crop()
-        >>> dss.get_dss()
-        >>> dss.get_pest()
-        >>> dss.post_dss_location()
-        >>> dss.get_dssId()
-        >>> dss.get_cropCode()
-        >>> dss.get_dss_location_point()
-        >>> dss.get_pestCode()
-        >>> dss.get_model()
-
-        MetaDataService
-        ---------------
-        >>> dss.get_schema_fieldobservation()
-        >>> dss.get_schema_modeloutput()
-        >>> dss.post_schema_modeloutput_validate()
-
-    """
-
-    _url = 'https://ipmdecisions.nibio.no/api/dss/rest'
-
-    def __init__(self, verbose=False, cache=False):
-        """**Constructor**
-        :param verbose: set to False to prevent informative messages
-    
-        """
-        
-        self.services = REST(name="IPM_DSS", url=IPM_DSS._url,
-            verbose=verbose, cache=cache)
-        
-        self.callback = None #use in all methods)
-    
+  
 ###########################   DSSService  ################################################
 
     def get_crop(self,frmt='json'):
@@ -352,7 +328,7 @@ class IPM_DSS(REST):
             A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all crops that the DSS models in the platform
         """
 
-        res = self.services.http_get("crop",frmt='json',
+        res = self.services.http_get("dss/rest/crop",frmt='json',
                                     headers=self.services.get_headers(content=frmt),
                                     params={'callback':self.callback})
         return res
@@ -369,7 +345,7 @@ class IPM_DSS(REST):
         --------
            a list all DSSs and models available in the platform     
         """
-        res = self.services.http_get("dss",frmt=frmt,
+        res = self.services.http_get("dss/rest/dss",frmt=frmt,
                                     headers=self.services.get_headers(content=frmt),
                                     params={'callback':self.callback})
         return res
@@ -385,7 +361,7 @@ class IPM_DSS(REST):
         --------
             A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
         """
-        res = self.services.http_get("pest",frmt=frmt,
+        res = self.services.http_get("dss/rest/pest",frmt=frmt,
                                     headers=self.services.get_headers(content=frmt),
                                     params={'callback':self.callback})
         return res
@@ -405,11 +381,11 @@ class IPM_DSS(REST):
         --------
             DSS(JSON) the requested DSS
         """
-        res = self.services.http_get("dss/{}".format(DSSId),frmt=frmt)
+        res = self.services.http_get("dss/rest/dss/{}".format(DSSId),frmt=frmt)
         return res
     
     def get_cropCode(self,frmt='json',cropCode='cropCode'):
-        res = self.services.http_get("dss/crop/{}".format(cropCode),frmt=frmt)
+        res = self.services.http_get("dss/rest/dss/crop/{}".format(cropCode),frmt=frmt)
         return res
     
     def get_dss_location_point(self, frmt='json',latitude = 'latitude', longitude= 'longitude'):
@@ -426,7 +402,7 @@ class IPM_DSS(REST):
             A list of all the matching DSS models (array of DSS (JSON))
         
         """
-        res = self.services.http_get("dss/location/point",frmt=frmt,
+        res = self.services.http_get("dss/rest/dss/location/point",frmt=frmt,
                                     headers=self.services.get_headers(content=frmt),
                                     params={'callback':self.callback,'latitude':latitude,'longitude':longitude})
         return res
@@ -443,7 +419,7 @@ class IPM_DSS(REST):
         --------
             a list of models that are applicable to the given pest (array of DSS (JSON))
         """
-        res = self.services.http_get('dss/pest/{}'.format(pestCode),frmt='json')
+        res = self.services.http_get('dss/rest/dss/pest/{}'.format(pestCode),frmt='json')
         return res
         
     def get_model(self,frmt='json',DSSId='DSSId',ModelId='ModelId'):
@@ -460,10 +436,10 @@ class IPM_DSS(REST):
             The requested DSS model (DSSModel (JSON))
         
         """
-        res = self.services.http_get("model/{}/{}".format(DSSId,ModelId),frmt=frmt)
+        res = self.services.http_get("dss/rest/model/{}/{}".format(DSSId,ModelId),frmt=frmt)
         return res
 
-###############################  MetaDataService ##############################################
+###############################  DSSMetaDataService ##############################################
 
     def get_schema_fieldobservation(self, frmt='json'):
         """
@@ -479,7 +455,7 @@ class IPM_DSS(REST):
         --------
             The generic schema for field observations (object(JSON))
         """
-        res = self.services.http_get("schema/fieldobservation",frmt=frmt,
+        res = self.services.http_get("/dss/rest/schema/fieldobservation",frmt=frmt,
                                     headers=self.services.get_headers(content=frmt),
                                     params={'callback':self.callback})
         return res
@@ -495,7 +471,7 @@ class IPM_DSS(REST):
         --------
             The Json Schema for the platform's standard for DSS model output (object (JSON))
         """
-        res = self.services.http_get("schema/modeloutput",frmt=frmt,
+        res = self.services.http_get("/dss/rest/schema/modeloutput",frmt=frmt,
                                     headers=self.services.get_headers(content=frmt),
                                     params={'callback':self.callback})
         return res
