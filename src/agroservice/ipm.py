@@ -170,10 +170,11 @@ class IPM(REST):
          weather observations in the IPM Decision's weather data format from the Finnish Meteorological Institute https://en.ilmatieteenlaitos.fi/ in json format
 
         """
+
         res = self.services.http_get("wx/rest/weatheradapter/fmi", frmt=frmt,
                 headers=self.services.get_headers(content=frmt),
                 params={'callback':self.callback,
-                "ignoreErrors":ignoreErrors,"interval":interval,"parameters":parameters,"timeEnd":timeEnd,"timeStart":timeStart,"weatherStationId":weatherStationId})
+                "ignoreErrors":ignoreErrors,"interval":interval,"parameters":",".join(map(str,parameters)),"timeEnd":timeEnd,"timeStart":timeStart,"weatherStationId":weatherStationId})
         return res
     
     def post_weatheradapter_fmi():

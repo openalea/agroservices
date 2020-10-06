@@ -61,8 +61,7 @@ def test_post_schema_modeloutput_validate():
 
 def test_get_weatheradapter_fmi():
     ipm=IPM()
-    res = ipm.get_weatheradapter_fmi(ignoreErrors=True,interval=3600,parameters=['1002','3002'],timeStart='2020-06-12T00:00:00+03:00',timeEnd='2020-06-12T00:00:00+03:00'
-    ,weatherStationId=101104)
+    res = ipm.get_weatheradapter_fmi(ignoreErrors=True,interval=3600,parameters=[1002,3002],timeStart='2020-06-12T00:00:00+03:00',timeEnd='2020-07-03T00:00:00+03:00',weatherStationId=101104)
     assert type(res) is dict
     assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData', 'qc'))
     assert res['weatherParameters']==[1002,3002]
