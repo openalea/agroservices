@@ -11,7 +11,9 @@ from requests.models import Response
 import requests_cache
 import time
 
-################ defaultParams, ConfigReadOnly, BioServicesConfig Class issue from easydev.config_tools of Thomas coeklear########################
+__all__ = ["DynamicConfigParser", "ConfigReadOnly", "BioServicesConfig","DevTools","Logging","Service","Restbase","REST"]
+
+################ DynamicConfigParser Class issue from easydev.config_tools of Thomas coeklear########################
 
 class DynamicConfigParser(ConfigParser, object):
     """Enhanced version of Config Parser
@@ -487,7 +489,7 @@ class BioServicesConfig(ConfigReadOnly):
         self.params['general.max_retries'][0] = max_retries
     MAX_RETRIES = property(_get_max_retries, _set_max_retries)
 
-################ DevTolls Class issue from easydev.tools of Thomas coeklear########################
+################ DevTools Class issue from easydev.tools of Thomas coeklear########################
 
 class DevTools(object):
     """Aggregate of easydev.tools functions.
