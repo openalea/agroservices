@@ -7,3 +7,5 @@
 #           http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
 #
 # ==============================================================================
+
+version = 0.1
