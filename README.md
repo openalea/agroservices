@@ -36,7 +36,7 @@ conda install -c conda-forge agroservice
 # Install dependency with conda
 conda create -n agroservice -c conda-forge python=3
 conda activate agroservice
-conda install -c conda-forge -c bioservice pytest
+conda install -c conda-forge -c agroservice appdirs colorlog requests request_cache pytest
 
 # Load agroservice and install
 git clone https://github.com/H2020-IPM-openalea/agroservice.git
@@ -49,7 +49,11 @@ cd test; pytest
 
 ## Requierments
 * python 3.8
-* bioservice
+* agroservice
+* appdirs
+* colorlog
+* requests
+* requests_cache
 
 ## Documentation
 not available for the moment. However each function are documented by docstring
