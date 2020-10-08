@@ -11,7 +11,7 @@ import shutil
 
 import appdirs
 
-__all__ = ["defaultParams", "BioServicesConfig"]
+__all__ = ["defaultParams", "AgroServicesConfig"]
 
 
 # copy of easy dev mini modules
@@ -266,10 +266,10 @@ class ConfigReadOnly(object):
         self.params = copy.deepcopy(self._default_params)
 
 
-class BioServicesConfig(ConfigReadOnly):
+class AgroServicesConfig(ConfigReadOnly):
     def __init__(self):
-        super(BioServicesConfig, self).__init__(name="agroservices",
-                default_params=defaultParams)
+        super(AgroServicesConfig, self).__init__(name="agroservices",
+                                                 default_params=defaultParams)
 
     # some aliases
     def _get_caching(self):

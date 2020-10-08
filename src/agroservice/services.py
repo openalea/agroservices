@@ -18,13 +18,15 @@
 #$Id$
 """Modules with common tools to access web resources"""
 from __future__ import print_function
+from __future__ import division
+
 import os
 import sys
 import time
 import platform
 import traceback
 
-from .settings import BioServicesConfig
+from .settings import AgroServicesConfig
 from agroservice.extern.xmltools import easyXML
 
 # fixing compatiblity python 2 and 3 related to merging or urllib and urllib2 in python 3
@@ -51,10 +53,10 @@ from agroservice.extern.easydev.tools import DevTools
 
 
 __all__ = ["Service", "WSDLService",
-           "BioServicesError", "REST"]
+           "AgroServicesError", "REST"]
 
 
-class BioServicesError(Exception):
+class AgroServicesError(Exception):
     def __init__(self, value):
         self.value = value
 
@@ -136,7 +138,7 @@ class Service(object):
         #self._fixing_encoding = "utf-8"
 
         self.devtools = DevTools()
-        self.settings = BioServicesConfig()
+        self.settings = AgroServicesConfig()
 
         self._last_call = 0
 
@@ -199,7 +201,7 @@ class Service(object):
 
         .. doctest::
 
-            >>> from bioservices import *
+            >>> from agroservice import *
             >>> doc = "<xml> <id>1</id> <id>2</id> </xml>"
             >>> s = Service("name")
             >>> res = s.easyXML(doc)
