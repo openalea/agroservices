@@ -8,7 +8,7 @@
 
 ################## Interface Python IPM using Bioservice ########################################################
 
-from agroservice.services import REST
+from agroservice.extern.bioservices.services import REST
 
 __all__ = ["IPM"]
 
@@ -133,7 +133,7 @@ class IPM(REST):
 
     # schema weather data validate
 
-    def post_schema_weatherdata_validate():
+    def post_schema_weatherdata_validate(self):
         '''
         Validates the posted weather data against the Json schema
 
@@ -177,7 +177,7 @@ class IPM(REST):
                 "ignoreErrors":ignoreErrors,"interval":interval,"parameters":",".join(map(str,parameters)),"timeEnd":timeEnd,"timeStart":timeStart,"weatherStationId":weatherStationId})
         return res
     
-    def post_weatheradapter_fmi():
+    def post_weatheradapter_fmi(self):
         """
         parameters:
         -----------
@@ -248,7 +248,7 @@ class IPM(REST):
                 "altitude":altitude,"longitude":longitude,"latitude":latitude})
         return res
     
-    def post_weatheradapter_yr():
+    def post_weatheradapter_yr(self):
         """
         parameters:
         -----------
@@ -367,7 +367,7 @@ class IPM(REST):
                                     params={'callback':self.callback})
         return res
     
-    def post_dss_location():
+    def post_dss_location(self):
         pass
     
     def get_dssId(self, frmt='json',DSSId='DSSId'):
@@ -477,5 +477,5 @@ class IPM(REST):
                                     params={'callback':self.callback})
         return res
     
-    def post_schema_modeloutput_validate():
+    def post_schema_modeloutput_validate(self):
         pass
