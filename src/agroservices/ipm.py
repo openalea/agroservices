@@ -8,7 +8,7 @@
 
 ################## Interface Python IPM using Bioservice ########################################################
 
-from agroservice.services import REST
+from agroservices.services import REST
 
 __all__ = ["IPM"]
 
@@ -17,7 +17,7 @@ class IPM(REST):
     Interface to the IPM weather https://ipmdecisions.nibio.no/api
 
     ..doctest::
-        >>> from agroservice.ipm import IPM
+        >>> from agroservices.ipm import IPM
         >>> ipm = IPM()
 
         MetaDataService

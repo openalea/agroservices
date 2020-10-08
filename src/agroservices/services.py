@@ -48,8 +48,8 @@ if 'raw_input' in __builtins__: input = raw_input
 sys.path = [x for x in sys.path if 'suds-' not in x]
 
 
-from agroservice.extern.easydev.logging_tools import Logging
-from agroservice.extern.easydev.tools import DevTools
+from agroservices.extern.easydev.logging_tools import Logging
+from agroservices.extern.easydev.tools import DevTools
 
 
 __all__ = ["Service", "WSDLService",
@@ -201,7 +201,7 @@ class Service(object):
 
         .. doctest::
 
-            >>> from agroservice import *
+            >>> from agroservices import *
             >>> doc = "<xml> <id>1</id> <id>2</id> </xml>"
             >>> s = Service("name")
             >>> res = s.easyXML(doc)
@@ -379,7 +379,7 @@ class REST(RESTbase):
 
     Get one value::
 
-        >>> from agroservice import REST
+        >>> from agroservices import REST
         >>> s = REST("test", "https://www.ebi.ac.uk/chemblws")
         >>> res = s.get_one("targets/CHEMBL2476.json", "json")
         >>> res['organism']
@@ -732,7 +732,7 @@ class REST(RESTbase):
         #self.logging.info('getUserAgent: Begin')
         urllib_agent = 'Python-requests/%s' % requests.__version__
         #clientRevision = ''
-        from agroservice import version
+        from agroservices import version
         clientVersion = version
         user_agent = 'BioServices/%s (agroservices.%s; Python %s; %s) %s' % (
             clientVersion, os.path.basename(__file__),

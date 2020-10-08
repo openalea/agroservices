@@ -12,7 +12,7 @@
 import pkg_resources
 __version__ = "0.1.0"
 try:
-    version = pkg_resources.require("agroservice")[0].version
+    version = pkg_resources.require("agroservices")[0].version
     __version__ = version
 except:
     version = __version__
