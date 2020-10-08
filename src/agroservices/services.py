@@ -27,7 +27,7 @@ import platform
 import traceback
 
 from .settings import AgroServicesConfig
-from agroservice.extern.xmltools import easyXML
+from agroservices.extern.xmltools import easyXML
 
 # fixing compatiblity python 2 and 3 related to merging or urllib and urllib2 in python 3
 try:
