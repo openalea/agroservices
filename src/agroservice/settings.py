@@ -6,13 +6,32 @@ Created on Fri Aug  8 15:31:34 2014
 """
 import os
 from agroservice.extern.easydev.config_tools import DynamicConfigParser
-from agroservice.extern.easydev.doc import underline
 import copy
 import shutil
 
 import appdirs
 
 __all__ = ["defaultParams", "BioServicesConfig"]
+
+
+# copy of easy dev mini modules
+def underline(text, symbol="="):
+    """Underlines a string with a specific character
+
+    :param str text: the text to underline
+    :param str symbol: the character to be used to underline the text
+    :return: underlined text.
+
+    .. doctest::
+
+        >>> print(underline("test"))
+        test
+        ====
+
+    """
+    length = len(text)
+    return text + "\n" + length * symbol
+
 
 
 #TODO Move some contents to easydev.config_tools

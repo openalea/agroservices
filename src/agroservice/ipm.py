@@ -8,7 +8,7 @@
 
 ################## Interface Python IPM using Bioservice ########################################################
 
-from agroservice.extern.bioservices.services import REST
+from agroservice.services import REST
 
 __all__ = ["IPM"]
 

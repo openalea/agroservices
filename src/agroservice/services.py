@@ -21,11 +21,11 @@ from __future__ import print_function
 import os
 import sys
 import time
-import socket
 import platform
 import traceback
 
 from .settings import BioServicesConfig
+from agroservice.extern.xmltools import easyXML
 
 # fixing compatiblity python 2 and 3 related to merging or urllib and urllib2 in python 3
 try:
@@ -207,8 +207,8 @@ class Service(object):
             [<id>1</id>, <id>2</id>]
 
         """
-        from bioservices import xmltools
-        return xmltools.easyXML(res)
+
+        return easyXML(res)
 
     def __str__(self):
         txt = "This is an instance of %s service" % self.name
@@ -377,7 +377,7 @@ class REST(RESTbase):
 
     Get one value::
 
-        >>> from agroservices import REST
+        >>> from agroservice import REST
         >>> s = REST("test", "https://www.ebi.ac.uk/chemblws")
         >>> res = s.get_one("targets/CHEMBL2476.json", "json")
         >>> res['organism']
@@ -730,7 +730,7 @@ class REST(RESTbase):
         #self.logging.info('getUserAgent: Begin')
         urllib_agent = 'Python-requests/%s' % requests.__version__
         #clientRevision = ''
-        from agroservices import version
+        from agroservice import version
         clientVersion = version
         user_agent = 'BioServices/%s (agroservices.%s; Python %s; %s) %s' % (
             clientVersion, os.path.basename(__file__),
