@@ -28,7 +28,7 @@ package_dir = dict([('', pkg_root_dir)] +
 
 
 setup(
-    name="agroservice",
+    name="agroservices",
     version="0.1",
     description="",
     long_description="",

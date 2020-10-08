@@ -23,24 +23,24 @@ Follow official website instruction to install miniconda : http://conda.pydata.o
 
 **Create a new environment with agroservice installed in there :**
 ```
-conda create -n agroservice -c conda-forge agroservice
-conda activate agroservice
+conda create -n agroservices -c conda-forge agroservice
+conda activate agroservices
 ```
 **In a existing environment :**
 ```
-conda install -c conda-forge agroservice
+conda install -c conda-forge agroservices
 ```
 
 ### From source
 ```
 # Install dependency with conda
-conda create -n agroservice -c conda-forge python=3
-conda activate agroservice
-conda install -c conda-forge -c bioservice pytest
+conda create -n agroservices -c conda-forge python=3
+conda activate agroservices
+conda install -c conda-forge appdirs colorlog requests requests_cache pytest
 
 # Load agroservice and install
 git clone https://github.com/H2020-IPM-openalea/agroservice.git
-cd agroservice
+cd agroservices
 python setup.py develop
 
 # (Optional) Test your installation
@@ -49,7 +49,10 @@ cd test; pytest
 
 ## Requierments
 * python 3.8
-* bioservice
+* appdirs
+* colorlog
+* requests
+* requests_cache
 
 ## Documentation
 not available for the moment. However each function are documented by docstring

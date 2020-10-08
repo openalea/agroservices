@@ -1,6 +1,6 @@
 import pytest
 from urllib.request import urlopen
-from agroservice.ipm import IPM
+from agroservices.ipm import IPM
 
 def test_url():
     ipm = IPM()
