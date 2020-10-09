@@ -89,7 +89,7 @@ class IPM(REST):
             a list of all the weather parameters used in the platform in json format
         """    
 
-        res = self.services.http_get("/wx/rest/parameter", frmt='json',
+        res = self.services.http_get("wx/rest/parameter", frmt='json',
                 headers=self.services.get_headers(content='json'),
                 params={'callback':self.callback})
         return res
