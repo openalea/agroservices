@@ -22,7 +22,7 @@ except ImportError:
 
 
 import os
-
+import appdirs
 
 __all__ = ["CustomConfig", "DynamicConfigParser", "ConfigExample", 
            "load_configfile"]
@@ -370,7 +370,6 @@ class CustomConfig(object):
 
     def __init__(self, name, verbose=False):
         self.verbose = verbose
-        from easydev import appdirs
         self.appdirs = appdirs.AppDirs(name)
 
     def init(self):
