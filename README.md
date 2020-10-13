@@ -1,4 +1,4 @@
-# agroservice
+# agroservices
 
 **authors:** 
 * Marc Labadie (marc.labadie@inrae.fr)
@@ -23,7 +23,7 @@ Follow official website instruction to install miniconda : http://conda.pydata.o
 
 **Create a new environment with agroservice installed in there :**
 ```
-conda create -n agroservices -c conda-forge agroservice
+conda create -n agroservices -c conda-forge agroservices
 conda activate agroservices
 ```
 **In a existing environment :**
