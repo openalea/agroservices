@@ -35,6 +35,8 @@ class IPM(REST):
         >>> ipm.weatheradapter_service()
         >>> ipm.get_weatheradapter(endpoint, frmt="json",credentials=None,ignoreErrors=True, interval=3600, parameters=[1002,3002], timeStart='2020-06-12T00:00:00+03:00', timeEnd='2020-07-03T00:00:00+03:00', weatherStationId=101104 )
         >>> ipm.get_weatheradapter_forecaste(altitude=None, latitutude, longitude)
+        >>> ipm.post_weatheradapter #TODO if needed
+        >>> ipm.post_weatheradapter_forecast #TODO if needed 
 
         WeatherDataService
         ------------------
@@ -58,7 +60,7 @@ class IPM(REST):
         ---------------
         >>> dss.get_schema_fieldobservation()
         >>> dss.get_schema_modeloutput()
-        >>> dss.post_schema_modeloutput_validate()
+        >>> dss.post_schema_modeloutput_validate() #TODO
     """
 
     _url = "https://ipmdecisions.nibio.no/api"
@@ -218,18 +220,53 @@ class IPM(REST):
             parameters: (list)  Comma separated list of the requested weather parameters
             timeStart: Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00)
             timeEnd: End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00)
-            weatherStationId: The weather station id (FMISID) 
-                              in the open data API https://en.ilmatieteenlaitos.fi/observation-stations?filterKey=groups&filterQuery=weather
+            weatherStationId: The weather station id (FMISID) in the open data API https://en.ilmatieteenlaitos.fi/observation-stations?filterKey=groups&filterQuery=weather
 
         Returns:
         --------
             weather observations in the IPM Decision's weather data format in json format
         """
-        # test endpoint argument
+
+        # Test
+        ############
+
+        sources = self.get_weatherdatasource()
+
+        ## test endpoint argument
         endpoints = self.weatheradapter_service(forecast=False)
         if not endpoint in endpoints.values():
             raise ValueError("endpoint error: weatheradapter service not exit \n"
                              "or is a forecast weatheradapter in this case used weatheradapter_forecast")
+
+        ## test credentials
+        authentification = {item["endpoint"].split("rest")[1]:item['authentication_required']for item in sources}
+        if authentification[endpoint]=='false':
+            credentials is None
+        else:
+            raise ValueError("authentification in credentials argument is requiered")
+
+        ## Test parameters
+        param = {item["endpoint"].split("rest")[1]:item['parameters']for item in sources}
+
+        for item in parameters:
+            if item not in param[endpoint]['common'] or param[endpoint]['optional']:
+                raise ValueError(
+                    str(item) + 
+                    " are not available parameter, please choose among valid parameter " +
+                    str(param[endpoint]))
+
+        ## Test TimeStart
+        startdate = {item["endpoint"].split("rest")[1]:item["temporal"]["historic"]["start"] for item in sources}
+
+        if startdate[endpoint] > timeStart.split('T')[0]:
+            raise ValueError('TimeStart are not correct, please entry date after ' + startdate[endpoint])
+        
+        ## test WeatherId
+        geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources}
+        list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
+
+        if not str(weatherStationId) in list_stationid.values():
+            raise ValueError("WeatherStationId are not available please choose among valid weatherStationId: "+ str(list_stationid))
         
         # params according to weather adapterservice (endpoints), difference if or not credentials
         if credentials is None:
