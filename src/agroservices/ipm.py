@@ -32,12 +32,9 @@ class IPM(REST):
         
         WeatherAdaptaterService
         ------------------------
-        >>> ipm.get_weatheradapter_fmi(ignoreErrors=True,interval= 3600,parameters=1001,timeEnd= "2020-07-03T00:00:00+03:00",timeStart= "2020-06-12T00:00:00+03:00",weatherStationId=101533)
-        >>> ipm.post_weatheradapter_fmi() TODO
-        >>> ipm.get_weatheradapter_fmi_forecasts(latitude=43.36, longitude=3.52)
-        >>> ipm.post_weatheradapter_fmi_forecasts() TODO
-        >>> ipm.get_weatheradapter_yr(altitude=56, latitude=43.36, longitude=3.52)
-        >>> ipm.post_weatheradapter_yr() TODO
+        >>> ipm.weatheradapter_service()
+        >>> ipm.get_weatheradapter(endpoint, frmt="json",credentials=None,ignoreErrors=True, interval=3600, parameters=[1002,3002], timeStart='2020-06-12T00:00:00+03:00', timeEnd='2020-07-03T00:00:00+03:00', weatherStationId=101104 )
+        >>> ipm.get_weatheradapter_forecaste(altitude=None, latitutude, longitude)
 
         WeatherDataService
         ------------------
@@ -235,9 +232,8 @@ class IPM(REST):
                              "or is a forecast weatheradapter in this case used weatheradapter_forecast")
         
         # params according to weather adapterservice (endpoints), difference if or not credentials
-        if (credentials is not None or not credentials):
+        if credentials is None:
             params=dict(callback=self.callback,
-            credentials = credentials,
             ignoreErrors = ignoreErrors,
             interval = interval,
             parameters=','.join(map(str,parameters)),
@@ -246,6 +242,7 @@ class IPM(REST):
             weatherStationId=weatherStationId)
         else:
             params=dict(callback=self.callback,
+            credentials = credentials,
             ignoreErrors = ignoreErrors,
             interval = interval,
             parameters=','.join(map(str,parameters)),
@@ -318,173 +315,6 @@ class IPM(REST):
             )
         
         return res
-
-    # def get_weatheradapter_fmi(
-    #     self,
-    #     frmt="json",
-    #     ignoreErrors="ignoreErrors",
-    #     interval= "interval",
-    #     parameters="parameters",
-    #     timeEnd= "timeEnd",
-    #     timeStart= "timeStart",
-    #     weatherStationId="weatherStationId"
-    #     ):
-    #     """
-    #     Get weather observations in the IPM Decision's weather data format from the Finnish Meteorological Institute https://en.ilmatieteenlaitos.fi/ Access is made through the Institute's open data API: https://en.ilmatieteenlaitos.fi/open-data
-       
-    #     Parameters:
-    #     -----------
-    #         ignoreErrors: (Bolean) Set to "true" if you want the service to return weather data regardless of there being errors in the service
-    #         interval: (int) he measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly)
-    #         parameters: (string of  Comma separated list) of the requested weather parameters
-    #         timeStart: (string) Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00)
-    #         timeEnd: (string) End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00)
-    #         weatherStationId: The weather station id (FMISID) in the open data API https://en.ilmatieteenlaitos.fi/observation-stations?filterKey=groups&filterQuery=weather
-
-    #     Returns:
-    #     --------
-    #         weather observations in the IPM Decision's weather data format from the Finnish Meteorological Institute https://en.ilmatieteenlaitos.fi/ in json format
-    #     """
-    #     params=dict(callback=self.callback,
-    #             ignoreErrors = ignoreErrors,
-    #             interval = interval,
-    #             parameters=','.join(map(str,parameters)),
-    #             timeEnd=timeEnd,
-    #             timeStart=timeStart,
-    #             weatherStationId=weatherStationId)
-
-    #     res = self.services.http_get(
-    #         "wx/rest/weatheradapter/fmi", 
-    #         frmt=frmt,
-    #         headers=self.services.get_headers(content=frmt),
-    #         params= params
-    #         )
-
-    #     return res
-    
-    # def post_weatheradapter_fmi(self):
-    #     """
-    #     parameters:
-    #     -----------
-    #     ignoreErrors: (Bolean) Set to "true" if you want the service to return weather data regardless of there being errors in the service
-    #     interval: (int) he measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly)
-    #     parameters: (list)  Comma separated list of the requested weather parameters
-    #     timeStart: Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00)
-    #     timeEnd: End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00)
-    #     weatherStationId: The weather station id (FMISID) in the open data API https://en.ilmatieteenlaitos.fi/observation-stations?filterKey=groups&filterQuery=weather
-
-    #     Returns:
-    #     --------
-    #      weather observations in the IPM Decision's weather data format from the Finnish Meteorological Institute https://en.ilmatieteenlaitos.fi/ in json format
-    #     """
-    #     pass
-
-    # def get_weatheradapter_fmi_forecasts(
-    #     self,
-    #     frmt='json',
-    #     latitude="latitude", 
-    #     longitude="longitude"
-    #     ):
-    #     """
-    #     Get 36 hour forecasts from FMI (The Finnish Meteorological Institute), using their OpenData services at https://en.ilmatieteenlaitos.fi/open-data
-        
-    #     Parameters:
-    #     -----------
-    #         latitude: (double) WGS84 Decimal degrees
-    #         longitude: (double) WGS84 Decimal degrees
-        
-    #     Returns:
-    #     --------
-    #         36 hour forecasts from FMI (The Finnish Meteorological Institute), using their OpenData services at https://en.ilmatieteenlaitos.fi/open-data
-    #         the weather forecast formatted in the IPM Decision platform's weather data format
-    #     """
-    #     params = dict(
-    #         callback=self.callback,
-    #         latitude=latitude, 
-    #         longitude=longitude
-    #         )
-
-    #     res = self.services.http_get(
-    #         "wx/rest/weatheradapter/fmi/forecasts", 
-    #         frmt=frmt,
-    #         headers=self.services.get_headers(content=frmt),
-    #         params=params
-    #         )
-
-    #     return res
-    
-    # def post_weatheradapter_fmi_forecasts(
-    #     self,
-    #     frmt='json',
-    #     latitude="latitude",
-    #     longitude="longitude"
-    #     ):
-
-    #     """
-    #     Parameters:
-    #     -----------
-    #         latitude: (double) WGS84 Decimal degrees
-    #         longitude: (double) WGS84 Decimal degrees
-        
-    #     Returns:
-    #     --------
-    #         36 hour forecasts from FMI (The Finnish Meteorological Institute), using their OpenData services at https://en.ilmatieteenlaitos.fi/open-data
-    #         the weather forecast formatted in the IPM Decision platform's weather data format
-    #     """
-        
-
-    # # weatheradapter_yr
-    # def get_weatheradapter_yr(
-    #     self, 
-    #     frmt="json",
-    #     altitude='altitude',
-    #     longitude='longitude',
-    #     latitude='latitude'
-    #     ):
-
-    #     """
-    #     Get 9 day weather forecasts from The Norwegian Meteorological Institute's Locationforecast API
-
-    #     Parameters:
-    #     -----------
-    #         altitute: (double) Meters above sea level. This is used for correction of temperatures (outside of Norway, where the local topological model is used) eg:56
-    #         latitude: (double) WGS84 Decimal degrees eg:43.36
-    #         longitude: (double) WGS84 Decimal degrees eg:3.52
-    #     Returns:
-    #     --------
-    #         9 day weather forecasts from The Norwegian Meteorological Institute's Locationforecast API 
-    #         the weather forecast formatted in the IPM Decision platform's weather data format (json)
-    #     """
-    #     params = dict(
-    #         callback=self.callback,
-    #         altitude= altitude,
-    #         latitude=latitude, 
-    #         longitude=longitude
-    #         )
-
-    #     res = self.services.http_get(
-    #         "wx/rest/weatheradapter/yr", 
-    #         frmt=frmt,
-    #         headers=self.services.get_headers(content=frmt),
-    #         params=params
-    #         )
-
-    #     return res
-    
-    # def post_weatheradapter_yr(self):
-    #     """
-    #     Parameters:
-    #     -----------
-    #         altitute: (double) Meters above sea level. This is used for correction of temperatures (outside of Norway, where the local topological model is used)
-    #         latitude: (double) WGS84 Decimal degrees
-    #         longitude: (double) WGS84 Decimal degrees
-        
-    #     Returns:
-    #     --------
-    #         9 day weather forecasts from The Norwegian Meteorological Institute's Locationforecast API 
-    #         the weather forecast formatted in the IPM Decision platform's weather data format (json)
-    #     """
-    #     pass
 
     ###################### WeatherDataService ##################################
 
