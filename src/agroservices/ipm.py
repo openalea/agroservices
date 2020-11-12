@@ -238,10 +238,13 @@ class IPM(REST):
             raise ValueError("endpoint error: weatheradapter service not exit \n"
                              "or is a forecast weatheradapter in this case used weatheradapter_forecast")
 
-        ## test credentials
+        ## test credentials (not available test)
         authentification = {item["endpoint"].split("rest")[1]:item['authentication_required']for item in sources}
         if authentification[endpoint]=='false':
-            credentials is None
+            if credentials==None:
+                pass    
+            else:
+                raise ValueError("Credentials is not requiered")
         else:
             raise ValueError("authentification in credentials argument is requiered")
 
