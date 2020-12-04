@@ -27,7 +27,7 @@ class IPM(REST):
         ----------------
         >>> ipm.get_parameter()
         >>> ipm.get_qc()
-        >>> ipm.get_schema_weatherdata() TypeError:get_schema_weatherdata() takes 0 positional arguments but 1 was given
+        >>> ipm.get_schema_weatherdata() TypeError:get_schema_weatherdata() 
         >>> ipm.post_schema_weatherdata_validate() TODO
         
         WeatherAdaptaterService
@@ -42,7 +42,7 @@ class IPM(REST):
         ------------------
         >>> ipm.get_weatherdatasource()
         >>> ipm.post_weatherdatasource_location(tolerence=0) TODO
-        >>> ipm.get_weatherdatasource_location_point(latitude=43.36, longitude=3.52,tolerence=0)
+        >>> ipm.get_weatherdatasource_location_point()
 
         DSSService
         ----------
@@ -302,9 +302,9 @@ class IPM(REST):
         self,
         endpoint,
         frmt='json',
-        altitude='altitude', 
-        latitude= 'latitude', 
-        longitude = 'longitude'
+        altitude=70, 
+        latitude= 67.2828, 
+        longitude = 14.3711
         ):
         """
         Get weather observation from forecast weatheradapter 
