@@ -1,0 +1,619 @@
+# TEST YAML sample of model meta data to be used by the plaform
+# (c) 2020 Tor-Einar Skog <tor-einar.skog@nibio.no>
+---
+# General info about the DSS
+id: no.nibio.vips
+version: "2.0"
+name: VIPS
+url: https://www.vips-landbruk.no/
+organization: 
+ name: NIBIO
+ country: Norway
+ address: Postboks 115
+ postal_code: "1431"
+ city: Ås
+ email: berit.nordskog@nibio.no
+ url: https://www.nibio.no/
+languages:
+- Norwegian
+- English
+# From here on we get model specific
+# There may be many DSS models per DSS
+# They should have their separate list entry
+# We use EPPO codes (https://gd.eppo.int/)
+# for pests and crops
+# We use these parameters/codes for weather data: 
+# https://github.com/H2020-IPM-Decisions/formats/blob/master/weather_data/weather_parameters_draft_v2.yaml
+models:
+- name: Carrot rust fly temperature model
+  id: PSILARTEMP
+  version: "1.0"
+  authors: # List of the model authors
+  - name: Berit Nordskog
+    email: berit.nordskog@nibio.no
+    organization: NIBIO
+  pests: 
+  - PSILRO # EPPO code for carrot rust fly
+  crops:
+  - DAUCS # EPPO code for carrot
+  keywords: foo, bar, mechanistic, regression
+  type_of_decision: Short-term tactical
+  type_of_output: Risk indication
+  description_URL: https://www.vips-landbruk.no/forecasts/models/PSILARTEMP/
+  description: |
+    The warning system model «Carrot rust fly temperature» is based on a Finnish temperature-based model (Markkula et al, 1998; Tiilikkala & Ojanen, 1999; Markkula et al, 2000). The model determines the start of the flight period for the 1st and 2nd generation of carrot rust fly based on accumuleted degree-days (day-degrees) over a base temperature of 5,0 °C. VIPS uses the model for the 1st generation only. 
+    Standard air temperature (temperature measured 2 m above ground) is used in the model. Degree-days are defined for this model as the sum of the difference between a base temperature of 5,0 °C and the mean temperature for all days with a temperature >5,0 °C, in other words (daily mean temperature – 5,0 °C) from 1 March (beginning when the ground has thawed).
+  citation: null # Optional. Use the DOI as identifier (list)
+  # Where has this model been considered valid
+  valid_spatial:
+    # Using country codes to get GeoJSON. Saves a lot of duplication.
+    # ISO-3166-1 Three-letter country codes https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
+    countries:
+      - NOR
+    # Optionally, use a custom polygon
+    geoJSON: |-
+      {}
+  input:
+   weather: 
+   - parameter_code: 1002 # = Mean air temp at 2m
+     interval: 86400 # Sampling interval in seconds (3600 * 24 = 86400)
+  execution: 
+    type: ONTHEFLY
+    endpoint: https://coremanager.vips.nibio.no/models/PSILARTEMP/run/ipmd
+    form_method: post # Could be get or post
+    content_type: application/json # Regular forms: application/x-www-form-urlencoded , Regular forms with files (<input type="file">): multipart/form-data
+    # The input template should adhere to the JSON Schema standard: https://json-schema.org/
+    input_schema: |
+      {
+        "type":"object",
+        "properties": {
+          "modelId": {"type": "string", "pattern":"^PSILARTEMP$", "title": "Model Id", "default":"PSILARTEMP", "description":"Must be PSILARTEMP"},
+          "configParameters": {
+            "title":"Configuration parameters",
+            "type": "object",
+            "properties": {
+              "timeZone": {"type": "string", "title": "Time zone (e.g. Europe/Oslo)", "default":"Europe/Oslo"},
+              "timeStart": {"type":"string","format": "date", "title": "Start date of calculation (YYYY-MM-DD)"},
+              "timeEnd": {"type":"string","format": "date", "title": "End date of calculation (YYYY-MM-DD)"}
+            },
+            "required": ["timeZone","timeStart","timeEnd"]
+          },
+          "weatherData": {
+            "$ref": "https://ipmdecisions.nibio.no/api/wx/rest/schema/weatherdata"
+          }
+        },
+        "required": ["modelId","configParameters"]
+      }
+    # Definition of the result parameters specific for this DSS model
+  output: 
+    warning_status_interpretation: |-
+      Green warning indicates that the flight period has not yet begun.
+      Yellow warning indicates that the flight period is beginning and that flies can be coming into the field.
+      Red warning indicates peak flight period.
+      Grey warning indicates that the flight period of the 1st generation is over.
+      Be aware that in areas with field covers (plastic, single or double non-woven covers, etc.) with early crops the preceding season (either on the current field or neighboring fields), the flight period can start earlier due to higher soil temperature under the covers.
+    result_parameters:
+      # the id is used with the model_id as the namespace
+      - id: TMDD5C
+        title: Accumulated day degrees
+        description: The accumulated day degrees with a base temperature of 5 degrees celcius
+########### TODO finish adapt
+- name: Carrot rust fly observation model
+  id: PSILAROBSE
+  version: "1.0"
+  authors: # List of the model authors
+  - name: Tor J. Johansen
+    email: tor.johansen@nibio.no
+    organization: NIBIO
+  pests: 
+  - PSILRO # EPPO code for carrot rust fly
+  crops:
+  - DAUCS # EPPO code for carrot
+  keywords: foo, bar, mechanistic, regression
+  type_of_decision: Short-term tactical
+  type_of_output: Risk indication
+  description_URL: https://www.vips-landbruk.no/forecasts/models/PSILARTEMP/
+  description: |
+    The warning system model is based on weekly observations of adult carrot rust flies captured on yellow sticky traps. The model is based in its entirety on observations, with no input of weather data or weather forecasts. Traps are placed in the field edge and in the field and are examined for carrot rust flies weekly throughout the season. The number of adult carrot rust flies is registered in VIPS and is used in the warning system model. The observations are compared with the economic threshold levels and a warning is calculated. After organophosphates (which had a good effect against larvae) were removed from the market, they were replaced by pyrethroids that only work against the adult stage. Studies were carried out in 2005 and 2006 to adjust the larval-based thresholds to chemical control of adult flies. The experience from Norway and other countries indicated that the first treatment against carrot rust flies should be done as soon as possible after the first fly is observed on the traps. The threshold that is used in VIPS is therefore at the first observation of 1 fly.
+  citation: null # Optional. Use the DOI as identifier (list)
+  # Where has this model been considered valid
+  valid_spatial:
+    # Using country codes to get GeoJSON. Saves a lot of duplication.
+    # ISO-3166-1 Three-letter country codes https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
+    countries:
+      - NOR
+    # Optionally, use a custom polygon
+    geoJSON: |-
+      {}
+  input:
+   field_observation:
+    species: 
+    - PSILRO # EPPO Code for the disease
+  execution: 
+    type: ONTHEFLY
+    endpoint: https://coremanager.vips.nibio.no/models/PSILAROBSE/run/ipmd
+    form_method: post # Could be get or post
+    content_type: application/json # Regular forms: application/x-www-form-urlencoded , Regular forms with files (<input type="file">): multipart/form-data
+    # The input template should adhere to the JSON Schema standard: https://json-schema.org/
+    input_schema: |
+      {
+        "type":"object",
+        "properties": {
+          "modelId": {"type": "string", "pattern":"^PSILAROBSE$", "title": "Model Id", "default":"PSILAROBSE", "description":"Must be PSILAROBSE"},
+          "configParameters": {
+            "title":"Configuration parameters",
+            "type": "object",
+            "properties": {
+              "timeZone": {"type": "string", "title": "Time zone (e.g. Europe/Oslo)", "default":"Europe/Oslo"},
+              "startDateCalculation": {"type":"string","format": "date", "title": "Start date of calculation (YYYY-MM-DD)"},
+              "endDateCalculation": {"type":"string","format": "date", "title": "End date of calculation (YYYY-MM-DD)"},
+              "fieldObservations": {
+                "title": "Field observations",
+                "type": "array",
+                "items": {
+                  "$ref": "https://ipmdecisions.nibio.no/api/dss/rest/schema/fieldobservation"
+                }
+              },
+              "fieldObservationQuantifications": {
+                "title": "Field observation quantifications",
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/definitions/fieldObs_PSILRO"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": ["timeZone","startDateCalculation","endDateCalculation"]
+          }
+        },
+        "required": ["modelId","configParameters"],
+        "definitions": {
+          "fieldObs_PSILRO": {
+            "title": "Psila rosae quantification", 
+            "properties": {
+              "trapCountCropEdge":{"title":"Insect trap count at the edge of the field","type":"integer"},
+              "trapCountCropInside":{"title":"Insect trap count inside the field","type":"integer"}
+            },
+            "required": ["trapCountCropEdge","trapCountCropInside"]
+          }
+        }
+      }
+    # Definition of the result parameters specific for this DSS model
+  output: 
+    warning_status_interpretation: |-
+      Green rectangles indicate that the damage threshold has not been reached and there is no need for treatment.
+
+      Yellow rectangles indicate that carrot rust flies have been caught on traps at the edge of the field and it may be necessary to treat. The field should be checked to evaluate whether treatment is necessary.
+
+      Red rectangles indicate that carrot rust flies have been caught on traps in the field. The field should be checked to evaluate whether treatment is necessary.
+
+      The damage threshold for the first observation on sticky traps is 1 fly. Attack will vary from field to field, we recommend therefore that observations are made in addition in the farmer’s own field. Control measures should be used as soon as possible after the first observation in the farmer’s own field (if the plants are dry, without precipitation and the plants have reached the first true-leaf stage. Consider, based on previous experience and the size and shape of the field whether the entire field or only the border rows should be treated.
+    result_parameters:
+      # the id is used with the model_id as the namespace
+      - id: TRAP_COUNT_CROP_EDGE
+        title: Insect trap count at the edge of the field
+        description: Insect trap count at the edge of the field
+      - id: TRAP_COUNT_CROP_INSIDE
+        title: Insect trap count inside the field
+        description: Insect trap count inside the field
+###########
+- name: Nærstad model
+  id: NAERSTADMO
+  version: "1.0"
+  authors: # List of the model authors
+  - name: Ragnhild Nærstad
+    email: ragnhild.naerstad@syngenta.com
+    organization: Syngenta
+  pests:
+  - PHYTIN # EPPO code for Potato late blight (Phytophthora infestans)
+  crops:
+  - SOLTU # EPPO code for potato
+  type_of_decision: Short-term tactical
+  type_of_output: Risk indication
+  description_URL: https://www.vips-landbruk.no/forecasts/models/NAERSTADMO/ 
+  description: |
+    The model is based on several years of experiments where trap plants have been placed next to a potato field infected with late blight. Infections on these plants have been correlated with weather conditions the day of exposure, and this is the data the model is based on. The model predicts if there are favourable conditions for spore production and the following spread, survival and infection of these spores. The model produces an infection risk, and a value of 2.5 corresponds to one spot of late blight on each trap plant exposed. This value of 2.5 is the threshold where the model issues a warning.
+  citation: null # Optional. Use the DOI as identifier (list)
+  # Where has this model been considered valid
+  valid_spatial:
+    # Using country codes to get GeoJSON. Saves a lot of duplication.
+    # ISO-3166-1 Three-letter country codes https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
+    countries:
+      - NOR
+      - SWE
+    # Optionally, use a custom polygon
+    geoJSON: |-
+      {}
+  input:
+   weather: # TODO: weather parameter codes, frequency codes and unit codes
+   - parameter_code: 1002 # = Mean temp at 2m measured in Celcius.
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+   - parameter_code: 2001 # Precipitation measured in mm. 
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+   - parameter_code: 5001 # Global radiation in W/sqm. 
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+   - parameter_code: 3002 # Relative humidity at 2m in % 
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+   - parameter_code: 3101  # Leaf wetness duration. Measured in minutes with wetness per period 
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+  execution:
+    type: ONTHEFLY
+    endpoint: https://coremanager.vips.nibio.no/models/NAERSTADMO/run/ipmd
+    form_method: post # Could be get or post
+    content_type: application/json # Regular forms: application/x-www-form-urlencoded , Regular forms with files (<input type="file">): multipart/form-data
+# The input template should adhere to the JSON Schema standard: https://json-schema.org/
+    input_schema: |
+      {
+        "type":"object",
+        "properties": {
+          "modelId": {"type": "string", "pattern":"^NAERSTADMO$", "title": "Model Id (Must be NAERSTADMO)", "default":"NAERSTADMO"},
+          "configParameters": {
+            "type": "object",
+            "title":"Configuration parameters",
+            "properties": {
+              "timeZone": {"type": "string", "title": "Time zone (e.g. Europe/Oslo)"},
+              "timeStart": {"type": "string","format": "date", "title": "Start date of calculation (YYYY-MM-DD)"},
+              "timeEnd": {"type": "string","format": "date", "title": "End date of calculation (YYYY-MM-DD)"}
+            },
+            "required": ["timeZone","timeStart","timeEnd"]
+          },
+          "weatherData": {
+            "$ref": "https://ipmdecisions.nibio.no/api/wx/rest/schema/weatherdata"
+          }
+        },
+        "required": ["modelId","configParameters"]
+      }
+  output: 
+    warning_status_interpretation: |-
+      Risk < 1 = no warning (Green)
+      Risk > 1 and < 2,5 = possible warning coming up if conditions persists (Yellow)
+      Risk > 2,5 = warning issued (Red)
+      When a warning is issued, any control measure should be considered based on cultivar resistance, choice of fungicide and time of last application. Risk of infection is highest after several consecutive days with warnings, and especially if late blight has been observed in the area.
+    result_parameters:
+      # the id is used with the model_id as the namespace
+      - id: RISK
+        title: Calculated risk value
+        description: Calculated risk value
+#####
+- name: Alternaria TOMCAST
+  id: ALTERNARIA
+  version: "1.0"
+  authors: # List of the model authors
+  - name: Dr R. E. Pitblado
+  pests:
+  - ALTESO # EPPO code for Alternaria solanum
+  crops:
+  - SOLTU # EPPO code for potato
+  type_of_decision: Short-term tactical
+  type_of_output: Risk indication
+  description_URL: https://www.vips-landbruk.no/forecasts/models/ALTERNARIA/ 
+  description: |
+    TOMCAST is based on a model that was originally developed for leaf spot diseases in tomato. The model that is used here is tested and adapted to be used against early blight in potato in Denmark (Alternaria solani). The model calculates daily risk values (DSV: Disease Severity Values) based on temperature and leaf wetness the previous day. DSV represents the risk of attack of early blight the previous 24 hours. Daily values of DSV are accumulated until a threshold value is reached, and treatment is recommended. When a spray is performed and entered into the model, accumulation of DSV is reset and starts over at 0.
+  citation: null # Optional. Use the DOI as identifier (list)
+  # Where has this model been considered valid
+  valid_spatial:
+    # Using country codes to get GeoJSON. Saves a lot of duplication.
+    # ISO-3166-1 Three-letter country codes https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
+    countries:
+      - NOR
+    # Optionally, use a custom polygon
+    geoJSON: |-
+      {}
+  input:
+   weather: # TODO: weather parameter codes, frequency codes and unit codes
+   - parameter_code: 1002 # = Mean temp at 2m measured in Celcius.
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+   - parameter_code: 3101  # Leaf wetness duration. Measured in minutes with wetness per period 
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+  execution:
+    type: ONTHEFLY
+    endpoint: https://coremanager.vips.nibio.no/models/ALTERNARIA/run/ipmd
+    form_method: post # Could be get or post
+    content_type: application/json # Regular forms: application/x-www-form-urlencoded , Regular forms with files (<input type="file">): multipart/form-data
+# The input template should adhere to the JSON Schema standard: https://json-schema.org/
+    input_schema: |
+      {
+        "type":"object",
+        "properties": {
+          "modelId": {"type": "string", "pattern":"^ALTERNARIA$", "title": "Model Id (Must be ALTERNARIA)", "default":"ALTERNARIA"},
+          "configParameters": {
+            "type": "object",
+            "title":"Configuration parameters",
+            "properties": {
+              "timeZone": {"type": "string", "title": "Time zone (e.g. Europe/Oslo)"},
+              "timeStart": {"type": "string","format": "date", "title": "Start date of calculation (YYYY-MM-DD)"},
+              "timeEnd": {"type": "string","format": "date", "title": "End date of calculation (YYYY-MM-DD)"},
+              "sprayingDates": {"type": "array", "minItems":0, "maxItems":3, "title": "Spraying dates","items":{"type":"string","format":"date"}}
+            },
+            "required": ["timeZone","timeStart","timeEnd"]
+          },
+          "weatherData": {
+            "$ref": "https://ipmdecisions.nibio.no/api/wx/rest/schema/weatherdata"
+          }
+        },
+        "required": ["modelId","configParameters"]
+      }
+  output: 
+    warning_status_interpretation: |-
+      The model will be green (no risk) until it reaches 15. From this value the warning will be yellow (possible risk) until the threshold is reached, and the warning turns red (risk of infection).
+    result_parameters:
+      # the id is used with the model_id as the namespace
+      - id: DSV_SUM
+        title: Aggregated Daily Disease Severity Value
+        description: The aggregated risk
+#####
+- name: Negative prognosis
+  id: NEGPROGMOD
+  version: "1.0"
+  authors: # List of the model authors
+  - name: Ullrich J. & H. Schrödter
+  pests:
+  - PHYTIN # EPPO code for Alternaria solanum
+  crops:
+  - SOLTU # EPPO code for potato
+  type_of_decision: Short-term tactical
+  type_of_output: Risk indication
+  description_URL: https://www.vips-landbruk.no/forecasts/models/NEGPROGMOD/ 
+  description: |
+    From a specific date (50% germination), daily risk values are accumulated based on weather data (temperature, relative humidity and precipitation). The risk is an accumulated value of how the weather affects late blight germination/infection, sporulation and growth. Alle processes are corrected for inhibition due to drying. After the accumulated risk has reached a certain limit (150), there will be an infection risk if there is one day with high infection risk. This model is together with time of row closure, used to decide the timing of first spray against potato late blight.
+  citation: null # Optional. Use the DOI as identifier (list)
+  # Where has this model been considered valid
+  valid_spatial:
+    # Using country codes to get GeoJSON. Saves a lot of duplication.
+    # ISO-3166-1 Three-letter country codes https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
+    countries:
+      - NOR
+    # Optionally, use a custom polygon
+    geoJSON: |-
+      {}
+  input:
+   weather: # TODO: weather parameter codes, frequency codes and unit codes
+   - parameter_code: 1002 # = Mean temp at 2m measured in Celcius.
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+   - parameter_code: 2001  # Precipitation
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+   - parameter_code: 3002 # Mean relative humidity (%)
+     interval: 3600
+  execution:
+    type: ONTHEFLY
+    endpoint: https://coremanager.vips.nibio.no/models/NEGPROGMOD/run/ipmd
+    form_method: post # Could be get or post
+    content_type: application/json # Regular forms: application/x-www-form-urlencoded , Regular forms with files (<input type="file">): multipart/form-data
+# The input template should adhere to the JSON Schema standard: https://json-schema.org/
+    input_schema: |
+      {
+        "type":"object",
+        "properties": {
+          "modelId": {"type": "string", "pattern":"^NEGPROGMOD$", "title": "Model Id (Must be NEGPROGMOD)", "default":"NEGPROGMOD"},
+          "configParameters": {
+            "type": "object",
+            "title":"Configuration parameters",
+            "properties": {
+              "timeZone": {"type": "string", "title": "Time zone (e.g. Europe/Oslo)"},
+              "timeStart": {"type": "string","format": "date", "title": "Start date of calculation (YYYY-MM-DD)"},
+              "timeEnd": {"type": "string","format": "date", "title": "End date of calculation (YYYY-MM-DD)"}
+            },
+            "required": ["timeZone","timeStart","timeEnd"]
+          },
+          "weatherData": {
+            "$ref": "https://ipmdecisions.nibio.no/api/wx/rest/schema/weatherdata"
+          }
+        },
+        "required": ["modelId","configParameters"]
+      }
+  output: 
+    warning_status_interpretation: |-
+      When accumulated risk < 150, warning symbol is green
+
+      When accumulated risk > 150, warning symbol is yellow if the daily risk is below 7 and red if it is above 7
+
+      When a late blight warning has been issued, cultivar suseptibility, selection of fungicide and time of application should be considered before spraying. Risk of getting an infection is highest if warnings are issued two days ore more in a row, and when late blight has been observed in the area. 
+    result_parameters:
+      # the id is used with the model_id as the namespace
+      - id: AGGREGATED_CONTRIB
+        title: Aggregated infection risk
+        description: The aggregated risk
+      - id: INFECTION_THRESHOLD
+        title: Infection threshold
+        description: Threshold for "High infection risk"
+#####
+- name: Septoria apiicola model
+  id: SEPAPIICOL
+  version: "1.0"
+  authors: # List of the model authors
+  - name: Berit Nordskog
+    email: berit.nordskog@nibio.no
+    organization: NIBIO
+  - name: Arne Hermansen
+    email: arne.hermansen@nibio.no
+    organization: NIBIO
+  pests: 
+  - SEPTAP # EPPO code for the disease
+  crops:
+  - APUGD # EPPO code for celery
+  type_of_decision: Short-term tactical
+  type_of_output: Risk indication
+  description_URL: https://www.vips-landbruk.no/forecasts/models/SEPAPIICOL/
+  description: |
+    This model is based on a calculation of how leaf wetness periods influence infection of celery by Septoria apiicola in susceptible host plants.
+    
+    Forecasts of infection risk are given after a minimum of 12 consecutive hours of leaf wetness. The wet periods are calculated from sensors placed 30 cm above ground. If such a sensor is not available, data from leaf wetness sensors placed 2 m above ground are used.
+    
+    The model is developed in Michigan, USA and published by Lacy, 1994.
+    
+    It is generally assumed that this model has additional relevance for Septoria petroselini in parsley.
+  citation: null # Optional. Use the DOI as identifier (list)
+  # Where has this model been considered valid
+  valid_spatial:
+    # Using country codes to get GeoJSON. Saves a lot of duplication.
+    # ISO-3166-1 Three-letter country codes https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
+    countries:
+      - NOR
+    # Optionally, use a custom polygon
+    geoJSON: |-
+      {}
+  input:
+   weather: # TODO: weather parameter codes, frequency codes and unit codes
+   - parameter_code: 3101  # Leaf wetness duration. Measured in minutes with wetness per period 
+     interval: 3600
+   - parameter_code: 1002 # = Mean temp at 2m measured in Celcius.
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+   - parameter_code: 2001  # Precipitation
+     interval: 3600 # The least detail accepted (higher frequencies can aggregate to lower)
+   - parameter_code: 3002 # Mean relative humidity (%)
+     interval: 3600
+   field_observation:
+    species: 
+    - SEPTAP # EPPO Code for the disease
+  execution:
+    type: ONTHEFLY # [ONTHEFLY, BATCH, TICKET]
+    endpoint: https://coremanager.vips.nibio.no/models/SEPAPIICOL/run/ipmd
+    form_method: post # Could be get or post
+    content_type: application/json # Regular forms: application/x-www-form-urlencoded , Regular forms with files (<input type="file">): multipart/form-data
+# The input template should adhere to the JSON Schema standard: https://json-schema.org/
+    input_schema: |
+      {
+        "type":"object",
+        "properties": {
+          "modelId": {"type": "string", "pattern":"^SEPAPIICOL$", "title": "Model Id (Must be SEPAPIICOL)", "default":"SEPAPIICOL"},
+          "configParameters": {
+            "title":"Configuration parameters",
+            "type": "object",
+            "properties": {
+              "timeZone": {"type": "string", "title": "Time zone (e.g. Europe/Oslo)"},
+              "startDateGrowth": {"type": "string", "format":"date", "title": "Start date of growth (YYYY-MM-DD)"},
+              "endDateCalculation": {"type": "string", "format":"date", "title": "End date of calculation (YYYY-MM-DD)"},
+              "fieldObservations": {
+                "title": "Field observations",
+                "type": "array",
+                "items": {
+                  "$ref": "https://ipmdecisions.nibio.no/api/dss/rest/schema/fieldobservation"
+                }
+              },
+              "fieldObservationQuantifications": {
+                "title": "Field observation quantifications",
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/definitions/fieldObs_SEPTAP"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": ["timeZone","startDateGrowth","endDateCalculation"]
+          },
+          "weatherData": {
+            "$ref": "https://ipmdecisions.nibio.no/api/wx/rest/schema/weatherdata"
+          }
+        },
+        "required": ["modelId","configParameters"],
+        "definitions": {
+          "fieldObs_SEPTAP": {"title": "Septoria apiicola quantification", "properties": {"observed":{"title":"observed", "type":"boolean"}}}
+        }
+      }
+  output: 
+    warning_status_interpretation: |-
+      Green = No risk of infection.
+      Yellow = Weather conditions favorable for infection risk. No known sources of inoculum in the region.
+      Red = Risk of infection and infections of Septoria late blight has been reported in the nearby region. Disease reports and field inspections are performed in collaboration with advisors in the Norwegian Agricultural Advisory service.
+    result_parameters:
+      # the id is used with the model_id as the namespace
+      - id: WET_DAY
+        title: Was this a wet day
+        description: Based on leaf wetness measurements
+      - id: PEST_OBSERVED
+        title: Has the pest been observed in or near the field, or in the nearby region
+        description: Without this, the warning status will never exceed yellow status
+##########
+- name: Bremia lactucae (Downy mildew of lettuce) model
+  id: BREMIALACT
+  version: "1.0"
+  authors: # List of the model authors
+  - name: Berit Nordskog
+    email: berit.nordskog@nibio.no
+    organization: NIBIO
+  pests: 
+  - BREMLA # EPPO code for Downy mildew of lettuce
+  crops:
+  - 1LACG # EPPO code for the genus Lactuca
+  keywords: none
+  type_of_decision: Short-term tactical
+  type_of_output: Risk indication
+  description_URL: https://www.vips-landbruk.no/forecasts/models/BREMIALACT/
+  description: |
+    TODO
+  citation: null # Optional. Use the DOI as identifier (list)
+  # Where has this model been considered valid
+  valid_spatial:
+    # Using country codes to get GeoJSON. Saves a lot of duplication.
+    # ISO-3166-1 Three-letter country codes https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
+    countries:
+      - NOR
+    # Optionally, use a custom polygon
+    geoJSON: |-
+      {}
+  input:
+   weather: 
+   - parameter_code: 1002 # = Mean air temp at 2m
+     interval: 86400 # Sampling interval in seconds (3600 * 24 = 86400)
+  execution: 
+    type: ONTHEFLY
+    endpoint: https://coremanager.vips.nibio.no/models/run/ipmd
+    form_method: post # Could be get or post
+    content_type: application/json # Regular forms: application/x-www-form-urlencoded , Regular forms with files (<input type="file">): multipart/form-data
+    # The input template should adhere to the JSON Schema standard: https://json-schema.org/
+    input_schema: |
+      {
+        "type":"object",
+        "properties": {
+          "modelId": {"type": "string", "pattern":"^PSILARTEMP$", "title": "Model Id", "default":"PSILARTEMP", "description":"Must be PSILARTEMP"},
+          "configParameters": {
+            "title":"Configuration parameters",
+            "type": "object",
+            "properties": {
+              "timeZone": {"type": "string", "title": "Time zone (e.g. Europe/Oslo)", "default":"Europe/Oslo"},
+              "timeStart": {"type":"string","format": "date", "title": "Start date of calculation (YYYY-MM-DD)"},
+              "timeEnd": {"type":"string","format": "date", "title": "End date of calculation (YYYY-MM-DD)"}
+            },
+            "required": ["timeZone","timeStart","timeEnd"]
+          },
+          "weatherData": {
+            "$ref": "https://ipmdecisions.nibio.no/api/wx/rest/schema/weatherdata"
+          }
+        },
+        "required": ["modelId","configParameters"]
+      }
+    # Definition of the result parameters specific for this DSS model
+  output: 
+    warning_status_interpretation: |-
+      Downy mildew in lettuce normally occurs in the second half of the summer, and not every year in lettuce producing regions.
+      Thus, spraying should only be considered after considering the likelihood of the disease being present.
+      When the model indicates a high risk of infection, spraying should be considered given a) the likelihoold of the disease being present,
+      given the time in the season, b) the lettuce variant's resilience towards the disease and c) the time since the last spraying.
+      Normally you don't spray more often than every 10th day, but if the infection risk is considered high over a longer period and 
+      actual field observations being made, one can consider a new treatment as early as 7 days since the last spraying.
+    result_parameters:
+      # the id is used with the model_id as the namespace
+      - id: TXD
+        title: Maximum daily temperature
+        description: The maximum daily temperature
+      - id: ELWAST
+        title: Was there enough leaf wetness after sunrise today
+        description: Was there enough leaf wetness after sunrise today
+      - id: ELWASYBST
+        title: Was there enough relative humidity after sunrise yesterday and befor sunrise today
+        description: Was there enough relative humidity after sunrise yesterday and befor sunrise today
+      - id: SLN
+        title: Was there sporulation last night
+        description: Was there sporulation last night
+      - id: SYN
+        title: Was there sporulation yesterday night
+        description: Was there sporulation yesterday night
+      - id: TXD_THRESHOLD
+        title: Max threshold for temperature for infection
+        description: If the max temperature is above this threshold, infection does not occur
