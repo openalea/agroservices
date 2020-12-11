@@ -699,7 +699,9 @@ class IPM(REST):
 
 ###############################  DSSMetaDataService ##############################################
 
-    def get_schema_dss(self,frmt='json'):
+    def get_schema_dss(
+        self,
+        frmt='json'):
         """
         Provides schemas and validation thereof
 
@@ -719,7 +721,9 @@ class IPM(REST):
         
         return res
 
-    def get_schema_fieldobservation(self, frmt='json'):
+    def get_schema_fieldobservation(
+        self, 
+        frmt='json'):
         """
         Get the generic schema for field observations, containing the common properties for field observations. 
         These are location (GeoJson), time (ISO-8859 datetime), EPPO Code for the pest and crop. 
@@ -742,7 +746,9 @@ class IPM(REST):
 
         return res
 
-    def get_schema_modeloutput(self, frmt='json'):
+    def get_schema_modeloutput(
+        self, 
+        frmt='json'):
         """
         Get The Json Schema for the platform's standard for DSS model output
 
@@ -762,7 +768,10 @@ class IPM(REST):
 
         return res
     
-    def post_schema_modeloutput_validate(self,frmt='json',jsonfile='modeloutput.json'):
+    def post_schema_modeloutput_validate(
+        self,
+        frmt='json',
+        jsonfile='modeloutput.json'):
         '''
         Validate model output against this schema: https://ipmdecisions.nibio.no/api/dss/rest/schema/modeloutput
 
@@ -785,7 +794,10 @@ class IPM(REST):
 
         return res
 
-    def post_schema_dss_yaml_validate(self,frmt='yaml',yamlfile='test_yaml_validate.yaml'):
+    def post_schema_dss_yaml_validate(
+        self,
+        frmt='yaml',
+        yamlfile='test_yaml_validate.yaml'):
         '''
         Validate DSS YAML description file, using this Json schema: https://ipmdecisions.nibio.no/api/dss/rest/schema/dss
         
@@ -803,6 +815,39 @@ class IPM(REST):
             "dss/rest/schema/modeloutput/validate",
             frmt="json",
             data=yaml.dump(data),
+            headers={"Content-Type": "application/json"}
+        )
+
+        return res
+    
+###############################  Run model ##############################################
+
+    def run_model(
+        self,
+        endpoint="https://coremanager.vips.nibio.no/models/PSILARTEMP/run/ipmd",
+        model_input="model_input.json"):
+        """
+        Run Dss Model
+
+        Parameters:
+        -----------
+            endpoint: endpoint of the model (eg:https://coremanager.vips.nibio.no/models/PSILARTEMP/run/ipmd)
+            model_input: Json file with input data for the model (eg. file model_input.json)
+
+        Returns:
+        --------
+            Json file containing result of model
+        """
+
+        self.services.url= endpoint
+ 
+        with open(model_input) as json_file:
+            data=json.load(json_file)
+        
+        res = self.services.http_post(
+            query= None,
+            frmt='json',
+            data=json.dumps(data),
             headers={"Content-Type": "application/json"}
         )
 
