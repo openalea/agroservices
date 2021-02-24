@@ -289,6 +289,14 @@ class IPM(REST):
             timeEnd=timeEnd,
             timeStart=timeStart,
             weatherStationId=weatherStationId)
+
+            res = self.services.http_get(
+            "wx/rest"+ endpoint, 
+            frmt=frmt,
+            headers=self.services.get_headers(content=frmt),
+            params= params
+            )
+
         else:
             params=dict(callback=self.callback,
             credentials = credentials,
@@ -299,11 +307,12 @@ class IPM(REST):
             timeStart=timeStart,
             weatherStationId=weatherStationId)        
 
-        res = self.services.http_get(
+            res = self.services.http_post(
             "wx/rest"+ endpoint, 
             frmt=frmt,
-            headers=self.services.get_headers(content=frmt),
-            params= params
+            headers={"Content-Type": "application/json"},
+            params= params,
+            data=None
             )
 
         return res
@@ -364,12 +373,6 @@ class IPM(REST):
             )
         
         return res
-
-    def post_weatheradapter(self):
-        pass
-
-    def post_weatheradapter_forecaste(self):
-        pass
 
     ###################### WeatherDataService ##################################
 
@@ -824,7 +827,8 @@ class IPM(REST):
 
     def run_model(
         self,
-        endpoint="https://coremanager.vips.nibio.no/models/PSILARTEMP/run/ipmd",
+        ModelId="no.nibio.vips",
+        DSSId="PSILARTEMP",
         model_input="model_input.json"):
         """
         Run Dss Model
@@ -838,12 +842,20 @@ class IPM(REST):
         --------
             Json file containing result of model
         """
-
-        self.services.url= endpoint
- 
-        with open(model_input) as json_file:
-            data=json.load(json_file)
+        source= self.get_dss()
+       
+        #dictionnary containing modelId and DSSid and endpoint
+        d= {el['id']:{el['models'][item]['id']:el['models'][item]['execution']['endpoint'] for item in range(len(el['models']))} for el in source}
         
+        # Change url according endpoint
+        self.services.url= d[ModelId][DSSId]
+
+        if (type(model_input) is str and model_input.endswith('.json')):
+            with open(model_input) as json_file:
+                data = json.load(json_file)
+        else:
+            data= model_input
+
         res = self.services.http_post(
             query= None,
             frmt='json',
@@ -851,4 +863,10 @@ class IPM(REST):
             headers={"Content-Type": "application/json"}
         )
 
+        # return url ipm
+        self.services.url= "https://ipmdecisions.nibio.no/api"
+        
         return res
+
+
+   
