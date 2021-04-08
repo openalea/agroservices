@@ -115,7 +115,7 @@ def test_get_weatheradapter_fmi_forecasts():
     assert res['locationWeatherData'][0]['longitude']==14.3711
     assert res['locationWeatherData'][0]['altitude']==0
     assert res['weatherParameters']==[2001, 4002, 5001, 1002, 3002, 1901]
-    assert res['locationWeatherData'][0]['length']==40
+    
 
 def test_get_weatheradapter_yr():
     ipm=IPM()
@@ -130,7 +130,7 @@ def test_get_weatheradapter_yr():
     assert res['locationWeatherData'][0]['longitude']==14.3711
     assert res['locationWeatherData'][0]['latitude']==67.2828
     assert res['weatherParameters']==[1001, 3001, 2001, 4002]
-    assert res['locationWeatherData'][0]['length']==224
+    
 
 def test_weatheradapter_Landbrukmeterologisk():
     """todo"""
@@ -145,7 +145,7 @@ def test_weatheradapter_MeateoBot():
         ignoreErrors=True,
         timeStart='2020-06-12',
         timeEnd='2020-07-03',
-        parameters=[1002,3002],
+        parameters=[1001],
         credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
     pass
 
@@ -158,7 +158,7 @@ def test_weatheradapter_metos():
         interval=3600,
         timeStart='2020-06-12',
         timeEnd='2020-07-03',
-        parameters=[1002,3002],
+        parameters=[1001],
         credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
 
 def test_weatheradapter_Fruitdevis():
@@ -169,7 +169,7 @@ def test_weatheradapter_Fruitdevis():
         ignoreErrors=True,
         timeStart='2020-06-12',
         timeEnd='2020-07-03',
-        parameters=[1002,3002],
+        parameters=[1001],
         credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
 
 #################### WeatherDataService #########################################
