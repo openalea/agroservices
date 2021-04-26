@@ -314,7 +314,8 @@ class IPM(REST):
             frmt=frmt,
             headers={"Content-Type": "application/json"},
             params= params,
-            data=None
+            data=None,
+            auth=(credentials["username"],credentials["password"])
             )
 
         return res
