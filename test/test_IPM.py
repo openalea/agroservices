@@ -136,7 +136,7 @@ def test_weatheradapter_Landbrukmeterologisk():
     """todo"""
     pass
 
-def test_weatheradapter_MeateoBot():
+def test_weatheradapter_MeteoBot():
     ipm = IPM()
     res= ipm.get_weatheradapter(
         endpoint='/weatheradapter/meteobot/',
