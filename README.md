@@ -36,7 +36,7 @@ conda install -c conda-forge agroservices
 # Install dependency with conda
 conda create -n agroservices -c conda-forge python=3
 conda activate agroservices
-conda install -c conda-forge appdirs bs4 colorlog requests requests_cache pytest
+conda install -c conda-forge appdirs bs4 pygments colorlog requests requests_cache pytest
 
 # Load agroservice and install
 git clone https://github.com/H2020-IPM-openalea/agroservices.git
@@ -54,6 +54,7 @@ cd test; pytest
 * colorlog
 * requests
 * requests_cache
+* pygments
 
 ## Documentation
 not available for the moment. However each function are documented by docstring
