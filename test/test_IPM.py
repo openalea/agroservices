@@ -140,20 +140,20 @@ def test_weatheradapter_MeateoBot():
     ipm = IPM()
     res= ipm.get_weatheradapter(
         endpoint='/weatheradapter/meteobot/',
-        weatherStationId=18150029,
+        weatherStationId=732,
         interval=3600,
         ignoreErrors=True,
         timeStart='2020-06-12',
         timeEnd='2020-07-03',
         parameters=[1001],
         credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
-    pass
+    
 
 def test_weatheradapter_metos():
     ipm = IPM()
     res= ipm.get_weatheradapter(
         endpoint='/weatheradapter/metos/',
-        weatherStationId=18150029,
+        weatherStationId=732,
         ignoreErrors=True,
         interval=3600,
         timeStart='2020-06-12',
@@ -165,7 +165,7 @@ def test_weatheradapter_Fruitdevis():
     ipm = IPM()
     res= ipm.get_weatheradapter(
         endpoint='/weatheradapter/davisfruitweb/',
-        weatherStationId=18150029,
+        weatherStationId=732,
         ignoreErrors=True,
         timeStart='2020-06-12',
         timeEnd='2020-07-03',
