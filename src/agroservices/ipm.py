@@ -258,7 +258,7 @@ class IPM(REST):
                 raise ValueError("authentification in credentials argument is requiered")
 
         ## Test parameters
-        param = {item["endpoint"].split("rest")[1]:item['parameters']for item in sources}
+        param = {item["endpoint"].split("rest")[1]:item['parameters'] for item in sources}
 
         for item in parameters:
             if item not in param[endpoint]['common'] or param[endpoint]['optional']:
@@ -299,20 +299,20 @@ class IPM(REST):
 
         else:
             params=dict(callback=self.callback,
-            credentials = credentials,
+            #credentials = credentials,
             ignoreErrors = ignoreErrors,
             interval = interval,
             parameters=','.join(map(str,parameters)),
             timeEnd=timeEnd,
             timeStart=timeStart,
             weatherStationId=weatherStationId)        
-
+            self.services.authentication=(credentials['username'], credentials['password'])
             res = self.services.http_post(
             "wx/rest"+ endpoint, 
             frmt=frmt,
             headers={"Content-Type": "application/json"},
             params= params,
-            data=None
+            data=None,
             )
 
         return res
