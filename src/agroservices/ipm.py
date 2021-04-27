@@ -277,7 +277,9 @@ class IPM(REST):
         geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources}
         list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
 
-        if not str(weatherStationId) in list_stationid.values():
+        if not list_stationid:
+            pass
+        elif not str(weatherStationId) in list_stationid.values():
             raise ValueError("WeatherStationId are not available please choose among valid weatherStationId: "+ str(list_stationid))
         
         # params according to weather adapterservice (endpoints), difference if or not credentials
@@ -306,13 +308,15 @@ class IPM(REST):
             timeEnd=timeEnd,
             timeStart=timeStart,
             weatherStationId=weatherStationId)        
+
             self.services.authentication=(credentials['username'], credentials['password'])
+            
             res = self.services.http_post(
             "wx/rest"+ endpoint, 
             frmt=frmt,
             headers={"Content-Type": "application/json"},
             params= params,
-            data=None,
+            data=None
             )
 
         return res

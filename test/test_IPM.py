@@ -165,12 +165,12 @@ def test_weatheradapter_Fruitdevis():
     ipm = IPM()
     res= ipm.get_weatheradapter(
         endpoint='/weatheradapter/davisfruitweb/',
-        weatherStationId=732,
+        weatherStationId=18150029,
         ignoreErrors=True,
-        timeStart='2020-06-12',
-        timeEnd='2020-07-03',
+        timeStart='2021-02-01',
+        timeEnd='2021-03-01',
         parameters=[1001],
-        credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
+        credentials={"username":"536","password":"GF90esoleo"})
 
 #################### WeatherDataService #########################################
 
