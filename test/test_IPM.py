@@ -148,6 +148,13 @@ def test_weatheradapter_MeteoBot():
         parameters=[1001],
         credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
     
+    assert type(res) is dict
+    assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+    #assert res['weatherParameters']==[1002,3002]
+    #assert res['timeStart']== "2020-06-11T21:00:00Z"
+    #assert res['timeEnd']== "2020-07-02T21:00:00Z"
+    #assert res['locationWeatherData'][0]['length']== 505
+    
 
 def test_weatheradapter_metos():
     ipm = IPM()
@@ -161,6 +168,13 @@ def test_weatheradapter_metos():
         parameters=[1001],
         credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
 
+    assert type(res) is dict
+    assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+    #assert res['weatherParameters']==[1002,3002]
+    #assert res['timeStart']== "2020-06-11T21:00:00Z"
+    #assert res['timeEnd']== "2020-07-02T21:00:00Z"
+    #assert res['locationWeatherData'][0]['length']== 505
+
 def test_weatheradapter_Fruitdevis():
     ipm = IPM()
     res= ipm.get_weatheradapter(
@@ -171,6 +185,13 @@ def test_weatheradapter_Fruitdevis():
         timeEnd='2021-03-01',
         parameters=[1001],
         credentials={"username":"536","password":"GF90esoleo"})
+    
+    assert type(res) is dict
+    assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+    #assert res['weatherParameters']==[1002,3002]
+    #assert res['timeStart']== "2020-06-11T21:00:00Z"
+    #assert res['timeEnd']== "2020-07-02T21:00:00Z"
+    #assert res['locationWeatherData'][0]['length']== 505
 
 #################### WeatherDataService #########################################
 
