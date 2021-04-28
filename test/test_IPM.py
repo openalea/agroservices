@@ -148,7 +148,7 @@ def test_weatheradapter_MeteoBot():
         parameters=[1001],
         credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
     
-    assert type(res) is dict
+    assert type(res) is dict, res
     assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
     #assert res['weatherParameters']==[1002,3002]
     #assert res['timeStart']== "2020-06-11T21:00:00Z"
@@ -168,7 +168,7 @@ def test_weatheradapter_metos():
         parameters=[1001],
         credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
 
-    assert type(res) is dict
+    assert type(res) is dict, res
     assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
     #assert res['weatherParameters']==[1002,3002]
     #assert res['timeStart']== "2020-06-11T21:00:00Z"
@@ -186,7 +186,7 @@ def test_weatheradapter_Fruitdevis():
         parameters=[1001],
         credentials={"username":"536","password":"GF90esoleo"})
     
-    assert type(res) is dict
+    assert type(res) is dict, res
     assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
     #assert res['weatherParameters']==[1002,3002]
     #assert res['timeStart']== "2020-06-11T21:00:00Z"
