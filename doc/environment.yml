@@ -1,0 +1,13 @@
+name: agroservices
+channels:
+  - conda-forge
+
+dependencies:
+  - python
+  - appdirs 
+  - bs4 
+  - pygments 
+  - colorlog 
+  - requests 
+  - requests_cache
+  - pytest
