@@ -10,10 +10,13 @@
 
 ################## Interface Python IPM using Bioservice ########################################################
 
-from agroservices.services import REST
 import json
 from pygments.lexer import include
-#import yaml
+
+from requests.auth import HTTPDigestAuth
+
+from .services import REST
+
 
 __all__ = ["IPM"]
 
@@ -258,7 +261,7 @@ class IPM(REST):
                 raise ValueError("authentification in credentials argument is requiered")
 
         ## Test parameters
-        param = {item["endpoint"].split("rest")[1]:item['parameters']for item in sources}
+        param = {item["endpoint"].split("rest")[1]:item['parameters'] for item in sources}
 
         for item in parameters:
             if item not in param[endpoint]['common'] or param[endpoint]['optional']:
@@ -277,45 +280,32 @@ class IPM(REST):
         geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources}
         list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
 
-        if not list_stationid:
-            pass
-        elif not str(weatherStationId) in list_stationid.values():
+        #if not list_stationid:
+        #    pass
+        if not str(weatherStationId) in list_stationid.values():
             raise ValueError("WeatherStationId are not available please choose among valid weatherStationId: "+ str(list_stationid))
         
         # params according to weather adapterservice (endpoints), difference if or not credentials
-        if credentials is None:
-            params=dict(callback=self.callback,
+        params=dict(
             ignoreErrors = ignoreErrors,
             interval = interval,
             parameters=','.join(map(str,parameters)),
             timeEnd=timeEnd,
             timeStart=timeStart,
             weatherStationId=weatherStationId)
+        if self.callback:
+            params['callback'] = self.callback
+  
+        kwds = {}
+        if credentials:
+            auth = (credentials['username'], credentials['password'])
+            kwds['auth'] = auth
 
-            res = self.services.http_get(
+        res = self.services.http_post(
             "wx/rest"+ endpoint, 
-            frmt=frmt,
-            headers=self.services.get_headers(content=frmt),
-            params= params
-            )
-
-        else:
-            params=dict(callback=self.callback,
-            credentials = credentials,
-            ignoreErrors = ignoreErrors,
-            interval = interval,
-            parameters=','.join(map(str,parameters)),
-            timeEnd=timeEnd,
-            timeStart=timeStart,
-            weatherStationId=weatherStationId)        
-
-            res = self.services.http_post(
-            "wx/rest"+ endpoint, 
-            frmt=frmt,
-            headers={"Content-Type": "application/json"},
             params= params,
-            data=None,
-            auth=(credentials["username"],credentials["password"])
+            frmt=frmt,
+            **kwds
             )
 
         return res

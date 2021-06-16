@@ -734,7 +734,7 @@ class REST(RESTbase):
         #clientRevision = ''
         from agroservices import version
         clientVersion = version
-        user_agent = 'BioServices/%s (agroservices.%s; Python %s; %s) %s' % (
+        user_agent = 'AgroServices/%s (agroservices.%s; Python %s; %s) %s' % (
             clientVersion, os.path.basename(__file__),
             platform.python_version(), platform.system(),
             urllib_agent
