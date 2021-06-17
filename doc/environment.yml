@@ -11,6 +11,5 @@ dependencies:
   - requests 
   - requests_cache
   - pytest
-  - pip:
-    - sphinx-rtd-theme
-    - nbsphinx
+  - sphinx-rtd-theme
+  - nbsphinx
