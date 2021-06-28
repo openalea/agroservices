@@ -1,4 +1,4 @@
-version: 1
+version: 2
 
 sphinx:
    configuration: doc/conf.py
@@ -7,7 +7,7 @@ python:
    version: 3.8
 
 conda:
-  file: doc/environment.yml
+  environment: doc/environment.yml
 
 build:
   image: latest
