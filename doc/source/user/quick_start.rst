@@ -1,8 +1,3 @@
-.. testsetups::
-
-    from agroservices.ipm import * 
-
-
 Quick Start to manipulate agroservices.ipm
 ###########################################
 
