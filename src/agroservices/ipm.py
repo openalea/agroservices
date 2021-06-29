@@ -11,12 +11,15 @@
 ################## Interface Python IPM using Bioservice ########################################################
 
 import json
+from typing import List, Union, Dict
+from  pathlib import Path
 
 from pygments.lexer import include
 
 from requests.auth import HTTPDigestAuth
 
-from .services import REST
+from agroservices.services import REST
+
 
 
 __all__ = ["IPM"]
@@ -74,13 +77,15 @@ class IPM(REST):
 
     _url = "https://ipmdecisions.nibio.no/api"
 
-    def __init__(self, verbose=False, cache=False):
-        """**Constructor**
+    def __init__(self, verbose:bool=False, cache:bool=False):
+        """Constructor
 
-        :param verbose: set to False to prevent informative messages, defaults to False
-        :type verbose: bool, optional
-        :param cache: Use cache, defaults to False
-        :type cache: bool, optional
+        Parameters
+        ----------
+        verbose : bool, optional
+            set to False to prevent informative messages, by default False
+        cache : bool, optional
+            Use cache, by default False
         """                
         self.services = REST(
             name="IPM", 
@@ -96,11 +101,13 @@ class IPM(REST):
     ########################## MetaDataService ##########################################
        
     # Parameters
-    def get_parameter(self):
+    def get_parameter(self)->list[dict]:
         """Get a list of all the weather parameters defined in the platform
 
-        :return: weather parameters used in the platform in json format
-        :rtype: list
+        Returns
+        -------
+        list[dict]
+            weather parameters used in the platform
         """        
         res = self.services.http_get(
             "wx/rest/parameter", 
@@ -111,28 +118,32 @@ class IPM(REST):
         return res
     
     # QC
-    def get_qc(self):
-        """ Get a list of QC code
+    def get_qc(self)->list[dict]:
+        """Get a list of QC code
 
-        :return: QC code used in plateform
-        :rtype: list
-        """                
+        Returns
+        -------
+        list[dict]
+            QC code used in plateform
+        """        
         res = self.services.http_get(
             "wx/rest/qc", 
-            frmt=json,
-            headers=self.services.get_headers(content=frmt),
+            frmt='json',
+            headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
             )
         return res
     
     # schema weather data
 
-    def get_schema_weatherdata(self):
+    def get_schema_weatherdata(self)->Dict[dict]:
         """Get a schema that describes the IPM Decision platform's format for exchange of weather data
 
-        :return: return the schema that describes the IPM Decision platform's format for exchange of weather data
-        :rtype: json
-        """        
+        Returns
+        -------
+        dict[dict]
+            the schema that describes the IPM Decision platform's format for exchange of weather data
+        """            
         res = self.services.http_get(
             "wx/rest/schema/weatherdata", 
             frmt='json',
@@ -143,15 +154,19 @@ class IPM(REST):
 
     # schema weather data validate
 
-    def post_schema_weatherdata_validate(self,jsonfile='weather_data.json'):
+    def post_schema_weatherdata_validate(self,jsonfile:Union[str,Path]='weather_data.json')->dict:
         """Validates the posted weather data against the Json schema
 
-        :param jsonfile: weather data, defaults to 'weather_data.json'
-        :type jsonfile: str, optional
-        :return: {"isValid":"true"} if the data is valid, {"isValid":"false"} otherwise
-        :rtype: dict
+        Parameters
+        ----------
+        jsonfile : typing.Union[str,Path], optional
+            weather data in json format, by default 'weather_data.json'
+
+        Returns
+        -------
+        dict
+            if the data is valid or not
         """        
- 
         with open(jsonfile) as json_file:
             data=json.load(json_file)
 
@@ -164,19 +179,21 @@ class IPM(REST):
         return res 
 
     ###################### WeatherAdaptaterService #############################
-    def weatheradapter_service(self, forecast=None):
-        """
-        Get a list of WeatherAdapterService available on ipm
+    def weatheradapter_service(self, forecast:bool=None)->dict:
+        """Get a list of WeatherAdapterService available on ipm
 
         Parameters
-        -----------
-            forecast: true displays the forecast weatheradapter service, 
-                      false the ones that are not.
-                      None (by default) displays all weatheradapter services
+        ----------
+        forecast : bool, optional
+            true displays the forecast weatheradapter service, 
+            false the ones that are not. 
+            None displays all weatheradapter services, by default None
+
         Returns
-        --------
-            A dictionnary containing weatheradapterService name and endpoints
-        """    
+        -------
+        dict
+            weatheradapterService name and endpoints available in the plateform
+        """        
         sources= self.get_weatherdatasource()
         endpoints= {item['name']:item["endpoint"].split("rest",1)[1] for item in sources}
 
@@ -190,40 +207,55 @@ class IPM(REST):
    
     def get_weatheradapter(
         self,
-        endpoint,
-        credentials=None,
-        ignoreErrors=True,
-        interval=3600,
-        parameters=[1002,3002],
-        timeStart='2020-06-12T00:00:00+03:00',
-        timeEnd='2020-07-03T00:00:00+03:00',
-        weatherStationId=101104
-        ):
-        """Get weather opbservations for one weatheradapter service
+        endpoint:str,
+        credentials:dict=None,
+        ignoreErrors:bool=True,
+        interval:int=3600,
+        parameters:list[int]=[1002,3002],
+        timeStart:str='2020-06-12T00:00:00+03:00',
+        timeEnd:str='2020-07-03T00:00:00+03:00',
+        weatherStationId:int=101104
+        )->dict:
+        """Get weather observations for one weatheradapter service
 
-        :param endpoint: the endpoint corresponding to one weatheradapterservice except forecast endpoint
-                      (the list of available endpoints can be consulted using list_weatheradapter_service function)
-        :type endpoint: str
-        :param credentials: (depend of the weatheradapterservice) json object with "userName" and "password" properties set 
-                         (eg: {"userName":"XXXXX","password":"XXXX"}), defaults to None
-        :type credentials: json, optional
-        :param ignoreErrors: Set to "true" if you want the service to return weather data regardless of there being errors in the service, defaults to True
-        :type ignoreErrors: bool, optional
-        :param interval: The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), defaults to 3600
-        :type interval: int, optional
-        :param parameters: Comma separated list of the requested weather parameters, defaults to [1002,3002]
-        :type parameters: list, optional
-        :param timeStart:  Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00), defaults to '2020-06-12T00:00:00+03:00'
-        :type timeStart: str, optional
-        :param timeEnd: End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00), defaults to '2020-07-03T00:00:00+03:00'
-        :type timeEnd: str, optional
-        :param weatherStationId: The weather station id (FMISID) in the open data API <https://en.ilmatieteenlaitos.fi/observation-stations?filterKey=groups&filterQuery=weather>, defaults to 101104
-        :type weatherStationId: int, optional
+        Parameters
+        ----------
+        endpoint : str
+            the endpoint corresponding to one weatheradapterservice except forecast
+        credentials : dict, optional
+            (depend of the weatheradapterservice) dict with "userName" and "password" properties set 
+                         (eg: {"userName":"XXXXX","password":"XXXX"}), by default None
+        ignoreErrors : bool, 
+            Set to "true" if you want the service to return weather data regardless of there being errors in the service, by default True
+        interval : int, 
+            The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), by default 3600
+        parameters : list[int], 
+            list of the requested weather parameters, by default [1002,3002]
+        timeStart : str,
+            Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00), by default '2020-06-12T00:00:00+03:00'
+        timeEnd : str, optional
+            End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00), by default '2020-07-03T00:00:00+03:00'
+        weatherStationId : int, 
+            The weather station id (FMISID) in the open data API https://en.ilmatieteenlaitos.fi/observation-stations?filterKey=groups&filterQuery=weather, by default 101104
 
-        :return: weather observations in the IPM Decision's weather data format
-        :rtype: json
+        Returns
+        -------
+        dict
+            weather observations in the IPM Decision's weather data format
+
+        Raises
+        ------
+        ValueError
+            endpoint error: weatheradapter service not exit or is a forecast weatheradapter in this case used weatheradapter_forecast
+        ValueError
+            credentials error: if credential is required or not
+        ValueError
+            parameters error: check if parameter is available and return the list of available parameter
+        ValueError
+            TimeStart error: check is timeStart period is valid in weather resource
+        ValueError
+            WeatherId error: check if weatherStationId exist in the resource and return WeatherStationId available for the weather resource
         """        
-
 
         # Test
         ############
@@ -297,29 +329,38 @@ class IPM(REST):
 
     def get_weatheradapter_forecast(
         self,
-        endpoint,
-        frmt='json',
-        altitude=70, 
-        latitude= 67.2828, 
-        longitude = 14.3711
-        ):
-        """Get weather opbservations for one forecast weatheradapter service
+        endpoint:str,
+        altitude:Union[int,float]=70, 
+        latitude:Union[int,float]= 67.2828, 
+        longitude:Union[int,float] = 14.3711
+        )->dict:
+        """[summary]
 
-        :param endpoint: endpoint of forecast weatheradapter
-        :type endpoint: str
-        :param altitude: WGS84 Decimal degrees (only for Met Norway Locationforecast service), defaults to 70
-        :type altitude: double, optional
-        :param latitude: WGS84 Decimal degrees, defaults to 67.2828
-        :type latitude: double, optional
-        :param longitude: WGS84 Decimal degrees, defaults to 14.3711
-        :type longitude: double, optional
-        :return: 36 hour forecasts from FMI (The Finnish Meteorological Institute), using their OpenData services at https://en.ilmatieteenlaitos.fi/open-data
+        Parameters
+        ----------
+        endpoint : str
+            endpoint of forecast weatheradapter]
+        altitude : Union[int,float],
+            WGS84 Decimal degrees (only for Met Norway Locationforecast service), by default 70
+        latitude : Union[int,float], 
+            WGS84 Decimal degrees, by default 67.2828
+        longitude : Union[int,float], 
+            WGS84 Decimal degrees, by default 14.3711
+
+        Returns
+        -------
+        dict
+            36 hour forecasts from FMI (The Finnish Meteorological Institute), using their OpenData services at https://en.ilmatieteenlaitos.fi/open-data
             the weather forecast formatted in the IPM Decision platform's weather data format
             or
             9 day weather forecasts from The Norwegian Meteorological Institute's Locationforecast API 
             the weather forecast formatted in the IPM Decision platform's weather data format (json)
-        :rtype: json
-        """        
+
+        Raises
+        ------
+        ValueError
+            endpoint error: check if endpoint is a forecast and exit
+        """               
         # test enpoint argument
         endpoints = self.weatheradapter_service(forecast=True)
         if not endpoint in endpoints.values():
@@ -329,14 +370,12 @@ class IPM(REST):
         if endpoint == '/weatheradapter/fmi/forecasts':
             params = dict(
                 callback=self.callback,
-                frmt=frmt,
                 latitude=latitude, 
                 longitude=longitude
                 )
         else:
             params = dict(
                 callback=self.callback,
-                frmt= frmt,
                 altitude= altitude,
                 latitude = latitude,
                 longitude = longitude
@@ -355,11 +394,13 @@ class IPM(REST):
 
     #weatherdatasource
 
-    def get_weatherdatasource(self):
+    def get_weatherdatasource(self)->list[dict]:
         """Get a list of all the available weather data sources
 
-        :return: list of all the available weather data sources
-        :rtype: json
+        Returns
+        -------
+        list[dict]
+           all the available weather data sources and their properties
         """        
         res = self.services.http_get(
             "wx/rest/weatherdatasource", 
@@ -375,18 +416,23 @@ class IPM(REST):
     
     def post_weatherdatasource_location(
         self, 
-        tolerance=0,
-        geoJsonfile="GeoJson.json"
-        ):
+        tolerance:Union[int,float]=0,
+        geoJsonfile:Union[str,Path]="GeoJson.json"
+        )->list[dict]:
         """Search for weather data sources that serve the specific location. The location can by any valid Geometry, such as Point or Polygon. Example GeoJson input 
 
-        :param tolerance: Add some tolerance (in meters) to allow for e.g. a point to match the location of a weather station, defaults to 0, defaults to 0
-        :type tolerance: double, optional
-        :param geoJsonfile: GeoJson file, defaults to "GeoJson.json"
-        :type geoJsonfile: str, optional
-        :return: A list of all the matching weather data sources
-        :rtype: json
-        """        
+        Parameters
+        ----------
+        tolerance : Union[int,float], 
+            Add some tolerance (in meters) to allow for e.g. a point to match the location of a weather station, by default 0
+        geoJsonfile : Union[str,Path],
+            GeoJson file, by default "GeoJson.json"
+
+        Returns
+        -------
+        list[dict]
+            A list of all the matching weather data sources
+        """              
         params=dict(
             callback=self.callback,  
             tolerance=tolerance
@@ -409,21 +455,26 @@ class IPM(REST):
 
     def get_weatherdatasource_location_point(
         self,
-        latitude="59.678835236960765", 
-        longitude="12.01629638671875", 
-        tolerance=0
-        ):
+        latitude:Union[str,float]="59.678835236960765", 
+        longitude:Union[str,float]="12.01629638671875", 
+        tolerance:int=0
+        )->list[dict]:
         """Search for weather data sources that serve the specific point.
 
-        :param latitude: in decimal degrees (WGS84), defaults to "59.678835236960765"
-        :type latitude: str, optional
-        :param longitude: decimal degrees (WGS84), defaults to "12.01629638671875"
-        :type longitude: str, optional
-        :param tolerance: Add some tolerance (in meters) to allow for e.g. a point to match the location of a weather station, defaults to 0
-        :type tolerance: int, optional
-        :return: A list of all the matching weather data sources in json format
-        :rtype: list
-        """                
+        Parameters
+        ----------
+        latitude : Union[str,float],
+            in decimal degrees (WGS84), by default "59.678835236960765"
+        longitude : Union[str,float], 
+            in decimal degrees (WGS84), by default "12.01629638671875"
+        tolerance : int, 
+            Add some tolerance (in meters) to allow for e.g. a point to match the location of a weather station, by default 0
+
+        Returns
+        -------
+        list[dict]
+            A list of all the matching weather data sources.
+        """        
         params=dict(
             callback=self.callback, 
             latitude=latitude,
@@ -442,11 +493,13 @@ class IPM(REST):
   
 ###########################   DSSService  ################################################
 
-    def get_crop(self):
+    def get_crop(self)->list[str]:
         """Get a list of EPPO codes for all crops that the DSS models in plateform
 
-        :return: A list of EPPO codes (<https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes>) for all crops that the DSS models in the platform
-        :rtype: list
+        Returns
+        -------
+        list[str]
+            A list of EPPO codes (https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all crops that the DSS models in the platform
         """        
         res = self.services.http_get(
             "dss/rest/crop",
@@ -457,11 +510,13 @@ class IPM(REST):
         return res
 
 
-    def get_dss(self):
+    def get_dss(self)->list[dict]:
         """Get a list all DSSs and models available in the platform
 
-        :return: a list all DSSs and models available in the platform
-        :rtype: json
+        Returns
+        -------
+        list[dict]
+            a list all DSSs and models available in the platform
         """        
         res = self.services.http_get(
             "dss/rest/dss",
@@ -471,11 +526,13 @@ class IPM(REST):
             )
         return res
 
-    def get_pest(self):
-        """ Get A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
+    def get_pest(self)->list[str]:
+        """Get A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
 
-        :return: A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
-        :rtype: list
+        Returns
+        -------
+        list[str]
+            A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
         """        
         res = self.services.http_get(
             "dss/rest/pest",
@@ -487,13 +544,18 @@ class IPM(REST):
     
     def post_dss_location(
         self,
-        geoJsonfile="GeoJson.json"):
-        """ Search for DSS models that have been validated for the specific location. The location can by any valid Geometry, such as Point or Polygon. Example geoJson input
+        geoJsonfile:Union[str,Path]="GeoJson.json")->list[dict]:
+        """Search for DSS models that have been validated for the specific location. The location can by any valid Geometry, such as Point or Polygon. Example geoJson input
 
-        :param geoJsonfile: GeoJson file, defaults to "GeoJson.json"
-        :type geoJsonfile: str, optional
-        :return: A list of all the matching DSS models
-        :rtype: json
+        Parameters
+        ----------
+        geoJsonfile : Union[str,Path], optional
+            GeoJson file, by default "GeoJson.json"
+
+        Returns
+        -------
+        list[dict]
+            A list of all the matching DSS models
         """        
         with open(geoJsonfile) as json_file:
             data=json.load(json_file)
@@ -508,13 +570,18 @@ class IPM(REST):
     
     def get_dssId(
         self, 
-        DSSId='no.nibio.vips'):
+        DSSId:str='no.nibio.vips')->dict:
         """Get all information about a specific DSS
 
-        :param DSSId: id of the DSS, defaults to 'no.nibio.vips'
-        :type DSSId: str, optional
-        :return: information about a specific DSS
-        :rtype: json
+        Parameters
+        ----------
+        DSSId : str, 
+            id of the DSS, by default 'no.nibio.vips'
+
+        Returns
+        -------
+        dict
+            informations about a specific DSS
         """        
         res = self.services.http_get(
             "dss/rest/dss/{}".format(DSSId),
@@ -525,13 +592,18 @@ class IPM(REST):
     
     def get_cropCode(
         self,
-        cropCode='SOLTU'):
+        cropCode:str='SOLTU')->list[dict]:
         """Get all information about  DSS for a specific cropCode
 
-        :param cropCode: EPPO cropcode, defaults to 'SOLTU'
-        :type cropCode: str, optional
-        :return: all information about  DSS corresponding of cropCode
-        :rtype: list
+        Parameters
+        ----------
+        cropCode : str, 
+            EPPO cropcode <https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes>, by default 'SOLTU'
+
+        Returns
+        -------
+        list[dict]
+            all informations about  DSS corresponding of cropCode
         """        
         res = self.services.http_get(
             "dss/rest/dss/crop/{}".format(cropCode),
@@ -542,17 +614,22 @@ class IPM(REST):
     
     def get_dss_location_point(
         self, 
-        latitude = 59.678835236960765, 
-        longitude= 12.01629638671875
-        ):
+        latitude:Union[float,str] = 59.678835236960765, 
+        longitude:Union[float,str]= 12.01629638671875
+        )->list[dict]:
         """Search for models that are valid for the specific point
 
-        :param latitude: decimal degrees (WGS84), defaults to 59.678835236960765
-        :type latitude: double, optional
-        :param longitude: decimal degrees (WGS84), defaults to 12.01629638671875
-        :type longitude: double, optional
-        :return: A list of all the matching DSS models
-        :rtype: json
+        Parameters
+        ----------
+        latitude : Union[float,str], optional
+            decimal degrees (WGS84), by default 59.678835236960765
+        longitude : Union[float,str], optional
+            decimal degrees (WGS84), by default 12.01629638671875
+
+        Returns
+        -------
+        list[dict]
+            A list of all the matching DSS models
         """        
         params=dict(
             callback=self.callback,
@@ -571,13 +648,18 @@ class IPM(REST):
     
     def get_pestCode(
         self,
-        pestCode='PSILRO'):
+        pestCode:str='PSILRO')->list[dict]:
         """Get all information about  DSS for a specific pestCode
 
-        :param pestCode:  EPPO code for the pest <https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes>, defaults to 'PSILRO'
-        :type pestCode: str, optional
-        :return: list of models that are applicable to the given pest
-        :rtype: json
+        Parameters
+        ----------
+        pestCode : str, optional
+            EPPO code for the pest https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes, by default 'PSILRO'
+
+        Returns
+        -------
+        list[dict]
+            list of DSS models that are applicable to the given pest
         """        
         res = self.services.http_get(
             'dss/rest/dss/pest/{}'.format(pestCode),
@@ -588,16 +670,21 @@ class IPM(REST):
         
     def get_model(
         self,
-        DSSId='no.nibio.vips',
-        ModelId='PSILARTEMP'):
-        """ Get all information about a specific DSS model
+        DSSId:str='no.nibio.vips',
+        ModelId:str='PSILARTEMP')->dict[dict]:
+        """Get all information about a specific DSS model
 
-        :param DSSId: The id of the DSS containing the model, defaults to 'no.nibio.vips'
-        :type DSSId: str, optional
-        :param ModelId: The id of the DSS model requested, defaults to 'PSILARTEMP'
-        :type ModelId: str, optional
-        :return: All information of DSS model requested
-        :rtype: json
+        Parameters
+        ----------
+        DSSId : str, optional
+            The id of the DSS containing the model, by default 'no.nibio.vips'
+        ModelId : str, optional
+            The id of the DSS model requested, by default 'PSILARTEMP'
+
+        Returns
+        -------
+        dict[dict]
+            All information of DSS model
         """        
         res = self.services.http_get(
             "dss/rest/model/{}/{}".format(DSSId,ModelId),
@@ -608,18 +695,22 @@ class IPM(REST):
     
     def get_input_schema(
         self,
-        DSSId='no.nibio.vips',
-        ModelId='PSILARTEMP'):
+        DSSId:str='no.nibio.vips',
+        ModelId:str='PSILARTEMP')->dict:
         """Get the input Json schema for a specific DSS model
 
-        :param DSSId: The id of the DSS containing the model, defaults to 'no.nibio.vips'
-        :type DSSId: str, optional
-        :param ModelId: The id of the DSS model requested, defaults to 'PSILARTEMP'
-        :type ModelId: str, optional
-        :return: The input Json schema for the DSS model
-        :rtype: json
-        """       
+        Parameters
+        ----------
+        DSSId : str, optional
+            The id of the DSS containing the model, by default 'no.nibio.vips'
+        ModelId : str, optional
+            The id of the DSS model requested, by default 'PSILARTEMP'
 
+        Returns
+        -------
+        dict
+            The inputs Json schema for the DSS model
+        """        
         res = self.services.http_get(
             "dss/rest/model/{}/{}/input_schema".format(DSSId,ModelId),
             frmt='json'
@@ -631,11 +722,13 @@ class IPM(REST):
 ###############################  DSSMetaDataService ##############################################
 
     def get_schema_dss(
-        self):
+        self)->dict:
         """Provides schemas and validation thereof
 
-        :return: Json schema of DSS
-        :rtype: json object
+        Returns
+        -------
+        dict
+            Json schema of DSS
         """        
         res = self.services.http_get(
             "dss/rest/schema/dss",
@@ -647,14 +740,16 @@ class IPM(REST):
         return res
 
     def get_schema_fieldobservation(
-        self):
+        self)->dict:
         """Get the generic schema for field observations, containing the common properties for field observations. 
         These are location (GeoJson), time (ISO-8859 datetime), EPPO Code for the pest and crop. 
         In addition, quantification information must be provided. 
         This is specified in a custom schema, which must be a part of the input_schema property in the DSS model metadata. 
 
-        :return: The generic schema for field observations
-        :rtype: json object
+        Returns
+        -------
+        dict
+            The generic schema for field observations
         """        
         res = self.services.http_get(
             "dss/rest/schema/fieldobservation",
@@ -665,11 +760,13 @@ class IPM(REST):
 
         return res
 
-    def get_schema_modeloutput(self):
+    def get_schema_modeloutput(self)->dict:
         """Get The Json Schema for the platform's standard for DSS model output
 
-        :return: The Json Schema for the platform's standard for DSS model output
-        :rtype: json object
+        Returns
+        -------
+        dict
+            The Json Schema for the platform's standard for DSS model output
         """        
         res = self.services.http_get(
             "dss/rest/schema/modeloutput",
@@ -682,14 +779,18 @@ class IPM(REST):
     
     def post_schema_modeloutput_validate(
         self,
-        jsonfile='modeloutput.json'):
-        """Validate model output against this schema: <https://ipmdecisions.nibio.no/api/dss/rest/schema/modeloutput>
+        jsonfile:Union[str,Path]='modeloutput.json')->dict:
+        """Validate model output against this schema: https://ipmdecisions.nibio.no/api/dss/rest/schema/modeloutput
 
+        Parameters
+        ----------
+        jsonfile : Union[str,Path], optional
+            json file containing output model, by default 'modeloutput.json'
 
-        :param jsonfile: json file containing output model, defaults to 'modeloutput.json'
-        :type jsonfile: str, optional
-        :return: {"isValid":"true"} if the data is valid, {"isValid":"false"} otherwise
-        :rtype: dict
+        Returns
+        -------
+        dict
+            if the data is valid or not
         """        
         with open(jsonfile) as json_file:
             data=json.load(json_file)
@@ -705,13 +806,18 @@ class IPM(REST):
 
     def post_schema_dss_yaml_validate(
         self,
-        yamlfile='test_yaml_validate.yaml'):
-        """Validate DSS YAML description file, using this Json schema: <https://ipmdecisions.nibio.no/api/dss/rest/schema/dss>
+        yamlfile:Union[str,Path]='test_yaml_validate.yaml')->dict:
+        """Validate DSS YAML description file, using this Json schema: https://ipmdecisions.nibio.no/api/dss/rest/schema/dss
 
-        :param yamlfile: yam file containing DSS description, defaults to 'test_yaml_validate.yaml'
-        :type yamlfile: str, optional
-        :return: {"isValid":"true"} if the data is valid, {"isValid":"false"} otherwise
-        :rtype: json object	
+        Parameters
+        ----------
+        yamlfile : Union[str,Path], optional
+            yaml file containing model description, by default 'test_yaml_validate.yaml'
+
+        Returns
+        -------
+        dict
+            if the data is valid or not
         """        
         with open(yamlfile) as yaml_file:
             data=yaml.load(yaml_file, Loader=yaml.FullLoader)
@@ -729,20 +835,26 @@ class IPM(REST):
 
     def run_model(
         self,
-        ModelId="no.nibio.vips",
-        DSSId="PSILARTEMP",
-        model_input="model_input.json"):
+        ModelId:str="no.nibio.vips",
+        DSSId:str="PSILARTEMP",
+        model_input:Union[str,Path]="model_input.json"):
         """Run Dss Model and get output
 
-        :param ModelId: The id of the DSS model requested, defaults to "no.nibio.vips"
-        :type ModelId: str, optional
-        :param DSSId: The id of the DSS containing the model, defaults to "PSILARTEMP"
-        :type DSSId: str, optional
-        :param model_input: Json file with input data for the model, defaults to "model_input.json"
-        :type model_input: str, optional
-        :return: Json file containing result of model
-        :rtype: Json file
+        Parameters
+        ----------
+        ModelId : str, optional
+            The id of the DSS model requested, by default "no.nibio.vips"
+        DSSId : str, optional
+            The id of the DSS containing the model, by default "PSILARTEMP"
+        model_input : Union[str,Path], optional
+            Json file with input data for the model, by default "model_input.json"
+
+        Returns
+        -------
+        dict
+            output of model
         """        
+        
         source= self.get_dss()
        
         #dictionnary containing modelId and DSSid and endpoint
