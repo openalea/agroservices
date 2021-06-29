@@ -8,5 +8,5 @@ python:
    python_setup_py_install: True
 
 conda:
-   file: doc/environment.yml
+   environment: doc/environment.yml
 
