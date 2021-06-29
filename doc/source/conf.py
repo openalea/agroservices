@@ -24,13 +24,13 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.imgmath',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.coverage',
     'sphinx.ext.todo',
     'sphinx.ext.napoleon',
     'nbsphinx',
+    'nbsphinx_link',
     'sphinx_rtd_theme'
 ]
 
@@ -102,5 +102,5 @@ html_show_sphinx = True
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 html_show_copyright = True
 
-# Output file base name for HTML help builder.
-htmlhelp_basename = 'agroservice_documentation'
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'https://docs.python.org/': None}
