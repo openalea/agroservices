@@ -5,7 +5,6 @@ sphinx:
 
 python:
    version: 3.8
-   python_setup_py_install: True
 
 conda:
    environment: doc/environment.yml
