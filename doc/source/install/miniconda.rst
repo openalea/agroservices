@@ -24,17 +24,11 @@ http://conda.pydata.org/miniconda.html
     conda create --name agroservice python
     source activate agroservice
 
-3. Build and install openalea.phenomenal package
+1. Build and install agroservices package
 ------------------------------------------------
 
-.. code:: shell
-
-    cd phenomenal/build_tools/conda
-    conda build -c conda-forge -c openalea .
-    conda install -c conda-forge -c openalea --use-local agroservice
 (Optional) Install several package managing tools :
 
 .. code:: shell
 
     conda install -c conda-forge notebook pythest sphinx sphinx_rtd_theme 
-
