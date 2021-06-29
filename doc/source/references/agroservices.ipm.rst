@@ -3,7 +3,7 @@
 Agroservices IPM module
 =============================
 
-.. automodule:: agroservices.ipm
+.. autoclass:: agroservices.ipm
     :members:
     :undoc-members:
     :inherited-members:
