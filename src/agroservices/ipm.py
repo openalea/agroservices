@@ -11,7 +11,7 @@
 ################## Interface Python IPM using Bioservice ########################################################
 
 import json
-from typing import List, Union, Dict
+from typing import Union
 from  pathlib import Path
 
 from pygments.lexer import include
@@ -136,7 +136,7 @@ class IPM(REST):
     
     # schema weather data
 
-    def get_schema_weatherdata(self)->Dict[dict]:
+    def get_schema_weatherdata(self)->dict[dict]:
         """Get a schema that describes the IPM Decision platform's format for exchange of weather data
 
         Returns
