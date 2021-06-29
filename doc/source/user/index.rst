@@ -14,9 +14,9 @@ You can use agroservice to query on `IPM Decicion Service <https://www.ipmdecisi
 * `IPM weather Services <https://ipmdecisions.nibio.no/api/wx/apidocs/>`_
 * `IPM DSS Services <https://ipmdecisions.nibio.no/api/dss/apidocs/>`_
 
-
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :numbered:
 
-    quick_start.rst
+    quick_start
+    weather_ipm_interface
