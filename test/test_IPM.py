@@ -209,8 +209,7 @@ def test_get_weatherdatasource_location_point():
 
 def test_post_weatherdatasource_location():
     ipm=IPM()
-    res = ipm.post_weatherdatasource_location( 
-        frmt='json', 
+    res = ipm.post_weatherdatasource_location(  
         tolerance=0,
         geoJsonfile="GeoJson.json"
         )
