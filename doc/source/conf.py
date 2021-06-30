@@ -30,7 +30,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.napoleon',
     'nbsphinx',
-    'nbsphinx_link',
+    'nbsphinx-link',
     'sphinx_rtd_theme'
 ]
 
