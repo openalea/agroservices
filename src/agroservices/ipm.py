@@ -11,7 +11,7 @@
 ################## Interface Python IPM using Bioservice ########################################################
 
 import json
-from typing import Union
+from typing import Union, List, Dict
 from  pathlib import Path
 
 from pygments.lexer import include
@@ -101,7 +101,7 @@ class IPM(REST):
     ########################## MetaDataService ##########################################
        
     # Parameters
-    def get_parameter(self)->list[dict]:
+    def get_parameter(self)->List[dict]:    
         """Get a list of all the weather parameters defined in the platform
 
         Returns
@@ -118,7 +118,7 @@ class IPM(REST):
         return res
     
     # QC
-    def get_qc(self)->list[dict]:
+    def get_qc(self)->List[dict]:
         """Get a list of QC code
 
         Returns
@@ -394,7 +394,7 @@ class IPM(REST):
 
     #weatherdatasource
 
-    def get_weatherdatasource(self)->list[dict]:
+    def get_weatherdatasource(self)->List[dict]:
         """Get a list of all the available weather data sources
 
         Returns
@@ -458,7 +458,7 @@ class IPM(REST):
         latitude:Union[str,float]="59.678835236960765", 
         longitude:Union[str,float]="12.01629638671875", 
         tolerance:int=0
-        )->list[dict]:
+        )->List[dict]:
         """Search for weather data sources that serve the specific point.
 
         Parameters
@@ -493,7 +493,7 @@ class IPM(REST):
   
 ###########################   DSSService  ################################################
 
-    def get_crop(self)->list[str]:
+    def get_crop(self)->List[str]:
         """Get a list of EPPO codes for all crops that the DSS models in plateform
 
         Returns
@@ -510,7 +510,7 @@ class IPM(REST):
         return res
 
 
-    def get_dss(self)->list[dict]:
+    def get_dss(self)->List[dict]:
         """Get a list all DSSs and models available in the platform
 
         Returns
@@ -526,7 +526,7 @@ class IPM(REST):
             )
         return res
 
-    def get_pest(self)->list[str]:
+    def get_pest(self)->List[str]:
         """Get A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
 
         Returns
@@ -544,7 +544,7 @@ class IPM(REST):
     
     def post_dss_location(
         self,
-        geoJsonfile:Union[str,Path]="GeoJson.json")->list[dict]:
+        geoJsonfile:Union[str,Path]="GeoJson.json")->List[dict]:
         """Search for DSS models that have been validated for the specific location. The location can by any valid Geometry, such as Point or Polygon. Example geoJson input
 
         Parameters
@@ -592,7 +592,7 @@ class IPM(REST):
     
     def get_cropCode(
         self,
-        cropCode:str='SOLTU')->list[dict]:
+        cropCode:str='SOLTU')->List[dict]:
         """Get all information about  DSS for a specific cropCode
 
         Parameters
@@ -616,7 +616,7 @@ class IPM(REST):
         self, 
         latitude:Union[float,str] = 59.678835236960765, 
         longitude:Union[float,str]= 12.01629638671875
-        )->list[dict]:
+        )->List[dict]:
         """Search for models that are valid for the specific point
 
         Parameters
@@ -648,7 +648,7 @@ class IPM(REST):
     
     def get_pestCode(
         self,
-        pestCode:str='PSILRO')->list[dict]:
+        pestCode:str='PSILRO')->List[dict]:
         """Get all information about  DSS for a specific pestCode
 
         Parameters
