@@ -104,3 +104,6 @@ html_show_copyright = True
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+######################## nbsphinx config #####################################
+nbsphinx_execute = 'always'
