@@ -13,4 +13,4 @@ dependencies:
  - pytest
  - sphinx_rtd_theme
  - nbsphinx
- - nbsphinx-link
+ - nbsphinx_link
