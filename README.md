@@ -1,3 +1,4 @@
+[![Documentation Status](https://readthedocs.org/projects/agroservices/badge/?version=latest)](https://agroservices.readthedocs.io/en/latest/?badge=latest)
 # agroservices
 
 **authors:** 
