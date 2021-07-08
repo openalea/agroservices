@@ -11,7 +11,7 @@
 ################## Interface Python IPM using Bioservice ########################################################
 
 import json
-from typing import Union, List, Dict
+from typing import Union
 from  pathlib import Path
 
 from pygments.lexer import include
@@ -101,12 +101,12 @@ class IPM(REST):
     ########################## MetaDataService ##########################################
        
     # Parameters
-    def get_parameter(self)->List[dict]:    
+    def get_parameter(self)->list:    
         """Get a list of all the weather parameters defined in the platform
 
         Returns
         -------
-        list[dict]
+        list
             weather parameters used in the platform
         """        
         res = self.services.http_get(
@@ -118,12 +118,12 @@ class IPM(REST):
         return res
     
     # QC
-    def get_qc(self)->List[dict]:
+    def get_qc(self)->list:
         """Get a list of QC code
 
         Returns
         -------
-        list[dict]
+        list
             QC code used in plateform
         """        
         res = self.services.http_get(
@@ -136,12 +136,12 @@ class IPM(REST):
     
     # schema weather data
 
-    def get_schema_weatherdata(self)->dict[dict]:
+    def get_schema_weatherdata(self)->dict:
         """Get a schema that describes the IPM Decision platform's format for exchange of weather data
 
         Returns
         -------
-        dict[dict]
+        dict
             the schema that describes the IPM Decision platform's format for exchange of weather data
         """            
         res = self.services.http_get(
@@ -211,7 +211,7 @@ class IPM(REST):
         credentials:dict=None,
         ignoreErrors:bool=True,
         interval:int=3600,
-        parameters:list[int]=[1002,3002],
+        parameters:list=[1002,3002],
         timeStart:str='2020-06-12T00:00:00+03:00',
         timeEnd:str='2020-07-03T00:00:00+03:00',
         weatherStationId:int=101104
@@ -229,7 +229,7 @@ class IPM(REST):
             Set to "true" if you want the service to return weather data regardless of there being errors in the service, by default True
         interval : int, 
             The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), by default 3600
-        parameters : list[int], 
+        parameters : list, 
             list of the requested weather parameters, by default [1002,3002]
         timeStart : str,
             Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00), by default '2020-06-12T00:00:00+03:00'
@@ -394,12 +394,12 @@ class IPM(REST):
 
     #weatherdatasource
 
-    def get_weatherdatasource(self)->List[dict]:
+    def get_weatherdatasource(self)-> list:
         """Get a list of all the available weather data sources
 
         Returns
         -------
-        list[dict]
+        list
            all the available weather data sources and their properties
         """        
         res = self.services.http_get(
@@ -418,7 +418,7 @@ class IPM(REST):
         self, 
         tolerance:Union[int,float]=0,
         geoJsonfile:Union[str,Path]="GeoJson.json"
-        )->list[dict]:
+        )->list:
         """Search for weather data sources that serve the specific location. The location can by any valid Geometry, such as Point or Polygon. Example GeoJson input 
 
         Parameters
@@ -430,7 +430,7 @@ class IPM(REST):
 
         Returns
         -------
-        list[dict]
+        list
             A list of all the matching weather data sources
         """              
         params=dict(
@@ -458,7 +458,7 @@ class IPM(REST):
         latitude:Union[str,float]="59.678835236960765", 
         longitude:Union[str,float]="12.01629638671875", 
         tolerance:int=0
-        )->List[dict]:
+        )->list:
         """Search for weather data sources that serve the specific point.
 
         Parameters
@@ -472,7 +472,7 @@ class IPM(REST):
 
         Returns
         -------
-        list[dict]
+        list
             A list of all the matching weather data sources.
         """        
         params=dict(
@@ -493,12 +493,12 @@ class IPM(REST):
   
 ###########################   DSSService  ################################################
 
-    def get_crop(self)->List[str]:
+    def get_crop(self)->list:
         """Get a list of EPPO codes for all crops that the DSS models in plateform
 
         Returns
         -------
-        list[str]
+        list
             A list of EPPO codes (https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all crops that the DSS models in the platform
         """        
         res = self.services.http_get(
@@ -510,12 +510,12 @@ class IPM(REST):
         return res
 
 
-    def get_dss(self)->List[dict]:
+    def get_dss(self)->list:
         """Get a list all DSSs and models available in the platform
 
         Returns
         -------
-        list[dict]
+        list
             a list all DSSs and models available in the platform
         """        
         res = self.services.http_get(
@@ -526,12 +526,12 @@ class IPM(REST):
             )
         return res
 
-    def get_pest(self)->List[str]:
+    def get_pest(self)->list:
         """Get A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
 
         Returns
         -------
-        list[str]
+        list
             A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
         """        
         res = self.services.http_get(
@@ -544,7 +544,7 @@ class IPM(REST):
     
     def post_dss_location(
         self,
-        geoJsonfile:Union[str,Path]="GeoJson.json")->List[dict]:
+        geoJsonfile:Union[str,Path]="GeoJson.json")->list:
         """Search for DSS models that have been validated for the specific location. The location can by any valid Geometry, such as Point or Polygon. Example geoJson input
 
         Parameters
@@ -554,7 +554,7 @@ class IPM(REST):
 
         Returns
         -------
-        list[dict]
+        list
             A list of all the matching DSS models
         """        
         with open(geoJsonfile) as json_file:
@@ -592,7 +592,7 @@ class IPM(REST):
     
     def get_cropCode(
         self,
-        cropCode:str='SOLTU')->List[dict]:
+        cropCode:str='SOLTU')->list:
         """Get all information about  DSS for a specific cropCode
 
         Parameters
@@ -602,7 +602,7 @@ class IPM(REST):
 
         Returns
         -------
-        list[dict]
+        list
             all informations about  DSS corresponding of cropCode
         """        
         res = self.services.http_get(
@@ -616,7 +616,7 @@ class IPM(REST):
         self, 
         latitude:Union[float,str] = 59.678835236960765, 
         longitude:Union[float,str]= 12.01629638671875
-        )->List[dict]:
+        )->list:
         """Search for models that are valid for the specific point
 
         Parameters
@@ -628,7 +628,7 @@ class IPM(REST):
 
         Returns
         -------
-        list[dict]
+        list
             A list of all the matching DSS models
         """        
         params=dict(
@@ -648,7 +648,7 @@ class IPM(REST):
     
     def get_pestCode(
         self,
-        pestCode:str='PSILRO')->List[dict]:
+        pestCode:str='PSILRO')->list:
         """Get all information about  DSS for a specific pestCode
 
         Parameters
@@ -658,7 +658,7 @@ class IPM(REST):
 
         Returns
         -------
-        list[dict]
+        list
             list of DSS models that are applicable to the given pest
         """        
         res = self.services.http_get(
@@ -671,7 +671,7 @@ class IPM(REST):
     def get_model(
         self,
         DSSId:str='no.nibio.vips',
-        ModelId:str='PSILARTEMP')->dict[dict]:
+        ModelId:str='PSILARTEMP')->dict:
         """Get all information about a specific DSS model
 
         Parameters
@@ -683,7 +683,7 @@ class IPM(REST):
 
         Returns
         -------
-        dict[dict]
+        dict
             All information of DSS model
         """        
         res = self.services.http_get(
