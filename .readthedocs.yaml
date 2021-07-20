@@ -1,11 +1,14 @@
-version: 1
+version: 2
 
 sphinx:
-   configuration: doc/conf.py
+   configuration: doc/source/conf.py
 
 python:
    version: 3.8
-
-conda:
-   file: doc/environment.yml
+   install:
+    - method: setuptools
+      path: .
+      
+conda: 
+   environment: doc/environment.yml
 
