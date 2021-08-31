@@ -32,11 +32,11 @@ except:
 #from . import services
 #from .services import *
 
-#from . import ipm
-#from .ipm import *
+from . import ipm
+from .ipm import *
 
 
-# sub packages inside bioservices.
+# sub packages inside agroservices.
 
 #import mapping
 #from . import apps
