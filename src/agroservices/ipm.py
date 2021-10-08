@@ -195,7 +195,9 @@ class IPM(REST):
             weatheradapterService name and endpoints available in the plateform
         """        
         sources= self.get_weatherdatasource()
-        endpoints= {item['name']:item["endpoint"].split("rest",1)[1] for item in sources}
+        # endpoints= {item['name']:item["endpoint"].split("rest",1)[1] for item in sources}
+        # HACK because all endpoints not contain rest api
+        endpoints= {item['name']:item["endpoint"].split("rest",1)[1] for item in sources if 'rest' in item["endpoint"]}
 
         if forecast==True:
             return {key:value for key, value in endpoints.items() if 'forecast' in key.lower()}
@@ -269,7 +271,10 @@ class IPM(REST):
                              "or is a forecast weatheradapter in this case used weatheradapter_forecast")
 
         ## test credentials (not available test)
-        authentification = {item["endpoint"].split("rest")[1]:item['authentication_required']for item in sources}
+
+        #HACK because all endpoints not contain rest api
+        # authentification = {item["endpoint"].split("rest")[1]:item['authentication_required']for item in sources}
+        authentification = {item["endpoint"].split("rest")[1]:item['authentication_required']for item in sources if 'rest' in item['endpoint']}
         if authentification[endpoint]=='false':
             if credentials!=None:
                 raise ValueError("Credentials is not requiered")
@@ -278,7 +283,9 @@ class IPM(REST):
                 raise ValueError("authentification in credentials argument is requiered")
 
         ## Test parameters
-        param = {item["endpoint"].split("rest")[1]:item['parameters'] for item in sources}
+        #HACK idem
+        #param = {item["endpoint"].split("rest")[1]:item['parameters'] for item in sources}
+        param = {item["endpoint"].split("rest")[1]:item['parameters'] for item in sources if 'rest' in item['endpoint']}
 
         for item in parameters:
             if item not in param[endpoint]['common'] or param[endpoint]['optional']:
@@ -288,13 +295,17 @@ class IPM(REST):
                     str(param[endpoint]))
 
         ## Test TimeStart
-        startdate = {item["endpoint"].split("rest")[1]:item["temporal"]["historic"]["start"] for item in sources}
+        #HACK idem
+        #startdate = {item["endpoint"].split("rest")[1]:item["temporal"]["historic"]["start"] for item in sources}
+        startdate = {item["endpoint"].split("rest")[1]:item["temporal"]["historic"]["start"] for item in sources if 'rest' in item['endpoint']}
 
         if startdate[endpoint] > timeStart.split('T')[0]:
             raise ValueError('TimeStart are not correct, please entry date after ' + startdate[endpoint])
         
         ## test WeatherId
-        geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources}
+        #HACK
+        #geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources}
+        geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources if 'rest' in item['endpoint']}
         list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
 
         #if not list_stationid:
