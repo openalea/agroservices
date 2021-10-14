@@ -26,7 +26,7 @@ __all__ = ["IPM"]
 
 class IPM(REST):
     """
-    Interface to the IPM  https://ipmdecisions.nibio.no/api
+    Interface to the IPM  https://ipmdecisions.nibio.no/
 
     .. doctest::
         >>> from agroservices.ipm import IPM
@@ -75,7 +75,7 @@ class IPM(REST):
         >>> ipm.post_schema_dss_yaml_validate() 
     """
 
-    _url = "https://ipmdecisions.nibio.no/api"
+    _url = "https://ipmdecisions.nibio.no/"
 
     def __init__(self, verbose:bool=False, cache:bool=False):
         """Constructor
@@ -110,7 +110,7 @@ class IPM(REST):
             weather parameters used in the platform
         """        
         res = self.services.http_get(
-            "wx/rest/parameter", 
+            "api/wx/rest/parameter", 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -127,7 +127,7 @@ class IPM(REST):
             QC code used in plateform
         """        
         res = self.services.http_get(
-            "wx/rest/qc", 
+            "api/wx/rest/qc", 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -145,7 +145,7 @@ class IPM(REST):
             the schema that describes the IPM Decision platform's format for exchange of weather data
         """            
         res = self.services.http_get(
-            "wx/rest/schema/weatherdata", 
+            "api/wx/rest/schema/weatherdata", 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -171,7 +171,7 @@ class IPM(REST):
             data=json.load(json_file)
 
         res = self.services.http_post(
-            "wx/rest/schema/weatherdata/validate",
+            "api/wx/rest/schema/weatherdata/validate",
             frmt='json',
             data=json.dumps(data),
             headers={"Content-Type": "application/json"}
@@ -195,10 +195,8 @@ class IPM(REST):
             weatheradapterService name and endpoints available in the plateform
         """        
         sources= self.get_weatherdatasource()
-        # endpoints= {item['name']:item["endpoint"].split("rest",1)[1] for item in sources}
-        # HACK because all endpoints not contain rest api
-        endpoints= {item['name']:item["endpoint"].split("rest",1)[1] for item in sources if 'rest' in item["endpoint"]}
-
+        endpoints= {item['name']:item["endpoint"] for item in sources}
+       
         if forecast==True:
             return {key:value for key, value in endpoints.items() if 'forecast' in key.lower()}
         elif forecast == False:
@@ -272,9 +270,8 @@ class IPM(REST):
 
         ## test credentials (not available test)
 
-        #HACK because all endpoints not contain rest api
-        # authentification = {item["endpoint"].split("rest")[1]:item['authentication_required']for item in sources}
-        authentification = {item["endpoint"].split("rest")[1]:item['authentication_required']for item in sources if 'rest' in item['endpoint']}
+        authentification = {item["endpoint"]:item['authentication_required'] for item in sources}
+        
         if authentification[endpoint]=='false':
             if credentials!=None:
                 raise ValueError("Credentials is not requiered")
@@ -283,9 +280,8 @@ class IPM(REST):
                 raise ValueError("authentification in credentials argument is requiered")
 
         ## Test parameters
-        #HACK idem
-        #param = {item["endpoint"].split("rest")[1]:item['parameters'] for item in sources}
-        param = {item["endpoint"].split("rest")[1]:item['parameters'] for item in sources if 'rest' in item['endpoint']}
+       
+        param = {item["endpoint"]:item['parameters'] for item in sources}
 
         for item in parameters:
             if item not in param[endpoint]['common'] or param[endpoint]['optional']:
@@ -295,21 +291,16 @@ class IPM(REST):
                     str(param[endpoint]))
 
         ## Test TimeStart
-        #HACK idem
-        #startdate = {item["endpoint"].split("rest")[1]:item["temporal"]["historic"]["start"] for item in sources}
-        startdate = {item["endpoint"].split("rest")[1]:item["temporal"]["historic"]["start"] for item in sources if 'rest' in item['endpoint']}
+        
+        startdate = {item["endpoint"]:item["temporal"]["historic"]["start"] for item in sources}
 
         if startdate[endpoint] > timeStart.split('T')[0]:
             raise ValueError('TimeStart are not correct, please entry date after ' + startdate[endpoint])
         
         ## test WeatherId
-        #HACK
-        #geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources}
-        geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources if 'rest' in item['endpoint']}
+        geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources}
         list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
 
-        #if not list_stationid:
-        #    pass
         if not str(weatherStationId) in list_stationid.values():
             raise ValueError("WeatherStationId are not available please choose among valid weatherStationId: "+ str(list_stationid))
         
@@ -325,12 +316,13 @@ class IPM(REST):
             params['callback'] = self.callback
   
         kwds = {}
+
         if credentials:
             auth = (credentials['username'], credentials['password'])
             kwds['auth'] = auth
 
         res = self.services.http_post(
-            "wx/rest"+ endpoint, 
+            endpoint, 
             params= params,
             frmt='json',
             **kwds
@@ -393,7 +385,7 @@ class IPM(REST):
             )
         # requests
         res = self.services.http_get(
-            "wx/rest" + endpoint, 
+            endpoint, 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params=params
@@ -414,7 +406,7 @@ class IPM(REST):
            all the available weather data sources and their properties
         """        
         res = self.services.http_get(
-            "wx/rest/weatherdatasource", 
+            "api/wx/rest/weatherdatasource", 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -453,7 +445,7 @@ class IPM(REST):
             data=json.load(json_file)
 
         res = self.services.http_post(
-            "wx/rest/weatherdatasource/location",
+            "api/wx/rest/weatherdatasource/location",
             frmt='json',
             data=json.dumps(data),
             params= params,
@@ -494,7 +486,7 @@ class IPM(REST):
             )
 
         res = self.services.http_get(
-            "wx/rest/weatherdatasource/location/point", 
+            "api/wx/rest/weatherdatasource/location/point", 
             frmt = 'json',
             headers = self.services.get_headers(content='json'),
             params = params
@@ -513,7 +505,7 @@ class IPM(REST):
             A list of EPPO codes (https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all crops that the DSS models in the platform
         """        
         res = self.services.http_get(
-            "dss/rest/crop",
+            "api/dss/rest/crop",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -530,7 +522,7 @@ class IPM(REST):
             a list all DSSs and models available in the platform
         """        
         res = self.services.http_get(
-            "dss/rest/dss",
+            "api/dss/rest/dss",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -546,7 +538,7 @@ class IPM(REST):
             A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
         """        
         res = self.services.http_get(
-            "dss/rest/pest",
+            "api/dss/rest/pest",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -572,7 +564,7 @@ class IPM(REST):
             data=json.load(json_file)
 
         res = self.services.http_post(
-            "dss/rest/dss/location",
+            "api/dss/rest/dss/location",
             frmt='json',
             data=json.dumps(data),
             headers={"Content-Type": "application/json"}
@@ -595,7 +587,7 @@ class IPM(REST):
             informations about a specific DSS
         """        
         res = self.services.http_get(
-            "dss/rest/dss/{}".format(DSSId),
+            "api/dss/rest/dss/{}".format(DSSId),
             frmt='json'
             )
 
@@ -617,7 +609,7 @@ class IPM(REST):
             all informations about  DSS corresponding of cropCode
         """        
         res = self.services.http_get(
-            "dss/rest/dss/crop/{}".format(cropCode),
+            "api/dss/rest/dss/crop/{}".format(cropCode),
             frmt='json'
             )
         
@@ -649,7 +641,7 @@ class IPM(REST):
             )
             
         res = self.services.http_get(
-            "dss/rest/dss/location/point",
+            "api/dss/rest/dss/location/point",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params=params
@@ -673,7 +665,7 @@ class IPM(REST):
             list of DSS models that are applicable to the given pest
         """        
         res = self.services.http_get(
-            'dss/rest/dss/pest/{}'.format(pestCode),
+            'api/dss/rest/dss/pest/{}'.format(pestCode),
             frmt='json'
             )
 
@@ -698,7 +690,7 @@ class IPM(REST):
             All information of DSS model
         """        
         res = self.services.http_get(
-            "dss/rest/model/{}/{}".format(DSSId,ModelId),
+            "api/dss/rest/model/{}/{}".format(DSSId,ModelId),
             frmt='json'
             )
 
@@ -723,7 +715,7 @@ class IPM(REST):
             The inputs Json schema for the DSS model
         """        
         res = self.services.http_get(
-            "dss/rest/model/{}/{}/input_schema".format(DSSId,ModelId),
+            "api/dss/rest/model/{}/{}/input_schema".format(DSSId,ModelId),
             frmt='json'
             )
         
@@ -742,7 +734,7 @@ class IPM(REST):
             Json schema of DSS
         """        
         res = self.services.http_get(
-            "dss/rest/schema/dss",
+            "api/dss/rest/schema/dss",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -763,7 +755,7 @@ class IPM(REST):
             The generic schema for field observations
         """        
         res = self.services.http_get(
-            "dss/rest/schema/fieldobservation",
+            "api/dss/rest/schema/fieldobservation",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -780,7 +772,7 @@ class IPM(REST):
             The Json Schema for the platform's standard for DSS model output
         """        
         res = self.services.http_get(
-            "dss/rest/schema/modeloutput",
+            "api/dss/rest/schema/modeloutput",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -807,7 +799,7 @@ class IPM(REST):
             data=json.load(json_file)
 
         res = self.services.http_post(
-            "dss/rest/schema/modeloutput/validate",
+            "api/dss/rest/schema/modeloutput/validate",
             frmt='json',
             data=json.dumps(data),
             headers={"Content-Type": "application/json"}
@@ -834,7 +826,7 @@ class IPM(REST):
             data=yaml.load(yaml_file, Loader=yaml.FullLoader)
 
         res = self.services.http_post(
-            "dss/rest/schema/modeloutput/validate",
+            "api/dss/rest/schema/modeloutput/validate",
             frmt="json",
             data=yaml.dump(data),
             headers={"Content-Type": "application/json"}
@@ -888,7 +880,7 @@ class IPM(REST):
         )
 
         # return url ipm
-        self.services.url= "https://ipmdecisions.nibio.no/api"
+        self.services.url= "https://ipmdecisions.nibio.no/"
         
         return res
 
