@@ -195,7 +195,7 @@ class IPM(REST):
             weatheradapterService name and endpoints available in the plateform
         """        
         sources= self.get_weatherdatasource()
-        endpoints= {item['name']:item["endpoint"] for item in sources}
+        endpoints={source['name']:source['endpoint'].split('https://ipmdecisions.nibio.no/')[1] for source in sources if 'https://ipmdecisions.nibio.no/' in source['endpoint']}
        
         if forecast==True:
             return {key:value for key, value in endpoints.items() if 'forecast' in key.lower()}
@@ -270,7 +270,7 @@ class IPM(REST):
 
         ## test credentials (not available test)
 
-        authentification = {item["endpoint"]:item['authentication_required'] for item in sources}
+        authentification = {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item['authentication_required'] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
         
         if authentification[endpoint]=='false':
             if credentials!=None:
@@ -281,7 +281,7 @@ class IPM(REST):
 
         ## Test parameters
        
-        param = {item["endpoint"]:item['parameters'] for item in sources}
+        param = {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item['parameters'] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
 
         for item in parameters:
             if item not in param[endpoint]['common'] or param[endpoint]['optional']:
@@ -292,13 +292,13 @@ class IPM(REST):
 
         ## Test TimeStart
         
-        startdate = {item["endpoint"]:item["temporal"]["historic"]["start"] for item in sources}
+        startdate = {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item["temporal"]["historic"]["start"] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
 
         if startdate[endpoint] > timeStart.split('T')[0]:
             raise ValueError('TimeStart are not correct, please entry date after ' + startdate[endpoint])
         
         ## test WeatherId
-        geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources}
+        geoJson= {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item["spatial"]["geoJSON"] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
         list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
 
         if not str(weatherStationId) in list_stationid.values():
@@ -370,7 +370,7 @@ class IPM(REST):
             raise ValueError("endpoint error is not a forecast weatheradapter service or not exit")
         
         # params according to endpoints
-        if endpoint == '/weatheradapter/fmi/forecasts':
+        if endpoint in ['/weatheradapter/fmi/forecasts','weatherdata/meteofrance/']:
             params = dict(
                 callback=self.callback,
                 latitude=latitude, 
