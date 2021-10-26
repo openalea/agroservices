@@ -75,7 +75,7 @@ class IPM(REST):
         >>> ipm.post_schema_dss_yaml_validate() 
     """
 
-    _url = "https://ipmdecisions.nibio.no/"
+    _url = "https://ipmdecisions.nibio.no"
 
     def __init__(self, verbose:bool=False, cache:bool=False):
         """Constructor
@@ -195,7 +195,7 @@ class IPM(REST):
             weatheradapterService name and endpoints available in the plateform
         """        
         sources= self.get_weatherdatasource()
-        endpoints={source['name']:source['endpoint'].split('https://ipmdecisions.nibio.no/')[1] for source in sources if 'https://ipmdecisions.nibio.no/' in source['endpoint']}
+        endpoints={source['name']:source['endpoint'] for source in sources}
        
         if forecast==True:
             return {key:value for key, value in endpoints.items() if 'forecast' in key.lower()}
@@ -264,13 +264,19 @@ class IPM(REST):
 
         ## test endpoint argument
         endpoints = self.weatheradapter_service(forecast=False)
-        if not endpoint in endpoints.values():
+        
+        if  endpoint in endpoints.values():
+            self.services.url = endpoint
+            print('connexion endpoint url:'+self.services.url)
+        else:    
             raise ValueError("endpoint error: weatheradapter service not exit \n"
                              "or is a forecast weatheradapter in this case used weatheradapter_forecast")
 
+        
+
         ## test credentials (not available test)
 
-        authentification = {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item['authentication_required'] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
+        authentification = {item["endpoint"]:item['authentication_required'] for item in sources}
         
         if authentification[endpoint]=='false':
             if credentials!=None:
@@ -281,28 +287,28 @@ class IPM(REST):
 
         ## Test parameters
        
-        param = {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item['parameters'] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
+        #param = {item["endpoint"]:item['parameters'] for item in sources}
 
-        for item in parameters:
-            if item not in param[endpoint]['common'] or param[endpoint]['optional']:
-                raise ValueError(
-                    str(item) + 
-                    " are not available parameter, please choose among valid parameter " +
-                    str(param[endpoint]))
+        #for item in parameters:
+        #    if item not in param[endpoint]['common'] or param[endpoint]['optional']:
+        #        raise ValueError(
+        #            str(item) + 
+        #            " are not available parameter, please choose among valid parameter " +
+        #            str(param[endpoint]))
 
         ## Test TimeStart
         
-        startdate = {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item["temporal"]["historic"]["start"] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
+        startdate = {item["endpoint"]:item["temporal"]["historic"]["start"] for item in sources}
 
         if startdate[endpoint] > timeStart.split('T')[0]:
             raise ValueError('TimeStart are not correct, please entry date after ' + startdate[endpoint])
         
         ## test WeatherId
-        geoJson= {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item["spatial"]["geoJSON"] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
-        list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
+        #geoJson= {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item["spatial"]["geoJSON"] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
+        #list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
 
-        if not str(weatherStationId) in list_stationid.values():
-            raise ValueError("WeatherStationId are not available please choose among valid weatherStationId: "+ str(list_stationid))
+        #if not str(weatherStationId) in list_stationid.values():
+        #    raise ValueError("WeatherStationId are not available please choose among valid weatherStationId: "+ str(list_stationid))
         
         # params according to weather adapterservice (endpoints), difference if or not credentials
         params=dict(
@@ -327,7 +333,10 @@ class IPM(REST):
             frmt='json',
             **kwds
             )
-
+        
+        # return url ipm
+        self.services.url= "https://ipmdecisions.nibio.no/"
+        print('return IPM url:'+self.services.url)
         return res
 
     def get_weatheradapter_forecast(
@@ -363,14 +372,24 @@ class IPM(REST):
         ------
         ValueError
             endpoint error: check if endpoint is a forecast and exit
-        """               
+        """       
+
+        
+
         # test enpoint argument
         endpoints = self.weatheradapter_service(forecast=True)
-        if not endpoint in endpoints.values():
+        if endpoint in endpoints.values():
+            self.services.url = endpoint
+            print('connexion endpoint url:'+self.services.url)
+        else:
             raise ValueError("endpoint error is not a forecast weatheradapter service or not exit")
         
+        
         # params according to endpoints
-        if endpoint in ['/weatheradapter/fmi/forecasts','weatherdata/meteofrance/']:
+        if endpoint in ['https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/fmi/forecasts',
+                        'https://meteofrance.ipmdecisions.nibio.no',
+                        'https://dwd-eu.ipmdecisions.nibio.no',
+                        'https://dwd.ipmdecisions.nibio.no']:
             params = dict(
                 callback=self.callback,
                 latitude=latitude, 
@@ -391,6 +410,9 @@ class IPM(REST):
             params=params
             )
         
+        # return url ipm
+        self.services.url= "https://ipmdecisions.nibio.no/"
+        print('return IPM url:'+self.services.url)
         return res
 
     ###################### WeatherDataService ##################################
