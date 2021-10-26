@@ -66,27 +66,47 @@ def test_weatheradapter_service():
 
     ws= ipm.weatheradapter_service(forecast=None)
     assert type(ws) is dict
-    assert len(ws)==7
+    assert len(ws)==11
     assert keys_exists(ws.keys(),(
         'Met Norway Locationforecast',
+        'Deutsche Wetterdienst location forecast by IPM Decisions',
+        'Deutsche Wetterdienst EU Area location forecast by IPM Decisions',
+        'MeteoFrance location forecast by IPM Decisions',
         'FMI weather forecasts',
         'Finnish Meteorological Institute measured data',
-        'Landbruksmeteorologisk tjeneste', 
-        'MeteoBot API', 
-        'Fruitweb', 
-        'Metos')
+        'Landbruksmeteorologisk tjeneste',
+        'MeteoBot API',
+        'Fruitweb',
+        'Metos',
+        'Meteodata by Météo Concept')
         )
 
     ws_forcast= ipm.weatheradapter_service(forecast=True)
     assert type(ws_forcast) is dict
-    assert len(ws_forcast)==2
+    assert len(ws_forcast)==5
     assert keys_exists(ws_forcast,(
         'Met Norway Locationforecast',
-        'FMI weather forecasts'))
+        'Deutsche Wetterdienst location forecast by IPM Decisions',
+        'Deutsche Wetterdienst EU Area location forecast by IPM Decisions',
+        'MeteoFrance location forecast by IPM Decisions',
+        'FMI weather forecasts')
+        )
+
+    ws_noforcast=ipm.weatheradapter_service(forecast=False)
+    assert type(ws_noforcast) is dict
+    assert len(ws_noforcast)==6
+    assert keys_exists(ws_noforcast,(
+        'Finnish Meteorological Institute measured data',
+        'MeteoBot API',
+        'Fruitweb',
+        'Metos')
+        )
 
 def test_get_weatheradapter_fmi():
     ipm=IPM()
-    res = ipm.get_weatheradapter(endpoint='/weatheradapter/fmi/',
+
+    res = ipm.get_weatheradapter(
+        endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/fmi/',
         ignoreErrors=True,
         credentials=None,
         interval=3600,
@@ -94,6 +114,7 @@ def test_get_weatheradapter_fmi():
         timeStart='2020-06-12T00:00:00+03:00',
         timeEnd='2020-07-03T00:00:00+03:00',
         weatherStationId=101104)
+
     assert type(res) is dict
     assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
     assert res['weatherParameters']==[1002,3002]
@@ -105,7 +126,7 @@ def test_get_weatheradapter_fmi():
 def test_get_weatheradapter_fmi_forecasts():
     ipm=IPM()
     res = ipm.get_weatheradapter_forecast(
-        endpoint='/weatheradapter/fmi/forecasts',
+        endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/fmi/forecasts',
         latitude=67.2828, 
         longitude=14.3711)
         
@@ -120,7 +141,7 @@ def test_get_weatheradapter_fmi_forecasts():
 def test_get_weatheradapter_yr():
     ipm=IPM()
     res = ipm.get_weatheradapter_forecast(
-        endpoint= '/weatheradapter/yr/',
+        endpoint= 'https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/yr/',
         altitude=70,
         longitude=14.3711,
         latitude=67.2828)
@@ -139,7 +160,7 @@ def test_weatheradapter_Landbrukmeterologisk():
 def test_weatheradapter_MeteoBot():
     ipm = IPM()
     res= ipm.get_weatheradapter(
-        endpoint='/weatheradapter/meteobot/',
+        endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/meteobot/',
         weatherStationId=732,
         interval=3600,
         ignoreErrors=True,
@@ -159,7 +180,7 @@ def test_weatheradapter_MeteoBot():
 def test_weatheradapter_metos():
     ipm = IPM()
     res= ipm.get_weatheradapter(
-        endpoint='/weatheradapter/metos/',
+        endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/metos/',
         weatherStationId=732,
         ignoreErrors=True,
         interval=3600,
@@ -178,7 +199,7 @@ def test_weatheradapter_metos():
 def test_weatheradapter_Fruitdevis():
     ipm = IPM()
     res= ipm.get_weatheradapter(
-        endpoint='/weatheradapter/davisfruitweb/',
+        endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/davisfruitweb/',
         weatherStationId=18150029,
         ignoreErrors=True,
         timeStart='2021-02-01',
@@ -192,6 +213,45 @@ def test_weatheradapter_Fruitdevis():
     #assert res['timeStart']== "2020-06-11T21:00:00Z"
     #assert res['timeEnd']== "2020-07-02T21:00:00Z"
     #assert res['locationWeatherData'][0]['length']== 505
+
+def test_dw(): 
+    ipm = IPM()
+
+    res= ipm.get_weatheradapter_forecast(
+        endpoint='https://dwd.ipmdecisions.nibio.no',
+        latitude=50.109,
+        longitude=10.961
+        )
+    
+    assert type(res) is dict, res
+    assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+
+def test_dw_eu():
+    ipm = IPM()
+
+    res= ipm.get_weatheradapter_forecast(
+        endpoint='https://dwd-eu.ipmdecisions.nibio.no',
+        latitude=50.109,
+        longitude=10.961
+        )
+    
+    assert type(res) is dict, res
+    assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+
+def test_meteofrance():
+    ipm = IPM()
+
+    res= ipm.get_weatheradapter_forecast(
+        endpoint='https://meteofrance.ipmdecisions.nibio.no',
+        latitude=50.109,
+        longitude=10.961
+        )
+    
+    assert type(res) is dict, res
+    assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+
+def test_meteodata():
+    pass 
 
 #################### WeatherDataService #########################################
 
