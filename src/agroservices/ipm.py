@@ -272,8 +272,6 @@ class IPM(REST):
             raise ValueError("endpoint error: weatheradapter service not exit \n"
                              "or is a forecast weatheradapter in this case used weatheradapter_forecast")
 
-        
-
         ## test credentials (not available test)
 
         authentification = {item["endpoint"]:item['authentication_required'] for item in sources}
@@ -284,32 +282,7 @@ class IPM(REST):
         elif authentification[endpoint]=='true':
             if credentials==None: 
                 raise ValueError("authentification in credentials argument is requiered")
-
-        ## Test parameters
-       
-        #param = {item["endpoint"]:item['parameters'] for item in sources}
-
-        #for item in parameters:
-        #    if item not in param[endpoint]['common'] or param[endpoint]['optional']:
-        #        raise ValueError(
-        #            str(item) + 
-        #            " are not available parameter, please choose among valid parameter " +
-        #            str(param[endpoint]))
-
-        ## Test TimeStart
-        
-        startdate = {item["endpoint"]:item["temporal"]["historic"]["start"] for item in sources}
-
-        if startdate[endpoint] > timeStart.split('T')[0]:
-            raise ValueError('TimeStart are not correct, please entry date after ' + startdate[endpoint])
-        
-        ## test WeatherId
-        #geoJson= {item["endpoint"].split('https://ipmdecisions.nibio.no/')[1]:item["spatial"]["geoJSON"] for item in sources if 'https://ipmdecisions.nibio.no/' in item['endpoint']}
-        #list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
-
-        #if not str(weatherStationId) in list_stationid.values():
-        #    raise ValueError("WeatherStationId are not available please choose among valid weatherStationId: "+ str(list_stationid))
-        
+                
         # params according to weather adapterservice (endpoints), difference if or not credentials
         params=dict(
             ignoreErrors = ignoreErrors,
@@ -320,19 +293,26 @@ class IPM(REST):
             weatherStationId=weatherStationId)
         if self.callback:
             params['callback'] = self.callback
-  
+
+        res = self.services.http_get(
+            endpoint,
+            params= params,
+            frmt='json',
+            headers=self.services.get_headers(content='json')
+        )
+
         kwds = {}
 
         if credentials:
             auth = (credentials['username'], credentials['password'])
             kwds['auth'] = auth
 
-        res = self.services.http_post(
-            endpoint, 
-            params= params,
-            frmt='json',
-            **kwds
-            )
+            res = self.services.http_post(
+                endpoint, 
+                params= params,
+                frmt='json',
+                **kwds
+                )
         
         # return url ipm
         self.services.url= "https://ipmdecisions.nibio.no/"
