@@ -161,13 +161,13 @@ def test_weatheradapter_MeteoBot():
     ipm = IPM()
     res= ipm.get_weatheradapter(
         endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/meteobot/',
-        weatherStationId=732,
-        interval=3600,
+        weatherStationId=18150029,
         ignoreErrors=True,
+        interval=3600,
         timeStart='2020-06-12',
         timeEnd='2020-07-03',
-        parameters=[1001],
-        credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
+        parameters=[1002,3002],
+        credentials={"userName":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
     
     assert type(res) is dict, res
     assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
@@ -181,13 +181,13 @@ def test_weatheradapter_metos():
     ipm = IPM()
     res= ipm.get_weatheradapter(
         endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/metos/',
-        weatherStationId=732,
+        weatherStationId='000012DE',
         ignoreErrors=True,
         interval=3600,
         timeStart='2020-06-12',
         timeEnd='2020-07-03',
-        parameters=[1001],
-        credentials={"username":"3138313530303239","password":"Y3Nw_48aNe4y1Z0Wj"})
+        parameters=[1002,3002],
+        credentials={"userName":"c511e7d5ddcafe7d49941a016d897f2425c852cba7436cc3","password":"3fda3e0ce8c6c768d48b80ace10e544ab282b3965345d81e"})
 
     assert type(res) is dict, res
     assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
@@ -200,19 +200,17 @@ def test_weatheradapter_Fruitdevis():
     ipm = IPM()
     res= ipm.get_weatheradapter(
         endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/davisfruitweb/',
-        weatherStationId=18150029,
+        weatherStationId=536,
+        interval=3600,
         ignoreErrors=True,
         timeStart='2021-02-01',
         timeEnd='2021-03-01',
-        parameters=[1001],
-        credentials={"username":"536","password":"GF90esoleo"})
+        parameters=[1002,3002],
+        credentials={"userName":"","password":"GF90esoleo"})
     
     assert type(res) is dict, res
     assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
-    #assert res['weatherParameters']==[1002,3002]
-    #assert res['timeStart']== "2020-06-11T21:00:00Z"
-    #assert res['timeEnd']== "2020-07-02T21:00:00Z"
-    #assert res['locationWeatherData'][0]['length']== 505
+
 
 def test_dw(): 
     ipm = IPM()
