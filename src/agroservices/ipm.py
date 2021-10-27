@@ -16,6 +16,7 @@ from  pathlib import Path
 
 from pygments.lexer import include
 
+import requests
 from requests.auth import HTTPDigestAuth
 
 from agroservices.services import REST
@@ -291,6 +292,7 @@ class IPM(REST):
             timeEnd=timeEnd,
             timeStart=timeStart,
             weatherStationId=weatherStationId)
+
         if self.callback:
             params['callback'] = self.callback
 
@@ -298,22 +300,33 @@ class IPM(REST):
             endpoint,
             params= params,
             frmt='json',
-            headers=self.services.get_headers(content='json')
         )
 
         kwds = {}
 
         if credentials:
-            auth = (credentials['username'], credentials['password'])
-            kwds['auth'] = auth
+            #auth = (credentials['username'], credentials['password'])
+            #kwds['auth'] = auth
 
-            res = self.services.http_post(
-                endpoint, 
-                params= params,
-                frmt='json',
-                **kwds
-                )
-        
+            params=dict(
+            weatherStationId=weatherStationId,
+            interval = interval,
+            ignoreErrors = ignoreErrors,
+            timeEnd=timeEnd,
+            timeStart=timeStart,
+            parameters=','.join(map(str,parameters)),
+            credentials= json.dumps(credentials))
+
+            
+            # res = self.services.http_post(
+            #     endpoint, 
+            #     data= params
+            #     )
+            
+            #HACK Marc http_post bioservices ne fait pas la requête
+            res = requests.post(url=endpoint,data=params).content
+            res = json.loads(res.decode('utf-8'))
+            
         # return url ipm
         self.services.url= "https://ipmdecisions.nibio.no/"
         print('return IPM url:'+self.services.url)
@@ -887,4 +900,28 @@ class IPM(REST):
         return res
 
 
-   
+##### Test
+import requests
+import json
+
+endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/davisfruitweb'
+weatherStationId=536
+interval=3600
+ignoreErrors=True
+timeStart='2021-02-01'
+timeEnd='2021-03-01'
+parameters=[1002,3002]
+credentials={"userName":"","password":"GF90esoleo"}
+
+params = dict(weatherStationId=weatherStationId,
+        interval=interval,
+        ignoreErrors=ignoreErrors,
+        timeStart=timeStart,
+        timeEnd=timeEnd,
+        parameters= ','.join(map(str,parameters)),
+        credentials=json.dumps(credentials))
+
+
+requests.post(url=endpoint,data=params) 
+
+
