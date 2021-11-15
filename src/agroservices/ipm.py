@@ -33,7 +33,7 @@ class IPM(REST):
         >>> from agroservices.ipm import IPM
         >>> ipm = IPM()
 
-        MetaDataService
+        WeatherMetaDataService
         ----------------
         >>> ipm.get_parameter() 
         >>> ipm.get_qc() 
@@ -43,15 +43,13 @@ class IPM(REST):
         WeatherAdaptaterService
         ------------------------
         >>> ipm.weatheradapter_service() 
-        >>> ipm.get_weatheradapter() ok (test with endpoint fmi)
-        >>> ipm.get_weatheradapter_forecaste() ok with fmi forecast
-        >>> ipm.post_weatheradapter #TODO if needed
-        >>> ipm.post_weatheradapter_forecast #TODO if needed 
+        >>> ipm.get_weatheradapter() 
+        >>> ipm.get_weatheradapter_forecast() 
 
         WeatherDataService
         ------------------
-        >>> ipm.get_weatherdatasource() ok
-        >>> ipm.post_weatherdatasource_location(tolerence=0) 
+        >>> ipm.get_weatherdatasource()
+        >>> ipm.post_weatherdatasource_location() 
         >>> ipm.get_weatherdatasource_location_point() 
 
         DSSService
@@ -67,7 +65,7 @@ class IPM(REST):
         >>> ipm.get_model()
         >>> ipm.get_input_schema() 
 
-        MetaDataService
+        DSSMetaDataService
         ---------------
         >>> ipm.get_schema_dss() 
         >>> dss.get_schema_fieldobservation() 
@@ -268,7 +266,7 @@ class IPM(REST):
         
         if  endpoint in endpoints.values():
             self.services.url = endpoint
-            print('connexion endpoint url:'+self.services.url)
+          
         else:    
             raise ValueError("endpoint error: weatheradapter service not exit \n"
                              "or is a forecast weatheradapter in this case used weatheradapter_forecast")
@@ -328,8 +326,8 @@ class IPM(REST):
             res = json.loads(res.decode('utf-8'))
             
         # return url ipm
-        self.services.url= "https://ipmdecisions.nibio.no/"
-        print('return IPM url:'+self.services.url)
+        self.services.url= self.url
+        
         return res
 
     def get_weatheradapter_forecast(
@@ -339,7 +337,7 @@ class IPM(REST):
         latitude:Union[int,float]= 67.2828, 
         longitude:Union[int,float] = 14.3711
         )->dict:
-        """[summary]
+        """Get weather observations for forecast weatheradapter service
 
         Parameters
         ----------
@@ -373,7 +371,7 @@ class IPM(REST):
         endpoints = self.weatheradapter_service(forecast=True)
         if endpoint in endpoints.values():
             self.services.url = endpoint
-            print('connexion endpoint url:'+self.services.url)
+            
         else:
             raise ValueError("endpoint error is not a forecast weatheradapter service or not exit")
         
@@ -404,8 +402,8 @@ class IPM(REST):
             )
         
         # return url ipm
-        self.services.url= "https://ipmdecisions.nibio.no/"
-        print('return IPM url:'+self.services.url)
+        self.services.url= self.url
+
         return res
 
     ###################### WeatherDataService ##################################
@@ -427,8 +425,8 @@ class IPM(REST):
             params={'callback':self.callback}
             )
 
-        for r in res:
-            r['spatial']['geoJSON']=json.loads(r['spatial']['geoJSON'])
+        # for r in res:
+        #     r['spatial']['geoJSON']=json.loads(r['spatial']['geoJSON'])
 
         return res
     
@@ -898,30 +896,4 @@ class IPM(REST):
         self.services.url= "https://ipmdecisions.nibio.no/"
         
         return res
-
-
-##### Test
-import requests
-import json
-
-endpoint='https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/davisfruitweb'
-weatherStationId=536
-interval=3600
-ignoreErrors=True
-timeStart='2021-02-01'
-timeEnd='2021-03-01'
-parameters=[1002,3002]
-credentials={"userName":"","password":"GF90esoleo"}
-
-params = dict(weatherStationId=weatherStationId,
-        interval=interval,
-        ignoreErrors=ignoreErrors,
-        timeStart=timeStart,
-        timeEnd=timeEnd,
-        parameters= ','.join(map(str,parameters)),
-        credentials=json.dumps(credentials))
-
-
-requests.post(url=endpoint,data=params) 
-
 
