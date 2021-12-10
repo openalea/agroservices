@@ -273,12 +273,12 @@ class IPM(REST):
 
         ## test credentials (not available test)
 
-        authentification = {item["endpoint"]:item['authentication_required'] for item in sources}
+        authentification = {item["endpoint"]:item['authentication_type'] for item in sources}
         
-        if authentification[endpoint]=='false':
+        if authentification[endpoint]=='NONE':
             if credentials!=None:
                 raise ValueError("Credentials is not requiered")
-        elif authentification[endpoint]=='true':
+        elif authentification[endpoint]=='CREDENTIALS':
             if credentials==None: 
                 raise ValueError("authentification in credentials argument is requiered")
                 
