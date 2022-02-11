@@ -194,12 +194,12 @@ class IPM(REST):
             weatheradapterService name and endpoints available in the plateform
         """        
         sources= self.get_weatherdatasource()
-        endpoints={source['name']:source['endpoint'] for source in sources}
-       
+        endpoints={source['name']:{'endpoint':source['endpoint'],"forecast":bool(source["temporal"]["forecast"])} for source in sources}
+
         if forecast==True:
-            return {key:value for key, value in endpoints.items() if 'forecast' in key.lower()}
+            return {key:value["endpoint"] for key,value in endpoints.items() if endpoints[key]["forecast"]==True}
         elif forecast == False:
-            return {key:value for key, value in endpoints.items() if not 'forecast' in key.lower()}
+            return {key:value["endpoint"] for key,value in endpoints.items() if endpoints[key]["forecast"]==False}
         else:
             return endpoints
 
@@ -263,7 +263,7 @@ class IPM(REST):
 
         ## test endpoint argument
         endpoints = self.weatheradapter_service(forecast=False)
-        
+                
         if  endpoint in endpoints.values():
             self.services.url = endpoint
           
@@ -333,9 +333,13 @@ class IPM(REST):
     def get_weatheradapter_forecast(
         self,
         endpoint:str,
-        altitude:Union[int,float]=70, 
-        latitude:Union[int,float]= 67.2828, 
-        longitude:Union[int,float] = 14.3711
+        altitude:float = 70, 
+        latitude: float= 67.2828, 
+        longitude: float = 14.3711,
+        timeStart:str = "2021-10-01",
+        timeEnd:str="2021-10-20",
+        parameters:list = [1002,1112],
+        interval:int=86400
         )->dict:
         """Get weather observations for forecast weatheradapter service
 
@@ -371,7 +375,6 @@ class IPM(REST):
         endpoints = self.weatheradapter_service(forecast=True)
         if endpoint in endpoints.values():
             self.services.url = endpoint
-            
         else:
             raise ValueError("endpoint error is not a forecast weatheradapter service or not exit")
         
@@ -386,6 +389,18 @@ class IPM(REST):
                 latitude=latitude, 
                 longitude=longitude
                 )
+            
+        elif endpoint in ["https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/dmipoint/",'https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/lantmet/']:
+            params= dict(
+                timeStart = timeStart,
+                timeEnd = timeEnd,
+                latitude = latitude,
+                longitude = longitude,
+                altitude = altitude,
+                interval= interval,
+                parameters = ','.join(map(str,parameters))
+                )
+            #print(params)
         else:
             params = dict(
                 callback=self.callback,
@@ -878,17 +893,18 @@ class IPM(REST):
         
         # Change url according endpoint
         self.services.url= d[ModelId][DSSId]
-
+        
         if (type(model_input) is str and model_input.endswith('.json')):
             with open(model_input) as json_file:
                 data = json.load(json_file)
+                data =json.dumps(data)
         else:
             data= model_input
 
         res = self.services.http_post(
             query= None,
             frmt='json',
-            data=json.dumps(data),
+            data= data,
             headers={"Content-Type": "application/json"}
         )
 
