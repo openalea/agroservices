@@ -2,12 +2,12 @@
 # agroservices
 
 **authors:** 
-* Marc Labadie (marc.labadie@inrae.fr)
-* Christian Fournier (christian.fournier@inrae.fr)
-* Christophe Pradal (christophe.pradal@inrae.fr)       
+* [Marc Labadie](https://github.com/mlabadie)
+* [Christian Fournier](https://github.com/christian34))
+* [Christophe Pradal](https://github.com/pradal)       
 
 **Institutes:** INRAE/CIRAD   
-**Licence:**[CeCILL-C](https://cecill.info/licences/Licence_CeCILL-C_V1-en.html)   
+**Licence:**[GPL-3](https://www.gnu.org/licenses/gpl-3.0.txt)  
 **Status:** python package   
 **Citation:**(DOI)
 
@@ -58,4 +58,17 @@ cd test; pytest
 * pygments
 
 ## Documentation
-not available for the moment. However each function are documented by docstring
+
+You can see the complete documentation with tutorials at: xxx
+
+## Contributing
+All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome.
+
+A detailed overview on how to contribute can be found in the [contributing guide](http://virtualplants.github.io/contribute/devel/workflow-github.html#workflow-github).
+
+### contributors
+
+<a href="https://github.com/H2020-IPM-openalea/DSS/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=H2020-IPM-openalea/DSS" />
+</a>
+
