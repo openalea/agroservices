@@ -68,7 +68,7 @@ A detailed overview on how to contribute can be found in the [contributing guide
 
 ### contributors
 
-<a href="https://github.com/H2020-IPM-openalea/DSS/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=H2020-IPM-openalea/DSS" />
+<a href="https://github.com/H2020-IPM-openalea/agroservices/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=H2020-IPM-openalea/agroservices" />
 </a>
 
