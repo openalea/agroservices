@@ -29,7 +29,7 @@ package_dir = dict([('', pkg_root_dir)] +
 
 setup(
     name="agroservices",
-    version="0.1",
+    version="0.9",
     description="",
     long_description="",
 
@@ -44,7 +44,7 @@ setup(
     maintainer_email="",
 
     url="",
-    license="Cecill-C",
+    license="GPL-v3",
     keywords='',
 
     # package installation
