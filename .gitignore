@@ -105,3 +105,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# Mac
+.DS_Store
+
+# Visual Code
+*.code-workspace
