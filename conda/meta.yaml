@@ -35,7 +35,7 @@ test:
     - test/**
   commands:
     - cd test
-    - pytest -v 
+    - pytest -v --ignore=test_weatherdata.py
 about:
   home: {{ data.get('url') }}
   license: GPL-v3
