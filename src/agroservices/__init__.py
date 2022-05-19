@@ -10,7 +10,8 @@
 
 
 import pkg_resources
-__version__ = "0.9.0"
+from .version import version
+__version__ = version
 try:
     version = pkg_resources.require("agroservices")[0].version
     __version__ = version

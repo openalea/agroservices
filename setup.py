@@ -28,9 +28,10 @@ package_dir = dict([('', pkg_root_dir)] +
 
 name = "agroservices"
 
-version = {}
-with open("src/agroservices/__init__.py") as fp:
-    exec(fp.read(), version)
+_version = {}
+with open("src/agroservices/version.py") as fp:
+    exec(fp.read(), _version)
+version = _version['version']
 
 description = ''
 long_description = '''
