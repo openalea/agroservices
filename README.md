@@ -2,12 +2,12 @@
 # agroservices
 
 **authors:** 
-* Marc Labadie (marc.labadie@inrae.fr)
-* Christian Fournier (christian.fournier@inrae.fr)
-* Christophe Pradal (christophe.pradal@inrae.fr)       
+* [Marc Labadie](https://github.com/mlabadie)
+* [Christian Fournier](https://github.com/christian34))
+* [Christophe Pradal](https://github.com/pradal)       
 
 **Institutes:** INRAE/CIRAD   
-**Licence:**[CeCILL-C](https://cecill.info/licences/Licence_CeCILL-C_V1-en.html)   
+**Licence:**[GPL-3](https://www.gnu.org/licenses/gpl-3.0.txt)  
 **Status:** python package   
 **Citation:**(DOI)
 
@@ -24,23 +24,23 @@ Follow official website instruction to install miniconda : http://conda.pydata.o
 
 **Create a new environment with agroservice installed in there :**
 ```
-conda create -n agroservices -c conda-forge agroservices
+conda create -n agroservices -c conda-forge -c openalea3 agroservices
 conda activate agroservices
 ```
 **In a existing environment :**
 ```
-conda install -c conda-forge agroservices
+conda install -c openalea3 -c conda-forge agroservices
 ```
 
 ### From source
 ```
 # Install dependency with conda
-conda create -n agroservices -c conda-forge python=3
+conda create -n agroservices -c conda-forge python
 conda activate agroservices
 conda install -c conda-forge appdirs bs4 pygments colorlog requests requests_cache pytest
 
 # Load agroservice and install
-git clone https://github.com/H2020-IPM-openalea/agroservices.git
+git clone https://github.com/openalea/agroservices.git
 cd agroservices
 python setup.py develop
 
@@ -49,7 +49,7 @@ cd test; pytest
 ```
 
 ## Requirements
-* python 3.8
+* python >= 3.6
 * appdirs
 * bs4
 * colorlog
@@ -58,4 +58,17 @@ cd test; pytest
 * pygments
 
 ## Documentation
-not available for the moment. However each function are documented by docstring
+
+You can see the complete documentation with tutorials at: xxx
+
+## Contributing
+All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome.
+
+A detailed overview on how to contribute can be found in the [contributing guide](http://virtualplants.github.io/contribute/devel/workflow-github.html#workflow-github).
+
+### contributors
+
+<a href="https://github.com/H2020-IPM-openalea/agroservices/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=H2020-IPM-openalea/agroservices" />
+</a>
+

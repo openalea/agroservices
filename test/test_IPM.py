@@ -78,7 +78,7 @@ def test_weatheradapter_service():
         'MeteoBot API',
         'Fruitweb',
         'Metos',
-        'Meteodata by MÃ©tÃ©o Concept')
+        'Meteodata by Météo Concept')
         )
 
     ws_forcast= ipm.weatheradapter_service(forecast=True)
