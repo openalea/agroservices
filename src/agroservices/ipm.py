@@ -16,6 +16,7 @@ from  pathlib import Path
 
 from pygments.lexer import include
 
+import requests
 from requests.auth import HTTPDigestAuth
 
 from agroservices.services import REST
@@ -26,13 +27,13 @@ __all__ = ["IPM"]
 
 class IPM(REST):
     """
-    Interface to the IPM  https://ipmdecisions.nibio.no/api
+    Interface to the IPM  https://ipmdecisions.nibio.no/
 
     .. doctest::
         >>> from agroservices.ipm import IPM
         >>> ipm = IPM()
 
-        MetaDataService
+        WeatherMetaDataService
         ----------------
         >>> ipm.get_parameter() 
         >>> ipm.get_qc() 
@@ -42,15 +43,13 @@ class IPM(REST):
         WeatherAdaptaterService
         ------------------------
         >>> ipm.weatheradapter_service() 
-        >>> ipm.get_weatheradapter() ok (test with endpoint fmi)
-        >>> ipm.get_weatheradapter_forecaste() ok with fmi forecast
-        >>> ipm.post_weatheradapter #TODO if needed
-        >>> ipm.post_weatheradapter_forecast #TODO if needed 
+        >>> ipm.get_weatheradapter() 
+        >>> ipm.get_weatheradapter_forecast() 
 
         WeatherDataService
         ------------------
-        >>> ipm.get_weatherdatasource() ok
-        >>> ipm.post_weatherdatasource_location(tolerence=0) 
+        >>> ipm.get_weatherdatasource()
+        >>> ipm.post_weatherdatasource_location() 
         >>> ipm.get_weatherdatasource_location_point() 
 
         DSSService
@@ -66,7 +65,7 @@ class IPM(REST):
         >>> ipm.get_model()
         >>> ipm.get_input_schema() 
 
-        MetaDataService
+        DSSMetaDataService
         ---------------
         >>> ipm.get_schema_dss() 
         >>> dss.get_schema_fieldobservation() 
@@ -75,7 +74,7 @@ class IPM(REST):
         >>> ipm.post_schema_dss_yaml_validate() 
     """
 
-    _url = "https://ipmdecisions.nibio.no/api"
+    _url = "https://ipmdecisions.nibio.no"
 
     def __init__(self, verbose:bool=False, cache:bool=False):
         """Constructor
@@ -110,7 +109,7 @@ class IPM(REST):
             weather parameters used in the platform
         """        
         res = self.services.http_get(
-            "wx/rest/parameter", 
+            "api/wx/rest/parameter", 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -127,7 +126,7 @@ class IPM(REST):
             QC code used in plateform
         """        
         res = self.services.http_get(
-            "wx/rest/qc", 
+            "api/wx/rest/qc", 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -145,7 +144,7 @@ class IPM(REST):
             the schema that describes the IPM Decision platform's format for exchange of weather data
         """            
         res = self.services.http_get(
-            "wx/rest/schema/weatherdata", 
+            "api/wx/rest/schema/weatherdata", 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -171,7 +170,7 @@ class IPM(REST):
             data=json.load(json_file)
 
         res = self.services.http_post(
-            "wx/rest/schema/weatherdata/validate",
+            "api/wx/rest/schema/weatherdata/validate",
             frmt='json',
             data=json.dumps(data),
             headers={"Content-Type": "application/json"}
@@ -195,14 +194,12 @@ class IPM(REST):
             weatheradapterService name and endpoints available in the plateform
         """        
         sources= self.get_weatherdatasource()
-        # endpoints= {item['name']:item["endpoint"].split("rest",1)[1] for item in sources}
-        # HACK because all endpoints not contain rest api
-        endpoints= {item['name']:item["endpoint"].split("rest",1)[1] for item in sources if 'rest' in item["endpoint"]}
+        endpoints={source['name']:{'endpoint':source['endpoint'],"forecast":bool(source["temporal"]["forecast"])} for source in sources}
 
         if forecast==True:
-            return {key:value for key, value in endpoints.items() if 'forecast' in key.lower()}
+            return {key:value["endpoint"] for key,value in endpoints.items() if endpoints[key]["forecast"]==True}
         elif forecast == False:
-            return {key:value for key, value in endpoints.items() if not 'forecast' in key.lower()}
+            return {key:value["endpoint"] for key,value in endpoints.items() if endpoints[key]["forecast"]==False}
         else:
             return endpoints
 
@@ -266,53 +263,25 @@ class IPM(REST):
 
         ## test endpoint argument
         endpoints = self.weatheradapter_service(forecast=False)
-        if not endpoint in endpoints.values():
+                
+        if  endpoint in endpoints.values():
+            self.services.url = endpoint
+          
+        else:    
             raise ValueError("endpoint error: weatheradapter service not exit \n"
                              "or is a forecast weatheradapter in this case used weatheradapter_forecast")
 
         ## test credentials (not available test)
 
-        #HACK because all endpoints not contain rest api
-        # authentification = {item["endpoint"].split("rest")[1]:item['authentication_required']for item in sources}
-        authentification = {item["endpoint"].split("rest")[1]:item['authentication_required']for item in sources if 'rest' in item['endpoint']}
-        if authentification[endpoint]=='false':
+        authentification = {item["endpoint"]:item['authentication_type'] for item in sources}
+        
+        if authentification[endpoint]=='NONE':
             if credentials!=None:
                 raise ValueError("Credentials is not requiered")
-        elif authentification[endpoint]=='true':
+        elif authentification[endpoint]=='CREDENTIALS':
             if credentials==None: 
                 raise ValueError("authentification in credentials argument is requiered")
-
-        ## Test parameters
-        #HACK idem
-        #param = {item["endpoint"].split("rest")[1]:item['parameters'] for item in sources}
-        param = {item["endpoint"].split("rest")[1]:item['parameters'] for item in sources if 'rest' in item['endpoint']}
-
-        for item in parameters:
-            if item not in param[endpoint]['common'] or param[endpoint]['optional']:
-                raise ValueError(
-                    str(item) + 
-                    " are not available parameter, please choose among valid parameter " +
-                    str(param[endpoint]))
-
-        ## Test TimeStart
-        #HACK idem
-        #startdate = {item["endpoint"].split("rest")[1]:item["temporal"]["historic"]["start"] for item in sources}
-        startdate = {item["endpoint"].split("rest")[1]:item["temporal"]["historic"]["start"] for item in sources if 'rest' in item['endpoint']}
-
-        if startdate[endpoint] > timeStart.split('T')[0]:
-            raise ValueError('TimeStart are not correct, please entry date after ' + startdate[endpoint])
-        
-        ## test WeatherId
-        #HACK
-        #geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources}
-        geoJson= {item["endpoint"].split("rest")[1]:item["spatial"]["geoJSON"] for item in sources if 'rest' in item['endpoint']}
-        list_stationid={item['properties']['name']:item['properties']['id'] for item in geoJson[endpoint]['features']}
-
-        #if not list_stationid:
-        #    pass
-        if not str(weatherStationId) in list_stationid.values():
-            raise ValueError("WeatherStationId are not available please choose among valid weatherStationId: "+ str(list_stationid))
-        
+                
         # params according to weather adapterservice (endpoints), difference if or not credentials
         params=dict(
             ignoreErrors = ignoreErrors,
@@ -321,31 +290,58 @@ class IPM(REST):
             timeEnd=timeEnd,
             timeStart=timeStart,
             weatherStationId=weatherStationId)
+
         if self.callback:
             params['callback'] = self.callback
-  
-        kwds = {}
-        if credentials:
-            auth = (credentials['username'], credentials['password'])
-            kwds['auth'] = auth
 
-        res = self.services.http_post(
-            "wx/rest"+ endpoint, 
+        res = self.services.http_get(
+            endpoint,
             params= params,
             frmt='json',
-            **kwds
-            )
+        )
 
+        kwds = {}
+
+        if credentials:
+            #auth = (credentials['username'], credentials['password'])
+            #kwds['auth'] = auth
+
+            params=dict(
+            weatherStationId=weatherStationId,
+            interval = interval,
+            ignoreErrors = ignoreErrors,
+            timeEnd=timeEnd,
+            timeStart=timeStart,
+            parameters=','.join(map(str,parameters)),
+            credentials= json.dumps(credentials))
+
+            
+            # res = self.services.http_post(
+            #     endpoint, 
+            #     data= params
+            #     )
+            
+            #HACK Marc http_post bioservices ne fait pas la requête
+            res = requests.post(url=endpoint,data=params).content
+            res = json.loads(res.decode('utf-8'))
+            
+        # return url ipm
+        self.services.url= self.url
+        
         return res
 
     def get_weatheradapter_forecast(
         self,
         endpoint:str,
-        altitude:Union[int,float]=70, 
-        latitude:Union[int,float]= 67.2828, 
-        longitude:Union[int,float] = 14.3711
+        altitude:float = 70, 
+        latitude: float= 67.2828, 
+        longitude: float = 14.3711,
+        timeStart:str = "2021-10-01",
+        timeEnd:str="2021-10-20",
+        parameters:list = [1002,1112],
+        interval:int=86400
         )->dict:
-        """[summary]
+        """Get weather observations for forecast weatheradapter service
 
         Parameters
         ----------
@@ -371,19 +367,40 @@ class IPM(REST):
         ------
         ValueError
             endpoint error: check if endpoint is a forecast and exit
-        """               
+        """       
+
+        
+
         # test enpoint argument
         endpoints = self.weatheradapter_service(forecast=True)
-        if not endpoint in endpoints.values():
+        if endpoint in endpoints.values():
+            self.services.url = endpoint
+        else:
             raise ValueError("endpoint error is not a forecast weatheradapter service or not exit")
         
+        
         # params according to endpoints
-        if endpoint == '/weatheradapter/fmi/forecasts':
+        if endpoint in ['https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/fmi/forecasts',
+                        'https://meteofrance.ipmdecisions.nibio.no',
+                        'https://dwd-eu.ipmdecisions.nibio.no',
+                        'https://dwd.ipmdecisions.nibio.no']:
             params = dict(
                 callback=self.callback,
                 latitude=latitude, 
                 longitude=longitude
                 )
+            
+        elif endpoint in ["https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/dmipoint/",'https://ipmdecisions.nibio.no/api/wx/rest/weatheradapter/lantmet/']:
+            params= dict(
+                timeStart = timeStart,
+                timeEnd = timeEnd,
+                latitude = latitude,
+                longitude = longitude,
+                altitude = altitude,
+                interval= interval,
+                parameters = ','.join(map(str,parameters))
+                )
+            #print(params)
         else:
             params = dict(
                 callback=self.callback,
@@ -393,12 +410,15 @@ class IPM(REST):
             )
         # requests
         res = self.services.http_get(
-            "wx/rest" + endpoint, 
+            endpoint, 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params=params
             )
         
+        # return url ipm
+        self.services.url= self.url
+
         return res
 
     ###################### WeatherDataService ##################################
@@ -414,14 +434,14 @@ class IPM(REST):
            all the available weather data sources and their properties
         """        
         res = self.services.http_get(
-            "wx/rest/weatherdatasource", 
+            "api/wx/rest/weatherdatasource", 
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
             )
 
-        for r in res:
-            r['spatial']['geoJSON']=json.loads(r['spatial']['geoJSON'])
+        # for r in res:
+        #     r['spatial']['geoJSON']=json.loads(r['spatial']['geoJSON'])
 
         return res
     
@@ -453,7 +473,7 @@ class IPM(REST):
             data=json.load(json_file)
 
         res = self.services.http_post(
-            "wx/rest/weatherdatasource/location",
+            "api/wx/rest/weatherdatasource/location",
             frmt='json',
             data=json.dumps(data),
             params= params,
@@ -494,7 +514,7 @@ class IPM(REST):
             )
 
         res = self.services.http_get(
-            "wx/rest/weatherdatasource/location/point", 
+            "api/wx/rest/weatherdatasource/location/point", 
             frmt = 'json',
             headers = self.services.get_headers(content='json'),
             params = params
@@ -513,7 +533,7 @@ class IPM(REST):
             A list of EPPO codes (https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all crops that the DSS models in the platform
         """        
         res = self.services.http_get(
-            "dss/rest/crop",
+            "api/dss/rest/crop",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -530,7 +550,7 @@ class IPM(REST):
             a list all DSSs and models available in the platform
         """        
         res = self.services.http_get(
-            "dss/rest/dss",
+            "api/dss/rest/dss",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -546,7 +566,7 @@ class IPM(REST):
             A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
         """        
         res = self.services.http_get(
-            "dss/rest/pest",
+            "api/dss/rest/pest",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -572,7 +592,7 @@ class IPM(REST):
             data=json.load(json_file)
 
         res = self.services.http_post(
-            "dss/rest/dss/location",
+            "api/dss/rest/dss/location",
             frmt='json',
             data=json.dumps(data),
             headers={"Content-Type": "application/json"}
@@ -595,7 +615,7 @@ class IPM(REST):
             informations about a specific DSS
         """        
         res = self.services.http_get(
-            "dss/rest/dss/{}".format(DSSId),
+            "api/dss/rest/dss/{}".format(DSSId),
             frmt='json'
             )
 
@@ -617,7 +637,7 @@ class IPM(REST):
             all informations about  DSS corresponding of cropCode
         """        
         res = self.services.http_get(
-            "dss/rest/dss/crop/{}".format(cropCode),
+            "api/dss/rest/dss/crop/{}".format(cropCode),
             frmt='json'
             )
         
@@ -649,7 +669,7 @@ class IPM(REST):
             )
             
         res = self.services.http_get(
-            "dss/rest/dss/location/point",
+            "api/dss/rest/dss/location/point",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params=params
@@ -673,7 +693,7 @@ class IPM(REST):
             list of DSS models that are applicable to the given pest
         """        
         res = self.services.http_get(
-            'dss/rest/dss/pest/{}'.format(pestCode),
+            'api/dss/rest/dss/pest/{}'.format(pestCode),
             frmt='json'
             )
 
@@ -698,7 +718,7 @@ class IPM(REST):
             All information of DSS model
         """        
         res = self.services.http_get(
-            "dss/rest/model/{}/{}".format(DSSId,ModelId),
+            "api/dss/rest/model/{}/{}".format(DSSId,ModelId),
             frmt='json'
             )
 
@@ -723,7 +743,7 @@ class IPM(REST):
             The inputs Json schema for the DSS model
         """        
         res = self.services.http_get(
-            "dss/rest/model/{}/{}/input_schema".format(DSSId,ModelId),
+            "api/dss/rest/model/{}/{}/input_schema".format(DSSId,ModelId),
             frmt='json'
             )
         
@@ -742,7 +762,7 @@ class IPM(REST):
             Json schema of DSS
         """        
         res = self.services.http_get(
-            "dss/rest/schema/dss",
+            "api/dss/rest/schema/dss",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -763,7 +783,7 @@ class IPM(REST):
             The generic schema for field observations
         """        
         res = self.services.http_get(
-            "dss/rest/schema/fieldobservation",
+            "api/dss/rest/schema/fieldobservation",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -780,7 +800,7 @@ class IPM(REST):
             The Json Schema for the platform's standard for DSS model output
         """        
         res = self.services.http_get(
-            "dss/rest/schema/modeloutput",
+            "api/dss/rest/schema/modeloutput",
             frmt='json',
             headers=self.services.get_headers(content='json'),
             params={'callback':self.callback}
@@ -807,7 +827,7 @@ class IPM(REST):
             data=json.load(json_file)
 
         res = self.services.http_post(
-            "dss/rest/schema/modeloutput/validate",
+            "api/dss/rest/schema/modeloutput/validate",
             frmt='json',
             data=json.dumps(data),
             headers={"Content-Type": "application/json"}
@@ -834,7 +854,7 @@ class IPM(REST):
             data=yaml.load(yaml_file, Loader=yaml.FullLoader)
 
         res = self.services.http_post(
-            "dss/rest/schema/modeloutput/validate",
+            "api/dss/rest/schema/modeloutput/validate",
             frmt="json",
             data=yaml.dump(data),
             headers={"Content-Type": "application/json"}
@@ -873,24 +893,23 @@ class IPM(REST):
         
         # Change url according endpoint
         self.services.url= d[ModelId][DSSId]
-
+        
         if (type(model_input) is str and model_input.endswith('.json')):
             with open(model_input) as json_file:
                 data = json.load(json_file)
+                data =json.dumps(data)
         else:
             data= model_input
 
         res = self.services.http_post(
             query= None,
             frmt='json',
-            data=json.dumps(data),
+            data= data,
             headers={"Content-Type": "application/json"}
         )
 
         # return url ipm
-        self.services.url= "https://ipmdecisions.nibio.no/api"
+        self.services.url= "https://ipmdecisions.nibio.no/"
         
         return res
 
-
-   
