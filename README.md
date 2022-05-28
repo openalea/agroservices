@@ -3,7 +3,7 @@
 
 **authors:** 
 * [Marc Labadie](https://github.com/mlabadie)
-* [Christian Fournier](https://github.com/christian34))
+* [Christian Fournier](https://github.com/christian34)
 * [Christophe Pradal](https://github.com/pradal)       
 
 **Institutes:** INRAE/CIRAD   
