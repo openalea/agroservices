@@ -1,9 +1,12 @@
 [![Documentation Status](https://readthedocs.org/projects/agroservices/badge/?version=latest)](https://agroservices.readthedocs.io/en/latest/?badge=latest)
+[![Anaconda-Server Badge](https://anaconda.org/openalea3/agroservices/badges/downloads.svg)](https://anaconda.org/openalea3/agroservices)
+[![Anaconda-Server Badge](https://anaconda.org/openalea3/agroservices/badges/version.svg)](https://anaconda.org/openalea3/agroservices)
+[![Anaconda-Server Badge](https://anaconda.org/openalea3/agroservices/badges/license.svg)](https://anaconda.org/openalea3/agroservices)
 # agroservices
 
 **authors:** 
 * [Marc Labadie](https://github.com/mlabadie)
-* [Christian Fournier](https://github.com/christian34))
+* [Christian Fournier](https://github.com/christian34)
 * [Christophe Pradal](https://github.com/pradal)       
 
 **Institutes:** INRAE/CIRAD   
