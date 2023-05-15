@@ -174,9 +174,29 @@ class IPM(REST):
 
         ###################### WeatherAdaptaterService #############################
 
-    def weatheradapter_forecast_params(self, source, latitude=67.2828, longitude=14.3711, altitude=0, interval=None,
-                                       parameters=None, **options):
+    def weatheradapter_forecast_params(self, source: dict,
+                                       latitude: float=67.2828,
+                                       longitude: float=14.3711,
+                                       altitude: float=0,
+                                       interval: int=None,
+                                       parameters: list=None,
+                                       **options)->dict:
+        """Build a valid params dict for forecast data sources
 
+        Parameters
+        ----------
+         source : dict
+            A meta_data dict of the source (see self.get_weatherdatasource)
+         interval : int,
+             The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), by default 3600
+         parameters : list,
+             list of the requested weather parameters, by default the one listed under 'common'
+         altitude : Union[int,float],
+         latitude : Union[int,float],
+            WGS84 Decimal degrees
+         longitude : Union[int,float],
+            WGS84 Decimal degrees
+        """
         params = dict(latitude=latitude, longitude=longitude, altitude=altitude)
 
         if interval is None:
@@ -187,15 +207,20 @@ class IPM(REST):
             parameters = source['parameters']['common']
         params.update(dict(parameters=','.join(map(str, parameters))))
 
-        # if timeStart is None:
-        #     today = datetime. datetime.today()
-        #     timeStart = today.astimezone().isoformat()
-        # if timeEnd is None:
-        #     end = today + datetime.timedelta(days=1)
-        #     timeEnd = end.astimezone().isoformat()
-        #
         if source['id'] == 'fi.fmi.forecast.location':
             params.pop('altitude')
+        if source['id'] in ('dk.dmi.pointweather', 'se.slu.lantmet'):
+            if 'timeStart' in options:
+                start = datetime.datetime.fromisoformat('timeStart')
+            else:
+                start = datetime.datetime.today()
+            timeStart = start.astimezone().isoformat()
+            if 'timeEnd' in options:
+                end = datetime.datetime.fromisoformat('timeEnd')
+            else:
+                end = start + datetime.timedelta(days=1)
+            timeEnd = end.astimezone().isoformat()
+            params.update(dict(timeStart=timeStart, timeEnd=timeEnd))
 
         return params
 
@@ -207,9 +232,12 @@ class IPM(REST):
                                           timeEnd: str = None,
                                           weatherStationId: int = None,
                                           **options):
-        """
-                        ignoreErrors : bool,
-             Set to "true" if you want the service to return weather data regardless of there being errors in the service, by default True
+        """Build a valid params dict for observation data sources
+
+        Parameters
+        ----------
+         source : dict
+            A meta_data dict of the source (see self.get_weatherdatasource)
          interval : int,
              The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), by default 3600
          parameters : list,
@@ -218,16 +246,9 @@ class IPM(REST):
              Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00), by default to day (forecast) or first date available (historical)'
          timeEnd : str, optional
              End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00), by default tommorow (forecast) one day after first date (historical)
-         location : int or dict,
-             a location id or a dict with one or more of (latitude, longitude,altitude), depending on the source access type (stations or location)
-                ValueError
-             credentials error: if credential is required or not
-         ValueError
-             parameters error: check if parameter is available and return the list of available parameter
-         ValueError
-             TimeStart error: check is timeStart period is valid in weather resource
-         ValueError
-             WeatherId error: check if weatherStationId exist in the resource and return WeatherStationId available for the weather resource"""
+         weatherStationId : int,
+             a location id
+        """
 
         params = dict()
 
@@ -273,6 +294,18 @@ class IPM(REST):
         return params
 
     def weatheradapter_params(self, source, **kwargs):
+        """Build a valid params dict for a given weatherdata source
+
+        Parameters
+        ----------
+        source : dict
+            A meta_data dict of the source (see self.get_weatherdatasource)
+
+        Returns
+        -------
+        dict
+            formated parameters dict
+        """
 
         if source['access_type'] == 'stations':
             params = self.weatheradapter_observation_params(source, **kwargs)
@@ -291,8 +324,7 @@ class IPM(REST):
         source : dict
             A meta_data dict of the source (see self.get_weatherdatasource)
         params : dict, optional
-            a dict of formated parameters of the source weatheradapter service (see self.weatheradapter_options(source)
-             for available parameters).
+            a dict of formated parameters of the source weatheradapter service
             If None (default), use self.weatheradapter_params(source) to set some valid parameters
         credentials : dict, optional
             a dict of formated credential parameters
@@ -333,6 +365,10 @@ class IPM(REST):
         ----------
         source_id : str [optional]
             the id referencing the weatherdatasource (one  of the key of self.get_weatherdatasource)
+        access_type : str [optional]
+            Filter datasource that are different from access_type
+        authentication_type : str [optional]
+            Filter datasource that are different from authentication_type
 
         Returns
         -------
