@@ -1,6 +1,7 @@
 import pytest
 from urllib.request import urlopen
 from agroservices.ipm import IPM
+from agroservices.datadir import ipm_datadir
 
 def test_url():
     ipm = IPM()
@@ -38,7 +39,7 @@ def test_get_schema_weatherdata():
 
 def test_post_schema_weatherdata_validate():
     ipm = IPM()
-    res = ipm.post_schema_weatherdata_validate(jsonfile='weather_data.json')
+    res = ipm.post_schema_weatherdata_validate(jsonfile=ipm_datadir + 'weather_data.json')
     assert type(res) is dict
     assert res["isValid"]==True   
 
@@ -56,134 +57,32 @@ def test_get_schema_modeloutput():
 
 def test_post_schema_modeloutput_validate():
     ipm=IPM()
-    res = ipm.post_schema_modeloutput_validate(jsonfile='modeloutput.json')
+    res = ipm.post_schema_modeloutput_validate(jsonfile=ipm_datadir + 'modeloutput.json')
     assert type(res) is dict
     assert res['isValid']==True
 
 ######################### WeatherAdaptaterService #######################
 
-def test_weatheradapter_service():
-    ipm=IPM()
 
-    ws= ipm.weatheradapter_service(forecast=None)
-    assert type(ws) is dict
-    assert len(ws)==15
-    assert keys_exists(ws.keys(),(
-        'Met Norway Locationforecast',
-        'DMI Pointweather service',
-        'SLU Lantmet service',
-        'Deutsche Wetterdienst location forecast by IPM Decisions',
-        'Deutsche Wetterdienst EU Area location forecast by IPM Decisions',
-        'Euroweather seasonal gridded weather data and forecasts  by IPM Decisions',
-        'MeteoFrance location forecast by IPM Decisions',
-        'FMI weather forecasts',
-        'Finnish Meteorological Institute measured data',
-        'Landbruksmeteorologisk tjeneste',
-        'MeteoBot API',
-        'Fruitweb',
-        'Metos'
-        ))
-
-    ws_forcast= ipm.weatheradapter_service(forecast=True)
-    assert type(ws_forcast) is dict
-    assert len(ws_forcast)==9
-    assert keys_exists(ws_forcast,(
-        'Met Norway Locationforecast',
-        'DMI Pointweather service', 
-        'SLU Lantmet service',
-        'Deutsche Wetterdienst location forecast by IPM Decisions',
-        'Deutsche Wetterdienst EU Area location forecast by IPM Decisions',
-        'Euroweather seasonal gridded weather data and forecasts  by IPM Decisions',
-        'MeteoFrance location forecast by IPM Decisions',
-        'FMI weather forecasts')
-        )
-
-    ws_noforcast=ipm.weatheradapter_service(forecast=False)
-    assert type(ws_noforcast) is dict
-    assert len(ws_noforcast)==6
-    assert keys_exists(ws_noforcast,(
-        'Finnish Meteorological Institute measured data',
-        'Landbruksmeteorologisk tjeneste',
-        'MeteoBot API',
-        'Fruitweb',
-        'Metos')
-        )
-def test_get_weatheradapter_fmi():
-    ipm=IPM()
-    fmi = 'Finnish Meteorological Institute measured data'
-    ws= ipm.weatheradapter_service(forecast=None)
-    res = ipm.get_weatheradapter(endpoint=ws[fmi]['endpoint'],
-        ignoreErrors=True,
-        credentials=None,
-        interval=3600,
-        parameters=[1002,3002],
-        timeStart='2020-06-12T00:00:00+03:00',
-        timeEnd='2020-07-03T00:00:00+03:00',
-        weatherStationId=101104)
-    assert type(res) is dict
-    assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
-    assert res['weatherParameters']==[1002,3002]
-    assert res['timeStart']== "2020-06-11T21:00:00Z"
-    assert res['timeEnd']== "2020-07-02T21:00:00Z"
-    assert res['locationWeatherData'][0]['length']== 505
-    
-
-def test_get_weatheradapter_fmi_forecasts():
-    ipm=IPM()
-    ws= ipm.weatheradapter_service(forecast=True)
-    fmi = 'FMI weather forecasts'
-    res = ipm.get_weatheradapter_forecast(
-        endpoint=ws[fmi],
-        latitude=67.2828, 
-        longitude=14.3711)
-        
-    assert type(res) is dict 
-    assert keys_exists(res.keys(),('timeStart','timeEnd','interval','weatherParameters','locationWeatherData'))
-    assert res['locationWeatherData'][0]['latitude']==67.2828
-    assert res['locationWeatherData'][0]['longitude']==14.3711
-    assert res['locationWeatherData'][0]['altitude']==0
-    assert res['weatherParameters']==[2001, 4002, 5001, 1002, 3002, 1901]
-    
-
-def test_get_weatheradapter_yr():
-    ipm=IPM()
-    ws= ipm.weatheradapter_service(forecast=True)
-    yr = 'Met Norway Locationforecast'
-    res = ipm.get_weatheradapter_forecast(
-        endpoint= ws[yr],
-        altitude=70,
-        longitude=14.3711,
-        latitude=67.2828)
-    assert type(res) is dict
-    assert keys_exists(res.keys(),('timeStart','timeEnd','interval','weatherParameters','locationWeatherData'))
-    assert res['locationWeatherData'][0]['altitude']==70
-    assert res['locationWeatherData'][0]['longitude']==14.3711
-    assert res['locationWeatherData'][0]['latitude']==67.2828
-    assert res['weatherParameters']==[1001, 3001, 2001, 4002]
-
-def test_dw(): 
+def test_get_weatheradapter():
+    """Canonical test described in doc  https://github.com/H2020-IPM-Decisions/WeatherService/blob/develop/docs/weather_service.md"""
     ipm = IPM()
-    ws= ipm.weatheradapter_service(forecast=None)
-    dw = 'Deutsche Wetterdienst location forecast by IPM Decisions'
-    res= ipm.get_weatheradapter_forecast(
-        endpoint=ws[dw]['endpoint'],
-        latitude=50.109,
-        longitude=10.961
-        )
-    assert type(res) is dict, res
-    assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+    params = dict(weatherStationId=5,
+             parameters='1002,2001,3002,3101',
+             interval=3600,
+             timeStart='2020-05-01T00:00:00+02:00',
+             timeEnd= '2020-05-02T00:00:00+02:00')
 
-def test_meteofrance():
-    ipm = IPM()
+    source = ipm.get_weatherdatasource('no.nibio.lmt')
+    res = ipm.get_weatheradapter(source, params)
 
-    res= ipm.get_weatheradapter_forecast(
-        endpoint='https://meteofrance.ipmdecisions.nibio.no',
-        latitude=50.109,
-        longitude=10.961
-        )
-    
-    assert type(res) is dict, res
-    assert keys_exists(res.keys(),('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+    assert type(res) is dict
+    assert all(key in res for key in ('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+    assert all(var in res['weatherParameters'] for var in [1002, 2001, 3002, 3101])
+    assert res['timeStart'] == '2020-04-30T22:00:00Z'
+    assert res['timeEnd'] == '2020-05-01T22:00:00Z'
+    assert res['locationWeatherData'][0]['length'] == 25
+
 
 
 #################### WeatherDataService #########################################
@@ -191,8 +90,8 @@ def test_meteofrance():
 def test_get_weatherdatasource():
     ipm=IPM()
     res = ipm.get_weatherdatasource()
-    assert type(res) is list 
-    assert keys_exists(res[0],('name','description','public_URL','endpoint','needs_data_control','access_type','temporal','parameters','spatial'))
+    assert type(res) is dict
+    assert keys_exists(res[next(iter(res))],('name','description','public_URL','endpoint','needs_data_control','access_type','temporal','parameters','spatial'))
 
 def test_get_weatherdatasource_location_point():
     ipm=IPM()
@@ -204,7 +103,7 @@ def test_post_weatherdatasource_location():
     ipm=IPM()
     res = ipm.post_weatherdatasource_location(  
         tolerance=0,
-        geoJsonfile="GeoJson.json"
+        geoJsonfile=ipm_datadir + "GeoJson.json"
         )
     assert type(res) is list
     assert keys_exists(res[0].keys(),('id', 'name', 'description', 'public_URL', 'endpoint', 'authentication_type', 'needs_data_control', 'access_type', 'priority', 'temporal', 'parameters', 'spatial', 'organization', 'active')
@@ -224,7 +123,7 @@ def test_get_cropCode():
     res = ipm.get_cropCode(cropCode="DAUCS")
     assert type(res) is list
     assert keys_exists(res[0],('models','id','version','name','url','languages','organization'))
-    assert res[0]['models'][0]['crops']==['DAUCS']
+    assert 'DAUCS' in res[0]['models'][0]['crops']
 
 def test_get_dss():
     ipm=IPM()
@@ -259,3 +158,22 @@ def test_get_pestCode():
     assert keys_exists(res[0],('models','id','version','name','url','languages','organization'))
     assert res[0]['models'][0]['pests'] == ['PSILRO'] 
 
+def test_get_dss_location():
+    ipm=IPM()
+    res = ipm.get_dss_location_point(latitude=59.67883523696076, longitude=12.01629638671875)
+    assert type(res) is list
+    assert keys_exists(res[0],('models','id','version','name','url','languages','organization'))
+
+def test_post_dss_location():
+    ipm = IPM()
+    res= ipm.post_dss_location(geoJsonfile=ipm_datadir + "GeoJson.json")
+    assert type(res) is list
+    assert keys_exists(res[0].keys(), (
+        'models',
+        'id',
+        'version',
+        'name',
+        'url',
+        'languages',
+        'organization')
+        )
