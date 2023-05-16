@@ -64,7 +64,4 @@ setup(
 
     # See MANIFEST.in
     include_package_data=True,
-    package_data={
-        "agroservices.data.ipm": ["*.json", "*.yaml"],
-    }
     )

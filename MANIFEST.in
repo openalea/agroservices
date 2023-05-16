@@ -1,1 +1,3 @@
-recursive-include src/openalea/phenomenal/data *
+include src/agroservices/data/ipm/*.json
+include src/agroservices/data/ipm/*.yaml
+include src/agroservices/credentials/*.json
