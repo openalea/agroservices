@@ -198,3 +198,5 @@ def test_run_model():
     source = ipm.get_weatherdatasource('no.nibio.lmt')
     weather_data = ipm.get_weatheradapter(source, params)
     res = ipm.run_model(model, weather_data=weather_data)
+    assert isinstance(res, dict)
+    assert 'locationResult' in res

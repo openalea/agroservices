@@ -19,6 +19,8 @@ from agroservices.services import REST
 from agroservices.datadir import ipm_datadir
 
 __all__ = ["IPM"]
+
+
 class IPM(REST):
     """
     Interface to the IPM  https://ipmdecisions.nibio.no/
@@ -77,7 +79,7 @@ class IPM(REST):
             Use cache, by default False
         """
         # hack ipmdecisions.net is down
-        url='https://ipmdecisions.nibio.no'
+        url = 'https://ipmdecisions.nibio.no'
         super().__init__(
             name=name,
             url=url,
@@ -168,12 +170,12 @@ class IPM(REST):
         ###################### WeatherAdaptaterService #############################
 
     def weatheradapter_forecast_params(self, source: dict,
-                                       latitude: float=67.2828,
-                                       longitude: float=14.3711,
-                                       altitude: float=0,
-                                       interval: int=None,
-                                       parameters: list=None,
-                                       **options)->dict:
+                                       latitude: float = 67.2828,
+                                       longitude: float = 14.3711,
+                                       altitude: float = 0,
+                                       interval: int = None,
+                                       parameters: list = None,
+                                       **options) -> dict:
         """Build a valid params dict for forecast data sources
 
         Parameters
@@ -217,8 +219,7 @@ class IPM(REST):
 
         return params
 
-
-    def weatheradapter_observation_params(self,source,
+    def weatheradapter_observation_params(self, source,
                                           interval: int = None,
                                           parameters: list = None,
                                           timeStart: str = None,
@@ -260,7 +261,7 @@ class IPM(REST):
         if timeEnd is None:
             end = start + datetime.timedelta(days=1)
             timeEnd = end.astimezone().isoformat()
-        params.update(dict(timeStart=timeStart,timeEnd=timeEnd))
+        params.update(dict(timeStart=timeStart, timeEnd=timeEnd))
 
         if weatherStationId is None:
             # test stations if geoJSon is not there
@@ -343,7 +344,7 @@ class IPM(REST):
             res = self.http_get(endpoint, params=params, frmt='json')
         else:
             params['credentials'] = json.dumps(credentials)
-            res = self.http_post(endpoint, data= params, frmt='json')
+            res = self.http_post(endpoint, data=params, frmt='json')
 
         return res
 
@@ -670,9 +671,10 @@ class IPM(REST):
             "api/dss/rest/model/{}/{}".format(DSSId, ModelId),
             frmt='json'
         )
-        if 'execution' in res:
-            if 'input_schema' in res['execution']:
-                res['execution']['input_schema'] = json.loads(res['execution']['input_schema'])
+        if isinstance(res, dict):
+            if 'execution' in res:
+                if 'input_schema' in res['execution']:
+                    res['execution']['input_schema'] = json.loads(res['execution']['input_schema'])
 
         return res
 
@@ -815,7 +817,6 @@ class IPM(REST):
 
     ###############################  Run model ##############################################
 
-
     def write_weatherdata_schema(self):
         schema = self.get_schema_weatherdata()
         json_object = json.dumps(schema, indent=4)
@@ -828,24 +829,33 @@ class IPM(REST):
         json_object = json.dumps(schema, indent=4)
         with open(ipm_datadir + "schema_fieldobservation.json", "w") as outfile:
             outfile.write(json_object)
+
     def model_input(self,
-                        model: dict,
-                        parameters: dict=None,
-                        weatherData: dict=None,
-                        field_observations: dict=None):
+                    model: dict,
+                    parameters: dict = None,
+                    weather_data: dict = None,
+                    field_observations: dict = None,
+                    field_observation_quantifications: dict = None):
         """Build model_input dict required bu run_model service"""
 
-        schema = model['execution']['input_schema']
+        schema = model['execution']['input_schema'].copy()
+        config_params = schema['properties']['configParameters']
+        fieldobs = ('fieldObservations', 'fieldObservationQuantifications')
+
         # fill externaly defined refs
         if 'weatherData' in schema['properties']:
-            schema['properties']['weatherData'] = {'type': 'string', 'pattern': '^{WEATHER_DATA}$', 'default':'{WEATHER_DATA}'}
-        if 'fieldObservation' in schema['properties']['configParameters']:
-            schema['properties']['fieldObservation'] = {'type': 'string', 'pattern': '^{FIELD_OBSERVATIONS}$',
-                                                   'default': '{FIELD_OBSERVATIONS}'}
+            schema['properties']['weatherData'] = {'type': 'string', 'pattern': '^{WEATHER_DATA}$',
+                                                   'default': '{WEATHER_DATA}'}
+        for p in fieldobs:
+            if p in config_params['properties']:
+                config_params['properties'][p] = {'type': 'string', 'pattern': '^{'+p+'}$',
+                                                     'default': '{'+p+'}'}
+        # pop definitions to minimize bugs [some are buggy, eg PSILAROBE miss 'type'='object' and make parser fail
+        if 'definitions' in schema:
+            schema.pop('definitions')
+
         faker = JSF(schema)
         input = faker.generate()
-        #
-        # TODO : detect usr_defined field obs fields to pass field observation to the model
 
         # fill with default or parameters if any
         if parameters is None:
@@ -854,44 +864,75 @@ class IPM(REST):
             for p in input['configParameters']:
                 if p in parameters:
                     input['configParameters'][p] = parameters[p]
-                elif 'default' in schema['properties']['configParameters']['properties'][p]:
-                    input['configParameters'][p] = schema['properties']['configParameters']['properties'][p]['default']
+                elif 'default' in config_params['properties'][p]:
+                    input['configParameters'][p] = config_params['properties'][p]['default']
                 else:
                     pass
 
-        # use weatherData
+        # add Data
+        required = []
+        interval = None
+        if model['input']['weather_parameters'] is not None:
+            required = [item['parameter_code'] for item in model['input']['weather_parameters']]
+            interval = model['input']['weather_parameters'][0]['interval']
         if 'weatherData' in input:
-            if weatherData is None:
-                raise ValueError(model[id] + ' requires WeatherData as input')
-            input['weatherData'] = weatherData
-
+            if weather_data is None:
+                raise ValueError(model['id'] + ' requires WeatherData as input')
+            assert all(code in weather_data['weatherParameters'] for code in required), "WeatherData parameter are missing: " + str(set(required) - set(weather_data['weatherParameters']))
+            assert interval == weather_data['interval'], 'weatherdata interval is not fullfilling model requirements'
+            input['weatherData'] = weather_data
+        elif weather_data is not None:
+            if 'weatherData' in schema['properties']:
+                assert all(code in weather_data['weatherParameters'] for code in required), "Some weatherdata parameter are missing"+ str(set(required) - set(weather_data['weatherParameters']))
+                assert interval == weather_data['interval'], 'weatherdata interval is not fullfilling model requirements'
+                input['weatherData'] = weather_data
+        for p, pvalue in zip(fieldobs,
+                             [field_observations, field_observation_quantifications]):
+            if p in input['configParameters']:
+                if pvalue is None:
+                    raise ValueError(model['id'] + ' requires ' + p + ' as input')
+                input['configParameters'][p] = pvalue
+            elif pvalue is not None:
+                if p in config_params['properties']:
+                    input['configParameters'][p] = pvalue
         return input
+
 
     def run_model(
             self,
             model: dict,
-            parameters: dict=None,
-            weather_data: dict=None,
-            field_observations: dict=None,
-            model_input:dict=None):
+            parameters: dict = None,
+            weather_data: dict = None,
+            field_observations: dict = None,
+            field_observation_quantifications: dict = None,
+            model_input: dict = None):
         """Run Dss Model and get output
 
         Parameters
         ----------
-        ModelId : str, optional
-            The id of the DSS model requested, by default "no.nibio.vips"
-        DSSId : str, optional
-            The id of the DSS containing the model, by default "PSILARTEMP"
-        model_input : Union[str,Path], optional
-            Json file with input data for the model, by default "model_input.json"
+        model : dict
+            The model meta_data dict (see self.get_model)
+        parameters : dict [optional]
+            Model parameters, as defined in model input schema (see model['execution']['input_schema'])
+        weather_data: dict [optional]
+            Weather data to feed the model (see self.get_weatheradapter)
+        field_observations: dict [optional]
+            Dict of observation location / time of observation, as defined in IPM (see self.get_schema_fieldobservation)
+        field_observation_quantifications: dict [optional]
+            Dict of obseration data, as defined in model input schema. (see model['execution']['input_schema']
+        model_input : dict, optional
+            A dict with all inputs as defined in model input schema (see model['execution']['input_schema']
 
         Returns
         -------
         dict
             output of model
         """
-        if model_input == None:
-            model_input = self.model_input(model, parameters, weather_data, field_observations)
+        if model_input is None:
+            model_input = self.model_input(model, parameters=parameters,
+                                           weather_data=weather_data,
+                                           field_observations=field_observations,
+                                           field_observation_quantifications=field_observation_quantifications)
 
         endpoint = model['execution']['endpoint']
 
