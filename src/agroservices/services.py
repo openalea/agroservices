@@ -126,7 +126,7 @@ class Service(object):
         self._url = url
         try:
             if self.url is not None:
-                urlopen(self.url)
+                urlopen(self.url, timeout=5)
         except Exception as err:
             if url_defined_later is False:
                 self.logging.warning("The URL (%s) provided cannot be reached." % self.url)
@@ -709,11 +709,8 @@ class REST(RESTbase):
 
     def post_one(self, query=None, frmt='json', **kargs):
         self._calls()
+        url = self._build_url(query)
         self.logging.debug("BioServices:: Entering post_one function")
-        if query is None:
-            url = self.url
-        else:
-            url = '%s/%s' % (self.url, query)
         self.logging.debug(url)
         try:
             res = self.session.post(url, **kargs)

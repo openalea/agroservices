@@ -11,21 +11,14 @@
 ################## Interface Python IPM using Bioservice ########################################################
 
 import json
+from jsf import JSF
+import datetime
 from typing import Union
 from pathlib import Path
-
-from pygments.lexer import include
-
-import requests
-from requests.auth import HTTPDigestAuth
-
 from agroservices.services import REST
-
-import datetime
+from agroservices.datadir import ipm_datadir
 
 __all__ = ["IPM"]
-
-
 class IPM(REST):
     """
     Interface to the IPM  https://ipmdecisions.nibio.no/
@@ -84,7 +77,7 @@ class IPM(REST):
             Use cache, by default False
         """
         # hack ipmdecisions.net is down
-        # url='https://ipmdecisions.nibio.no'
+        url='https://ipmdecisions.nibio.no'
         super().__init__(
             name=name,
             url=url,
@@ -677,6 +670,9 @@ class IPM(REST):
             "api/dss/rest/model/{}/{}".format(DSSId, ModelId),
             frmt='json'
         )
+        if 'execution' in res:
+            if 'input_schema' in res['execution']:
+                res['execution']['input_schema'] = json.loads(res['execution']['input_schema'])
 
         return res
 
@@ -819,11 +815,65 @@ class IPM(REST):
 
     ###############################  Run model ##############################################
 
+
+    def write_weatherdata_schema(self):
+        schema = self.get_schema_weatherdata()
+        json_object = json.dumps(schema, indent=4)
+        with open(ipm_datadir + "schema_weatherdata.json", "w") as outfile:
+            outfile.write(json_object)
+
+    def write_fieldobservation_schema(self):
+        schema = self.get_schema_fieldobservation()
+
+        json_object = json.dumps(schema, indent=4)
+        with open(ipm_datadir + "schema_fieldobservation.json", "w") as outfile:
+            outfile.write(json_object)
+    def model_input(self,
+                        model: dict,
+                        parameters: dict=None,
+                        weatherData: dict=None,
+                        field_observations: dict=None):
+        """Build model_input dict required bu run_model service"""
+
+        schema = model['execution']['input_schema']
+        # fill externaly defined refs
+        if 'weatherData' in schema['properties']:
+            schema['properties']['weatherData'] = {'type': 'string', 'pattern': '^{WEATHER_DATA}$', 'default':'{WEATHER_DATA}'}
+        if 'fieldObservation' in schema['properties']['configParameters']:
+            schema['properties']['fieldObservation'] = {'type': 'string', 'pattern': '^{FIELD_OBSERVATIONS}$',
+                                                   'default': '{FIELD_OBSERVATIONS}'}
+        faker = JSF(schema)
+        input = faker.generate()
+        #
+        # TODO : detect usr_defined field obs fields to pass field observation to the model
+
+        # fill with default or parameters if any
+        if parameters is None:
+            parameters = {}
+        if 'configParameters' in input:
+            for p in input['configParameters']:
+                if p in parameters:
+                    input['configParameters'][p] = parameters[p]
+                elif 'default' in schema['properties']['configParameters']['properties'][p]:
+                    input['configParameters'][p] = schema['properties']['configParameters']['properties'][p]['default']
+                else:
+                    pass
+
+        # use weatherData
+        if 'weatherData' in input:
+            if weatherData is None:
+                raise ValueError(model[id] + ' requires WeatherData as input')
+            input['weatherData'] = weatherData
+
+        return input
+
     def run_model(
             self,
-            ModelId: str = "no.nibio.vips",
-            DSSId: str = "PSILARTEMP",
-            model_input: Union[str, Path] = "model_input.json"):
+            model: dict,
+            parameters: dict=None,
+            weather_data: dict=None,
+            field_observations: dict=None,
+            model_input:dict=None):
         """Run Dss Model and get output
 
         Parameters
@@ -840,31 +890,16 @@ class IPM(REST):
         dict
             output of model
         """
+        if model_input == None:
+            model_input = self.model_input(model, parameters, weather_data, field_observations)
 
-        source = self.get_dss()
-
-        # dictionnary containing modelId and DSSid and endpoint
-        d = {el['id']: {el['models'][item]['id']: el['models'][item]['execution']['endpoint'] for item in
-                        range(len(el['models']))} for el in source}
-
-        # Change url according endpoint
-        self.url = d[ModelId][DSSId]
-
-        if (type(model_input) is str and model_input.endswith('.json')):
-            with open(model_input) as json_file:
-                data = json.load(json_file)
-                data = json.dumps(data)
-        else:
-            data = model_input
+        endpoint = model['execution']['endpoint']
 
         res = self.http_post(
-            query=None,
+            endpoint,
             frmt='json',
-            data=data,
+            data=json.dumps(model_input),
             headers={"Content-Type": "application/json"}
         )
-
-        # return url ipm
-        self.url = "https://ipmdecisions.nibio.no/"
 
         return res

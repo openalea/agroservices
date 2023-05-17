@@ -1,4 +1,5 @@
 import pytest
+import json
 from urllib.request import urlopen
 from agroservices.ipm import IPM
 from agroservices.datadir import ipm_datadir
@@ -177,3 +178,23 @@ def test_post_dss_location():
         'languages',
         'organization')
         )
+
+def test_run_model():
+    ipm = IPM()
+    model = ipm.get_model(DSSId='no.nibio.vips',ModelId='PSILARTEMP')
+    # run with predifined model input:
+    path = ipm_datadir + 'model_input.json'
+    with open(path) as json_file:
+        model_input = json.load(json_file)
+    res = ipm.run_model(model, model_input=model_input)
+    assert isinstance(res, dict)
+    assert 'locationResult' in res
+    # run with live model input
+    params = dict(weatherStationId=5,
+             parameters='1002,2001,3002,3101',
+             interval=86400,
+             timeStart='2020-05-01T00:00:00+02:00',
+             timeEnd= '2020-05-02T00:00:00+02:00')
+    source = ipm.get_weatherdatasource('no.nibio.lmt')
+    weather_data = ipm.get_weatheradapter(source, params)
+    res = ipm.run_model(model, weather_data=weather_data)
