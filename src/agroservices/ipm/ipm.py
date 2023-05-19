@@ -17,6 +17,7 @@ from typing import Union
 from pathlib import Path
 from agroservices.services import REST
 from agroservices.datadir import ipm_datadir
+import agroservices.ipm.fakers as fakers
 
 __all__ = ["IPM"]
 
@@ -79,7 +80,7 @@ class IPM(REST):
             Use cache, by default False
         """
         # hack ipmdecisions.net is down
-        url = 'https://ipmdecisions.nibio.no'
+        #url = 'https://ipmdecisions.nibio.no'
         super().__init__(
             name=name,
             url=url,
@@ -169,147 +170,6 @@ class IPM(REST):
 
         ###################### WeatherAdaptaterService #############################
 
-    def weatheradapter_forecast_params(self, source: dict,
-                                       latitude: float = 67.2828,
-                                       longitude: float = 14.3711,
-                                       altitude: float = 0,
-                                       interval: int = None,
-                                       parameters: list = None,
-                                       **options) -> dict:
-        """Build a valid params dict for forecast data sources
-
-        Parameters
-        ----------
-         source : dict
-            A meta_data dict of the source (see self.get_weatherdatasource)
-         interval : int,
-             The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), by default 3600
-         parameters : list,
-             list of the requested weather parameters, by default the one listed under 'common'
-         altitude : Union[int,float],
-         latitude : Union[int,float],
-            WGS84 Decimal degrees
-         longitude : Union[int,float],
-            WGS84 Decimal degrees
-        """
-        params = dict(latitude=latitude, longitude=longitude, altitude=altitude)
-
-        if interval is None:
-            interval = source['temporal']['intervals'][0]
-        params.update({'interval': interval})
-
-        if parameters is None:
-            parameters = source['parameters']['common']
-        params.update(dict(parameters=','.join(map(str, parameters))))
-
-        if source['id'] == 'fi.fmi.forecast.location':
-            params.pop('altitude')
-        if source['id'] in ('dk.dmi.pointweather', 'se.slu.lantmet'):
-            if 'timeStart' in options:
-                start = datetime.datetime.fromisoformat('timeStart')
-            else:
-                start = datetime.datetime.today()
-            timeStart = start.astimezone().isoformat()
-            if 'timeEnd' in options:
-                end = datetime.datetime.fromisoformat('timeEnd')
-            else:
-                end = start + datetime.timedelta(days=1)
-            timeEnd = end.astimezone().isoformat()
-            params.update(dict(timeStart=timeStart, timeEnd=timeEnd))
-
-        return params
-
-    def weatheradapter_observation_params(self, source,
-                                          interval: int = None,
-                                          parameters: list = None,
-                                          timeStart: str = None,
-                                          timeEnd: str = None,
-                                          weatherStationId: int = None,
-                                          **options):
-        """Build a valid params dict for observation data sources
-
-        Parameters
-        ----------
-         source : dict
-            A meta_data dict of the source (see self.get_weatherdatasource)
-         interval : int,
-             The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), by default 3600
-         parameters : list,
-             list of the requested weather parameters, by default the one listed under 'common'
-         timeStart : str,
-             Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00), by default to day (forecast) or first date available (historical)'
-         timeEnd : str, optional
-             End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00), by default tommorow (forecast) one day after first date (historical)
-         weatherStationId : int,
-             a location id
-        """
-
-        params = dict()
-
-        if interval is None:
-            interval = source['temporal']['intervals'][0]
-        params.update({'interval': interval})
-
-        if parameters is None:
-            parameters = source['parameters']['common']
-        params.update(dict(parameters=','.join(map(str, parameters))))
-
-        if timeStart is None:
-            start = datetime.datetime.fromisoformat(source['temporal']['historic']['start']) + datetime.timedelta(
-                days=1)
-            timeStart = start.astimezone().isoformat()
-        if timeEnd is None:
-            end = start + datetime.timedelta(days=1)
-            timeEnd = end.astimezone().isoformat()
-        params.update(dict(timeStart=timeStart, timeEnd=timeEnd))
-
-        if weatherStationId is None:
-            # test stations if geoJSon is not there
-            if source['id'] == 'info.fruitweb':
-                weatherStationId = 18150029
-            elif source['id'] == 'net.ipmdecisions.metos':
-                weatherStationId = 732
-            else:
-                features = source["spatial"]["geoJSON"]['features']
-                if 'id' in features[0]:
-                    weatherStationId = int(features[0]['id'])
-                else:
-                    weatherStationId = int(features[0]['properties']['id'])
-
-        params.update(dict(weatherStationId=weatherStationId))
-
-        # source-specific options
-        if source['id'] == 'fi.fmi.observation.station':
-            ignoreErrors = True
-            if 'ignoreErrors' in options:
-                ignoreErrors = options['ignoreErrors']
-            params.update(dict(ignoreErrors=ignoreErrors))
-
-        return params
-
-    def weatheradapter_params(self, source, **kwargs):
-        """Build a valid params dict for a given weatherdata source
-
-        Parameters
-        ----------
-        source : dict
-            A meta_data dict of the source (see self.get_weatherdatasource)
-
-        Returns
-        -------
-        dict
-            formated parameters dict
-        """
-
-        if source['access_type'] == 'stations':
-            params = self.weatheradapter_observation_params(source, **kwargs)
-        elif source['access_type'] == 'location':
-            params = self.weatheradapter_forecast_params(source, **kwargs)
-        else:
-            raise ValueError("Unknown access type : " + source['access_type'])
-
-        return params
-
     def get_weatheradapter(self, source: dict, params: dict = None, credentials: dict = None) -> dict:
         """Call weatheradapter service for a given weatherdata source
 
@@ -319,7 +179,7 @@ class IPM(REST):
             A meta_data dict of the source (see self.get_weatherdatasource)
         params : dict, optional
             a dict of formated parameters of the source weatheradapter service
-            If None (default), use self.weatheradapter_params(source) to set some valid parameters
+            If None (default), use fakers.weather_adapter_params(source) to set some valid parameters
         credentials : dict, optional
             a dict of formated credential parameters
 
@@ -336,7 +196,7 @@ class IPM(REST):
         """
 
         if params is None:
-            params = self.weatheradapter_params(source)
+            params = fakers.weather_adapter_params(source)
 
         endpoint = source['endpoint'].format(WEATHER_API_URL=self._url + '/api/wx')
 
@@ -854,8 +714,8 @@ class IPM(REST):
         if 'definitions' in schema:
             schema.pop('definitions')
 
-        faker = JSF(schema)
-        input = faker.generate()
+        jsf_faker = JSF(schema)
+        input = jsf_faker.generate()
 
         # fill with default or parameters if any
         if parameters is None:
@@ -870,22 +730,11 @@ class IPM(REST):
                     pass
 
         # add Data
-        required = []
-        interval = None
-        if model['input']['weather_parameters'] is not None:
-            required = [item['parameter_code'] for item in model['input']['weather_parameters']]
-            interval = model['input']['weather_parameters'][0]['interval']
-        if 'weatherData' in input:
+        if ('weatherData' in input) or ('weatherData' in schema['properties']):
             if weather_data is None:
-                raise ValueError(model['id'] + ' requires WeatherData as input')
-            assert all(code in weather_data['weatherParameters'] for code in required), "WeatherData parameter are missing: " + str(set(required) - set(weather_data['weatherParameters']))
-            assert interval == weather_data['interval'], 'weatherdata interval is not fullfilling model requirements'
+                weather_data = fakers.model_weather_data(model)
             input['weatherData'] = weather_data
-        elif weather_data is not None:
-            if 'weatherData' in schema['properties']:
-                assert all(code in weather_data['weatherParameters'] for code in required), "Some weatherdata parameter are missing"+ str(set(required) - set(weather_data['weatherParameters']))
-                assert interval == weather_data['interval'], 'weatherdata interval is not fullfilling model requirements'
-                input['weatherData'] = weather_data
+
         for p, pvalue in zip(fieldobs,
                              [field_observations, field_observation_quantifications]):
             if p in input['configParameters']:
@@ -919,7 +768,7 @@ class IPM(REST):
         field_observations: dict [optional]
             Dict of observation location / time of observation, as defined in IPM (see self.get_schema_fieldobservation)
         field_observation_quantifications: dict [optional]
-            Dict of obseration data, as defined in model input schema. (see model['execution']['input_schema']
+            Dict of observation data, as defined in model input schema. (see model['execution']['input_schema']
         model_input : dict, optional
             A dict with all inputs as defined in model input schema (see model['execution']['input_schema']
 

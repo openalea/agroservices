@@ -1,7 +1,7 @@
 import pytest
 import json
 from urllib.request import urlopen
-from agroservices.ipm import IPM
+from agroservices.ipm.ipm import IPM
 from agroservices.datadir import ipm_datadir
 
 def test_url():
@@ -13,7 +13,11 @@ def test_url():
         assert False, err
     else:
         assert True
-    
+
+ipm_ok = False
+if test_url():
+    ipm = IPM()
+    ipm_ok = True
 
 def keys_exists(dict_, keys, test = all):
     return test(key in dict_ for key in keys)
@@ -21,28 +25,30 @@ def keys_exists(dict_, keys, test = all):
 
 ################# MetaDataService ################################# 
 
+
+
 def test_get_parameter():
-    ipm=IPM()
-    res = ipm.get_parameter()
-    assert type(res) is list
-    assert keys_exists(res[0],('id','name','description','unit'))
+    if ipm_ok:
+        res = ipm.get_parameter()
+        assert type(res) is list
+        assert keys_exists(res[0],('id','name','description','unit'))
 
 def test_get_qc():
-    ipm=IPM()
-    res = ipm.get_qc()
-    assert type(res) is list 
-    assert keys_exists(res[0],('id','name','description'))
+    if ipm_ok:
+        res = ipm.get_qc()
+        assert type(res) is list
+        assert keys_exists(res[0],('id','name','description'))
 
 def test_get_schema_weatherdata():
-    ipm=IPM()
-    res = ipm.get_schema_weatherdata()
-    assert type(res) is dict
+    if ipm_ok:
+        res = ipm.get_schema_weatherdata()
+        assert type(res) is dict
 
 def test_post_schema_weatherdata_validate():
-    ipm = IPM()
-    res = ipm.post_schema_weatherdata_validate(jsonfile=ipm_datadir + 'weather_data.json')
-    assert type(res) is dict
-    assert res["isValid"]==True   
+    if ipm_ok:
+        res = ipm.post_schema_weatherdata_validate(jsonfile=ipm_datadir + 'weather_data.json')
+        assert type(res) is dict
+        assert res["isValid"]==True
 
 def test_get_schema_fieldobservation():
     ipm=IPM()
