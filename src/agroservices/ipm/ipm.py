@@ -12,12 +12,12 @@
 
 import json
 from jsf import JSF
-import datetime
 from typing import Union
 from pathlib import Path
 from agroservices.services import REST
-from agroservices.datadir import ipm_datadir
+from agroservices.ipm.datadir import datadir
 import agroservices.ipm.fakers as fakers
+import agroservices.ipm.fixes as fixes
 
 __all__ = ["IPM"]
 
@@ -27,7 +27,7 @@ class IPM(REST):
     Interface to the IPM  https://ipmdecisions.nibio.no/
 
     .. doctest::
-        >>> from agroservices.ipm import IPM
+        >>> from agroservices.ipm.ipm import IPM
         >>> ipm = IPM()
 
         WeatherMetaDataService
@@ -243,6 +243,7 @@ class IPM(REST):
                     r['spatial']['geoJSON'] = json.loads(r['spatial']['geoJSON'])
 
         sources = {item['id']: item for item in res}
+        sources = fixes.fix_get_weatherdatasource(sources)
 
         if source_id is None:
             res = sources
@@ -680,14 +681,14 @@ class IPM(REST):
     def write_weatherdata_schema(self):
         schema = self.get_schema_weatherdata()
         json_object = json.dumps(schema, indent=4)
-        with open(ipm_datadir + "schema_weatherdata.json", "w") as outfile:
+        with open(datadir + "schema_weatherdata.json", "w") as outfile:
             outfile.write(json_object)
 
     def write_fieldobservation_schema(self):
         schema = self.get_schema_fieldobservation()
 
         json_object = json.dumps(schema, indent=4)
-        with open(ipm_datadir + "schema_fieldobservation.json", "w") as outfile:
+        with open(datadir + "schema_fieldobservation.json", "w") as outfile:
             outfile.write(json_object)
 
     def model_input(self,

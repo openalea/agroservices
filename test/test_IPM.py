@@ -1,8 +1,7 @@
-import pytest
 import json
 from urllib.request import urlopen
 from agroservices.ipm.ipm import IPM
-from agroservices.datadir import ipm_datadir
+from agroservices.ipm.datadir import datadir
 
 def test_url():
     ipm = IPM()
@@ -46,7 +45,7 @@ def test_get_schema_weatherdata():
 
 def test_post_schema_weatherdata_validate():
     if ipm_ok:
-        res = ipm.post_schema_weatherdata_validate(jsonfile=ipm_datadir + 'weather_data.json')
+        res = ipm.post_schema_weatherdata_validate(jsonfile=datadir + 'weather_data.json')
         assert type(res) is dict
         assert res["isValid"]==True
 
@@ -64,7 +63,7 @@ def test_get_schema_modeloutput():
 
 def test_post_schema_modeloutput_validate():
     ipm=IPM()
-    res = ipm.post_schema_modeloutput_validate(jsonfile=ipm_datadir + 'modeloutput.json')
+    res = ipm.post_schema_modeloutput_validate(jsonfile=datadir + 'modeloutput.json')
     assert type(res) is dict
     assert res['isValid']==True
 
@@ -110,7 +109,7 @@ def test_post_weatherdatasource_location():
     ipm=IPM()
     res = ipm.post_weatherdatasource_location(  
         tolerance=0,
-        geoJsonfile=ipm_datadir + "GeoJson.json"
+        geoJsonfile=datadir + "GeoJson.json"
         )
     assert type(res) is list
     assert keys_exists(res[0].keys(),('id', 'name', 'description', 'public_URL', 'endpoint', 'authentication_type', 'needs_data_control', 'access_type', 'priority', 'temporal', 'parameters', 'spatial', 'organization', 'active')
@@ -173,7 +172,7 @@ def test_get_dss_location():
 
 def test_post_dss_location():
     ipm = IPM()
-    res= ipm.post_dss_location(geoJsonfile=ipm_datadir + "GeoJson.json")
+    res= ipm.post_dss_location(geoJsonfile=datadir + "GeoJson.json")
     assert type(res) is list
     assert keys_exists(res[0].keys(), (
         'models',
@@ -189,7 +188,7 @@ def test_run_model():
     ipm = IPM()
     model = ipm.get_model(DSSId='no.nibio.vips',ModelId='PSILARTEMP')
     # run with predifined model input:
-    path = ipm_datadir + 'model_input.json'
+    path = datadir + 'model_input.json'
     with open(path) as json_file:
         model_input = json.load(json_file)
     res = ipm.run_model(model, model_input=model_input)

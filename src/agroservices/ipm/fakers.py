@@ -2,7 +2,8 @@
 
 import datetime
 import random
-
+from faker import Faker
+from agroservices.ipm.datadir import country_mapping
 
 def weather_adapter_params(weather_adapter,
                            parameters=None,
@@ -11,12 +12,9 @@ def weather_adapter_params(weather_adapter,
                            interval=None,
                            latitude=None,
                            longitude=None,
-                           altitude=None,
                            station_id=None):
-    # TODO use postman spec to add additional required parameters
     """Generate a weather_adapter parameter dict
 
-    By default re-use parameters found in postman test suite
 
         Parameters
         ----------
@@ -26,7 +24,6 @@ def weather_adapter_params(weather_adapter,
              The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), by default 3600
          parameters : list,
              list of the requested weather parameters, by default the one listed under 'common'
-         altitude : Union[int,float],
          latitude : Union[int,float],
             WGS84 Decimal degrees
          longitude : Union[int,float],
@@ -52,24 +49,29 @@ def weather_adapter_params(weather_adapter,
         if time_start is None:
             start = weather_adapter['temporal']['historic']['start']
             # use next day to avoid timezone problems
-            time_start = datetime.datetime.fromisoformat(start) + datetime.timedelta(days=1)
-            time_start = time_start.astimezone().isoformat()
+            start = datetime.datetime.fromisoformat(start) + datetime.timedelta(days=1)
         else:
             start = datetime.datetime.fromisoformat(time_start)
+        time_start = start.astimezone().isoformat()
         if time_end is None:
             if interval == 3600:
                 end = start + datetime.timedelta(hours=1)
             else:
                 end = start + datetime.timedelta(days=1)
             time_end = end.astimezone().isoformat()
-        fake.update(dict(timeStart=time_start, timeEnd=time_end))
+        fake.update(dict(timeStart=time_start, timeEnd=time_end, ignoreErrors='true'))
 
     if weather_adapter['access_type'] == 'location':
-        fake['latitude'] = random.uniform(0, 90) if latitude is None else latitude
-        fake['longitude'] = random.uniform(0, 180) if longitude is None else longitude
-        if altitude is not None:
-            fake['altitude'] = altitude
-    elif weather_adapter['access_type'] == 'location':
+        if weather_adapter['spatial']['countries'] is None:
+            fake['latitude'] = random.uniform(0, 90) if latitude is None else latitude
+            fake['longitude'] = random.uniform(0, 180) if longitude is None else longitude
+        else:
+            cmap = country_mapping()
+            faker = Faker()
+            lat, lng, _, _, _ = faker.local_latlng(cmap[weather_adapter['spatial']['countries'][0]])
+            fake['longitude'] = float(lng)
+            fake['latitude'] = float(lat)
+    elif weather_adapter['access_type'] == 'stations':
         if station_id is None:
             features = weather_adapter["spatial"]["geoJSON"]['features']
             ids = random.uniform(1, 100)
