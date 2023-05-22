@@ -38,6 +38,7 @@ def fix_prior_load_model(model):
     elif model['id'] == 'LeafWetnessDuration':
         items = model['execution']['input_schema'].split('\n')
         items = items[3:]
+        items[4] = items[4].replace('TemperatureClasses', 'Relative humidity')
         items[8] = items[8][:-1]
         model['execution']['input_schema'] = '\n'.join(items)
     return model
