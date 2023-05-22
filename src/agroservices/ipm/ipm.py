@@ -21,6 +21,15 @@ import agroservices.ipm.fixes as fixes
 
 __all__ = ["IPM"]
 
+def load_model(model):
+    model = fixes.fix_prior_load_model(model)
+    model['execution']['input_schema'] = json.loads(model['execution']['input_schema'])
+    model = fixes.fix_load_model(model)
+    return model
+
+def read_dss(dss):
+    dss['models'] = {model["id"]: load_model(model) for model in dss["models"]}
+    return dss
 
 class IPM(REST):
     """
@@ -352,22 +361,6 @@ class IPM(REST):
         )
         return res
 
-    def get_dss(self) -> list:
-        """Get a list all DSSs and models available in the platform
-
-        Returns
-        -------
-        list
-            a list all DSSs and models available in the platform
-        """
-        res = self.http_get(
-            "api/dss/rest/dss",
-            frmt='json',
-            headers=self.get_headers(content='json'),
-            params={'callback': self.callback}
-        )
-        return res
-
     def get_pest(self) -> list:
         """Get A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
 
@@ -383,6 +376,23 @@ class IPM(REST):
             params={'callback': self.callback}
         )
         return res
+
+    def get_dss(self) -> dict:
+        """Get a {dss_id: dss} dict of all DSSs and models available in the platform
+
+        Returns
+        -------
+        dict
+            dict all DSSs and models available in the platform
+        """
+        res = self.http_get(
+            "api/dss/rest/dss",
+            frmt='json',
+            headers=self.get_headers(content='json'),
+            params={'callback': self.callback}
+        )
+
+        return {dss["id"]: read_dss(dss) for dss in res}
 
     def post_dss_location(
             self,
@@ -413,7 +423,7 @@ class IPM(REST):
     def get_dssId(
             self,
             DSSId: str = 'no.nibio.vips') -> dict:
-        """Get all information about a specific DSS
+        """Get dss meta information, including all models from a specified DSS
 
         Parameters
         ----------
@@ -430,12 +440,12 @@ class IPM(REST):
             frmt='json'
         )
 
-        return res
+        return read_dss(res)
 
     def get_cropCode(
             self,
-            cropCode: str = 'SOLTU') -> list:
-        """Get all information about  DSS for a specific cropCode
+            cropCode: str = 'SOLTU') -> dict:
+        """Get models from all DSS  covering a specific cropCode
 
         Parameters
         ----------
@@ -444,7 +454,7 @@ class IPM(REST):
 
         Returns
         -------
-        list
+        dict
             all informations about  DSS corresponding of cropCode
         """
         res = self.http_get(
@@ -452,13 +462,13 @@ class IPM(REST):
             frmt='json'
         )
 
-        return res
+        return {dss["id"]: read_dss(dss) for dss in res}
 
     def get_dss_location_point(
             self,
             latitude: Union[float, str] = 59.678835236960765,
             longitude: Union[float, str] = 12.01629638671875
-    ) -> list:
+    ) -> dict:
         """Search for models that are valid for the specific point
 
         Parameters
@@ -470,8 +480,8 @@ class IPM(REST):
 
         Returns
         -------
-        list
-            A list of all the matching DSS models
+        dict
+            A dict of all the matching DSS models
         """
         params = dict(
             callback=self.callback,
@@ -486,11 +496,11 @@ class IPM(REST):
             params=params
         )
 
-        return res
+        return {dss["id"]: read_dss(dss) for dss in res}
 
     def get_pestCode(
             self,
-            pestCode: str = 'PSILRO') -> list:
+            pestCode: str = 'PSILRO') -> dict:
         """Get all information about  DSS for a specific pestCode
 
         Parameters
@@ -500,15 +510,15 @@ class IPM(REST):
 
         Returns
         -------
-        list
-            list of DSS models that are applicable to the given pest
+        dict
+            list of DSS (and corresponding models) that are applicable to the given pest
         """
         res = self.http_get(
             'api/dss/rest/dss/pest/{}'.format(pestCode),
             frmt='json'
         )
 
-        return res
+        return {dss["id"]: read_dss(dss) for dss in res}
 
     def get_model(
             self,
@@ -532,10 +542,7 @@ class IPM(REST):
             "api/dss/rest/model/{}/{}".format(DSSId, ModelId),
             frmt='json'
         )
-        if isinstance(res, dict):
-            if 'execution' in res:
-                if 'input_schema' in res['execution']:
-                    res['execution']['input_schema'] = json.loads(res['execution']['input_schema'])
+        res = load_model(res)
 
         return res
 
@@ -691,105 +698,33 @@ class IPM(REST):
         with open(datadir + "schema_fieldobservation.json", "w") as outfile:
             outfile.write(json_object)
 
-    def model_input(self,
-                    model: dict,
-                    parameters: dict = None,
-                    weather_data: dict = None,
-                    field_observations: dict = None,
-                    field_observation_quantifications: dict = None):
-        """Build model_input dict required bu run_model service"""
-
-        schema = model['execution']['input_schema'].copy()
-        config_params = schema['properties']['configParameters']
-        fieldobs = ('fieldObservations', 'fieldObservationQuantifications')
-
-        # fill externaly defined refs
-        if 'weatherData' in schema['properties']:
-            schema['properties']['weatherData'] = {'type': 'string', 'pattern': '^{WEATHER_DATA}$',
-                                                   'default': '{WEATHER_DATA}'}
-        for p in fieldobs:
-            if p in config_params['properties']:
-                config_params['properties'][p] = {'type': 'string', 'pattern': '^{'+p+'}$',
-                                                     'default': '{'+p+'}'}
-        # pop definitions to minimize bugs [some are buggy, eg PSILAROBE miss 'type'='object' and make parser fail
-        if 'definitions' in schema:
-            schema.pop('definitions')
-
-        jsf_faker = JSF(schema)
-        input = jsf_faker.generate()
-
-        # fill with default or parameters if any
-        if parameters is None:
-            parameters = {}
-        if 'configParameters' in input:
-            for p in input['configParameters']:
-                if p in parameters:
-                    input['configParameters'][p] = parameters[p]
-                elif 'default' in config_params['properties'][p]:
-                    input['configParameters'][p] = config_params['properties'][p]['default']
-                else:
-                    pass
-
-        # add Data
-        if ('weatherData' in input) or ('weatherData' in schema['properties']):
-            if weather_data is None:
-                weather_data = fakers.model_weather_data(model)
-            input['weatherData'] = weather_data
-
-        for p, pvalue in zip(fieldobs,
-                             [field_observations, field_observation_quantifications]):
-            if p in input['configParameters']:
-                if pvalue is None:
-                    raise ValueError(model['id'] + ' requires ' + p + ' as input')
-                input['configParameters'][p] = pvalue
-            elif pvalue is not None:
-                if p in config_params['properties']:
-                    input['configParameters'][p] = pvalue
-        return input
-
-
     def run_model(
             self,
             model: dict,
-            parameters: dict = None,
-            weather_data: dict = None,
-            field_observations: dict = None,
-            field_observation_quantifications: dict = None,
-            model_input: dict = None):
+            input_data: dict = None):
         """Run Dss Model and get output
 
         Parameters
         ----------
         model : dict
             The model meta_data dict (see self.get_model)
-        parameters : dict [optional]
-            Model parameters, as defined in model input schema (see model['execution']['input_schema'])
-        weather_data: dict [optional]
-            Weather data to feed the model (see self.get_weatheradapter)
-        field_observations: dict [optional]
-            Dict of observation location / time of observation, as defined in IPM (see self.get_schema_fieldobservation)
-        field_observation_quantifications: dict [optional]
-            Dict of observation data, as defined in model input schema. (see model['execution']['input_schema']
-        model_input : dict, optional
-            A dict with all inputs as defined in model input schema (see model['execution']['input_schema']
+        input_data : dict, optional
+            A dict with all inputs as defined in model input schema (see agroservices.ipm.fakers.input_data for generation)
 
         Returns
         -------
         dict
             output of model
         """
-        if model_input is None:
-            model_input = self.model_input(model, parameters=parameters,
-                                           weather_data=weather_data,
-                                           field_observations=field_observations,
-                                           field_observation_quantifications=field_observation_quantifications)
+        if input_data is None:
+            input_data = fakers.input_data(model)
 
         endpoint = model['execution']['endpoint']
 
         res = self.http_post(
             endpoint,
             frmt='json',
-            data=json.dumps(model_input),
+            data=json.dumps(input_data),
             headers={"Content-Type": "application/json"}
         )
 

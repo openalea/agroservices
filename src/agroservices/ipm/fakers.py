@@ -3,7 +3,26 @@
 import datetime
 import random
 from faker import Faker
+from jsf import JSF
 from agroservices.ipm.datadir import country_mapping
+import json
+
+Geojson_point ="""{{
+    "type": "FeatureCollection",
+    "features": [
+        {{
+            "type": "Feature",
+            "properties": {{}},
+            "geometry": {{
+                "type": "Point",
+                "coordinates": [
+                    {longitude},
+                    {latitude}
+                ]
+            }}
+        }}
+    ]
+}}"""
 
 def weather_adapter_params(weather_adapter,
                            parameters=None,
@@ -74,7 +93,7 @@ def weather_adapter_params(weather_adapter,
     elif weather_adapter['access_type'] == 'stations':
         if station_id is None:
             features = weather_adapter["spatial"]["geoJSON"]['features']
-            ids = random.uniform(1, 100)
+            ids = [int(random.uniform(1, 100))]
             if len(features) > 0:
                 if 'id' in features[0]:
                     ids = [item['id'] for item in features]
@@ -88,7 +107,7 @@ def weather_adapter_params(weather_adapter,
     return fake
 
 
-def weather_data(parameters=(1001, 1002), interval=3600, length=3):
+def weather_data(parameters=(1001, 1002), interval=3600, length=3, longitude =None, latitude=None, altitude=None, data=None):
     """generate a dict complying IPMDecision weatherData schema"""
     fake = {}
 
@@ -109,11 +128,25 @@ def weather_data(parameters=(1001, 1002), interval=3600, length=3):
     fake['weatherParameters'] = [p for p in parameters]
 
     width = len(parameters)
-    data = [[p / 10 for p in random.sample(range(100), width)] for _ in range(length)]
+    if data is None:
+        data = [[p / 10 for p in random.sample(range(100), width)] for _ in range(length)]
+    else:
+        assert len(data) > 0
+        assert len(data)[0] == width, 'data should be a list of tuples, each being as long as parameters'
+        length = len(data)
+
+    if longitude is None:
+        longitude = random.uniform(0, 180)
+    if latitude is None:
+        latitude = random.uniform(0, 90)
+    if altitude is None:
+        altitude = 0
+
     fake['locationWeatherData'] = [
         {
-            'longitude': random.uniform(0, 180),
-            'latitude': random.uniform(0, 90),
+            'longitude': longitude,
+            'latitude': latitude,
+            'altitude': altitude,
             'data': data,
             'length': length,
             'width': width
@@ -129,10 +162,92 @@ def model_weather_data(model, length=3):
         return weather_data(length=length)
     parameters = [item['parameter_code'] for item in model['input']['weather_parameters']]
     interval = model['input']['weather_parameters'][0]['interval']
-    return weather_data(parameters, interval, length)
+    return weather_data(parameters=parameters, interval=interval, length=length)
 
-#TODO : fake fieldobs and fake model inputs
+def model_field_observations(model, quantifications, latitude=None, longitude=None, time=None, pest=None, crop=None):
+    """generate common part of field observation
 
-#TODO: add interpreters for weatherdat postman spec, model meta for wralea
+        quantification is a list of dict, each being a {k:value} """
+    length = len(quantifications)
+    latitude = random.uniform(0, 90) if latitude is None else latitude
+    longitude = random.uniform(0, 180) if longitude is None else longitude
+    location = json.loads(Geojson_point.format(longitude=longitude, latitude=latitude))
+    if time is None:
+        start = datetime.datetime.today().astimezone()
+        time = [(start + datetime.timedelta(days=i)).isoformat() for i in range(length)]
+    if pest is None:
+        pest = random.sample(model['pests'], 1)[0]
+    if crop is None:
+        crop = random.sample(model['crops'], 1)[0]
+    field_obs =  [{'location': location,
+                   'time': time[i],
+                   'pestEPPOCode': pest,
+                   'cropEPPOCode': crop} for i in range(length)]
+    fake={'fieldObservations': field_obs,
+            'fieldObservationQuantifications': quantifications}
+    return fake
 
-#TODO: add fixes at instanciation for JSF pattern that fails
+
+def input_data(model, weather_data=None, field_observations=None):
+    input_schema = model['execution']['input_schema'].copy()
+    accept_fieldobservations = False
+    where_fieldobservations = None
+    # fill externaly defined refs
+    if 'weatherData' in input_schema['properties']:
+        input_schema['properties']['weatherData'] = {'type': 'string',
+                                               'default': 'WEATHER_DATA'}
+    if 'fieldObservations' in input_schema['properties']:
+        input_schema['properties']['fieldObservations'] = {'type': 'string',
+                                               'default': 'FIELD_OBSERVATION'}
+        if 'fieldObservations' in input_schema['properties']['required']:
+            if 'fieldObservationQuantifications' not in input_schema['properties']['required']:
+                input_schema['properties']['required'].append('fieldObservationQuantifications')
+        accept_fieldobservations=True
+        where_fieldobservations='root'
+    else:
+        for prop in input_schema['properties']:
+            if 'properties' in input_schema['properties'][prop]:
+                if 'fieldObservations' in input_schema['properties'][prop]['properties']:
+                    input_schema['properties'][prop]['properties']['fieldObservations'] = {'type': 'string',
+                                                                   'default': 'FIELD_OBSERVATION'}
+                    if 'fieldObservations' in input_schema['properties'][prop]['required']:
+                        if 'fieldObservationQuantifications' not in input_schema['properties'][prop]['required']:
+                            input_schema['properties'][prop]['required'].append('fieldObservationQuantifications')
+                    accept_fieldobservations = True
+                    where_fieldobservations = prop
+
+    jsf_faker = JSF(input_schema)
+    fake = jsf_faker.generate()
+    current_year = datetime.datetime.now().year
+    for field in fake:
+        if 'default' in input_schema['properties'][field]:
+            fake[field] = input_schema['properties'][field]['default'].format(CURRENT_YEAR=current_year)
+        elif isinstance(fake[field], dict):
+            for sub_field in fake[field]:
+                if 'default' in input_schema['properties'][field]['properties'][sub_field]:
+                    fake[field][sub_field] = input_schema['properties'][field]['properties'][sub_field]['default'].format(CURRENT_YEAR=current_year)
+
+    if 'weatherData' in input_schema['properties']:
+        if weather_data is None:
+            weather_data = model_weather_data(model)
+        fake['weatherData'] = weather_data
+
+    if accept_fieldobservations:
+        if field_observations is None:
+            if where_fieldobservations == 'root':
+                quantifications = fake['fieldObservationQuantifications']
+            else :
+                quantifications = fake[prop]['fieldObservationQuantifications']
+            field_observations = model_field_observations(model, quantifications)
+
+        if where_fieldobservations == 'root':
+            fake.update(field_observations)
+        else:
+            fake[prop].update(field_observations)
+
+    return fake
+
+
+
+#TODO: add interpreters for model meta for wralea
+

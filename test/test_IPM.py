@@ -2,6 +2,7 @@ import json
 from urllib.request import urlopen
 from agroservices.ipm.ipm import IPM
 from agroservices.ipm.datadir import datadir
+import agroservices.ipm.fakers as fakers
 
 def test_url():
     ipm = IPM()
@@ -81,13 +82,19 @@ def test_get_weatheradapter():
 
     source = ipm.get_weatherdatasource('no.nibio.lmt')
     res = ipm.get_weatheradapter(source, params)
-
     assert type(res) is dict
     assert all(key in res for key in ('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
     assert all(var in res['weatherParameters'] for var in [1002, 2001, 3002, 3101])
     assert res['timeStart'] == '2020-04-30T22:00:00Z'
     assert res['timeEnd'] == '2020-05-01T22:00:00Z'
     assert res['locationWeatherData'][0]['length'] == 25
+
+    # test with generated input
+    params = fakers.weather_adapter_params(source, station_id=5)
+    res = ipm.get_weatheradapter(source, params)
+    assert type(res) is dict
+    assert all(key in res for key in ('timeStart', 'timeEnd', 'interval', 'weatherParameters', 'locationWeatherData'))
+
 
 
 
@@ -127,15 +134,18 @@ def test_get_crop():
 def test_get_cropCode():
     ipm=IPM()
     res = ipm.get_cropCode(cropCode="DAUCS")
-    assert type(res) is list
-    assert keys_exists(res[0],('models','id','version','name','url','languages','organization'))
-    assert 'DAUCS' in res[0]['models'][0]['crops']
+    assert type(res) is dict
+    item = next(iter(res.values()))
+    assert keys_exists(item,('models','id','version','name','url','languages','organization'))
+    item = next(iter(item['models'].values()))
+    assert 'DAUCS' in item['crops']
 
 def test_get_dss():
     ipm=IPM()
     res = ipm.get_dss()
-    assert type(res) is list
-    assert keys_exists(res[0],('models','id','version','name','url','languages','organization'))
+    assert type(res) is dict
+    item = next(iter(res.values()))
+    assert keys_exists(item,('models','id','version','name','url','languages','organization'))
 
 
 def test_get_dssId():
@@ -160,15 +170,18 @@ def test_get_pest():
 def test_get_pestCode():
     ipm=IPM()
     res = ipm.get_pestCode(pestCode='PSILRO')
-    assert type(res) is list
-    assert keys_exists(res[0],('models','id','version','name','url','languages','organization'))
-    assert res[0]['models'][0]['pests'] == ['PSILRO'] 
+    assert type(res) is dict
+    item = next(iter(res.values()))
+    assert keys_exists(item,('models','id','version','name','url','languages','organization'))
+    item = next(iter(item['models'].values()))
+    assert item['pests'] == ['PSILRO']
 
 def test_get_dss_location():
     ipm=IPM()
     res = ipm.get_dss_location_point(latitude=59.67883523696076, longitude=12.01629638671875)
-    assert type(res) is list
-    assert keys_exists(res[0],('models','id','version','name','url','languages','organization'))
+    assert type(res) is dict
+    item = next(iter(res.values()))
+    assert keys_exists(item,('models','id','version','name','url','languages','organization'))
 
 def test_post_dss_location():
     ipm = IPM()
@@ -188,20 +201,26 @@ def test_run_model():
     ipm = IPM()
     model = ipm.get_model(DSSId='no.nibio.vips',ModelId='PSILARTEMP')
     # run with predifined model input:
-    path = datadir + 'model_input.json'
+    path = datadir + 'model_input_psilartemp.json'
     with open(path) as json_file:
         model_input = json.load(json_file)
-    res = ipm.run_model(model, model_input=model_input)
+    res = ipm.run_model(model, model_input)
     assert isinstance(res, dict)
     assert 'locationResult' in res
-    # run with live model input
-    params = dict(weatherStationId=5,
-             parameters='1002,2001,3002,3101',
-             interval=86400,
-             timeStart='2020-05-01T00:00:00+02:00',
-             timeEnd= '2020-05-02T00:00:00+02:00')
-    source = ipm.get_weatherdatasource('no.nibio.lmt')
-    weather_data = ipm.get_weatheradapter(source, params)
-    res = ipm.run_model(model, weather_data=weather_data)
+    # fake input
+    input_data = fakers.input_data(model)
+    res = ipm.run_model(model, input_data)
+    assert isinstance(res, dict)
+    assert 'locationResult' in res
+    #fake input with field observation
+    model = ipm.get_model(DSSId='no.nibio.vips',ModelId='PSILAROBSE')
+    path = datadir + 'model_input_psilarobse.json'
+    with open(path) as json_file:
+        model_input = json.load(json_file)
+    res = ipm.run_model(model, model_input)
+    assert isinstance(res, dict)
+    assert 'locationResult' in res
+    input_data = fakers.input_data(model)
+    res = ipm.run_model(model, input_data)
     assert isinstance(res, dict)
     assert 'locationResult' in res
