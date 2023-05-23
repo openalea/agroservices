@@ -1,1 +1,3 @@
-recursive-include src/agroservices/ipm/data *
+include src/agroservices/ipm/data/*.json
+include src/agroservices/ipm/data/*.yaml
+include src/agroservices/credentials/*.json
