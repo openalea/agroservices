@@ -1,1 +1,1 @@
-recursive-include src/openalea/phenomenal/data *
+recursive-include src/agroservices/ipm/data *
