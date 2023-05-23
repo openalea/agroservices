@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Field observation",
+    "type": "object",
+    "additionalProperties": true,
+    "description": "Version 0.1. The schema describes the field observation format for the IPM Decisions platform. See an example here: TODO",
+    "$id": "https://platform.ipmdecisions.net/api/dss/rest/schema/fieldobservation",
+    "properties": {
+        "location": {
+            "title": "Location  of the observation. In GeoJson format.",
+            "$ref": "https://geojson.org/schema/GeoJSON.json"
+        },
+        "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp of the field observation. Format: \"yyyy-MM-dd'T'HH:mm:ssXXX\", e.g. 2020-04-09T18:00:00+02:00",
+            "title": "Time (yyyy-MM-dd'T'HH:mm:ssXXX)"
+        },
+        "pestEPPOCode": {
+            "type": "string",
+            "description": "The EPPO code for the observed pest. See https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes",
+            "title": "Pest"
+        },
+        "cropEPPOCode": {
+            "type": "string",
+            "description": "The EPPO code for the crop in which the pest was observed. See https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes",
+            "title": "Crop"
+        }
+    },
+    "required": [
+        "location",
+        "time",
+        "pestEPPOCode",
+        "cropEPPOCode"
+    ]
+}

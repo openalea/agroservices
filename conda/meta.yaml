@@ -25,6 +25,7 @@ requirements:
     - colorlog 
     - requests 
     - requests_cache
+    - jsf
 
 test:
   requires:

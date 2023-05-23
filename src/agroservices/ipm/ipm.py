@@ -11,27 +11,32 @@
 ################## Interface Python IPM using Bioservice ########################################################
 
 import json
+from jsf import JSF
 from typing import Union
 from pathlib import Path
-
-from pygments.lexer import include
-
-import requests
-from requests.auth import HTTPDigestAuth
-
 from agroservices.services import REST
-
-import datetime
+from agroservices.ipm.datadir import datadir
+import agroservices.ipm.fakers as fakers
+import agroservices.ipm.fixes as fixes
 
 __all__ = ["IPM"]
 
+def load_model(model):
+    model = fixes.fix_prior_load_model(model)
+    model['execution']['input_schema'] = json.loads(model['execution']['input_schema'])
+    model = fixes.fix_load_model(model)
+    return model
+
+def read_dss(dss):
+    dss['models'] = {model["id"]: load_model(model) for model in dss["models"]}
+    return dss
 
 class IPM(REST):
     """
     Interface to the IPM  https://ipmdecisions.nibio.no/
 
     .. doctest::
-        >>> from agroservices.ipm import IPM
+        >>> from agroservices.ipm.ipm import IPM
         >>> ipm = IPM()
 
         WeatherMetaDataService
@@ -84,7 +89,7 @@ class IPM(REST):
             Use cache, by default False
         """
         # hack ipmdecisions.net is down
-        # url='https://ipmdecisions.nibio.no'
+        #url = 'https://ipmdecisions.nibio.no'
         super().__init__(
             name=name,
             url=url,
@@ -174,148 +179,6 @@ class IPM(REST):
 
         ###################### WeatherAdaptaterService #############################
 
-    def weatheradapter_forecast_params(self, source: dict,
-                                       latitude: float=67.2828,
-                                       longitude: float=14.3711,
-                                       altitude: float=0,
-                                       interval: int=None,
-                                       parameters: list=None,
-                                       **options)->dict:
-        """Build a valid params dict for forecast data sources
-
-        Parameters
-        ----------
-         source : dict
-            A meta_data dict of the source (see self.get_weatherdatasource)
-         interval : int,
-             The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), by default 3600
-         parameters : list,
-             list of the requested weather parameters, by default the one listed under 'common'
-         altitude : Union[int,float],
-         latitude : Union[int,float],
-            WGS84 Decimal degrees
-         longitude : Union[int,float],
-            WGS84 Decimal degrees
-        """
-        params = dict(latitude=latitude, longitude=longitude, altitude=altitude)
-
-        if interval is None:
-            interval = source['temporal']['intervals'][0]
-        params.update({'interval': interval})
-
-        if parameters is None:
-            parameters = source['parameters']['common']
-        params.update(dict(parameters=','.join(map(str, parameters))))
-
-        if source['id'] == 'fi.fmi.forecast.location':
-            params.pop('altitude')
-        if source['id'] in ('dk.dmi.pointweather', 'se.slu.lantmet'):
-            if 'timeStart' in options:
-                start = datetime.datetime.fromisoformat('timeStart')
-            else:
-                start = datetime.datetime.today()
-            timeStart = start.astimezone().isoformat()
-            if 'timeEnd' in options:
-                end = datetime.datetime.fromisoformat('timeEnd')
-            else:
-                end = start + datetime.timedelta(days=1)
-            timeEnd = end.astimezone().isoformat()
-            params.update(dict(timeStart=timeStart, timeEnd=timeEnd))
-
-        return params
-
-
-    def weatheradapter_observation_params(self,source,
-                                          interval: int = None,
-                                          parameters: list = None,
-                                          timeStart: str = None,
-                                          timeEnd: str = None,
-                                          weatherStationId: int = None,
-                                          **options):
-        """Build a valid params dict for observation data sources
-
-        Parameters
-        ----------
-         source : dict
-            A meta_data dict of the source (see self.get_weatherdatasource)
-         interval : int,
-             The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly), by default 3600
-         parameters : list,
-             list of the requested weather parameters, by default the one listed under 'common'
-         timeStart : str,
-             Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00), by default to day (forecast) or first date available (historical)'
-         timeEnd : str, optional
-             End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00), by default tommorow (forecast) one day after first date (historical)
-         weatherStationId : int,
-             a location id
-        """
-
-        params = dict()
-
-        if interval is None:
-            interval = source['temporal']['intervals'][0]
-        params.update({'interval': interval})
-
-        if parameters is None:
-            parameters = source['parameters']['common']
-        params.update(dict(parameters=','.join(map(str, parameters))))
-
-        if timeStart is None:
-            start = datetime.datetime.fromisoformat(source['temporal']['historic']['start']) + datetime.timedelta(
-                days=1)
-            timeStart = start.astimezone().isoformat()
-        if timeEnd is None:
-            end = start + datetime.timedelta(days=1)
-            timeEnd = end.astimezone().isoformat()
-        params.update(dict(timeStart=timeStart,timeEnd=timeEnd))
-
-        if weatherStationId is None:
-            # test stations if geoJSon is not there
-            if source['id'] == 'info.fruitweb':
-                weatherStationId = 18150029
-            elif source['id'] == 'net.ipmdecisions.metos':
-                weatherStationId = 732
-            else:
-                features = source["spatial"]["geoJSON"]['features']
-                if 'id' in features[0]:
-                    weatherStationId = int(features[0]['id'])
-                else:
-                    weatherStationId = int(features[0]['properties']['id'])
-
-        params.update(dict(weatherStationId=weatherStationId))
-
-        # source-specific options
-        if source['id'] == 'fi.fmi.observation.station':
-            ignoreErrors = True
-            if 'ignoreErrors' in options:
-                ignoreErrors = options['ignoreErrors']
-            params.update(dict(ignoreErrors=ignoreErrors))
-
-        return params
-
-    def weatheradapter_params(self, source, **kwargs):
-        """Build a valid params dict for a given weatherdata source
-
-        Parameters
-        ----------
-        source : dict
-            A meta_data dict of the source (see self.get_weatherdatasource)
-
-        Returns
-        -------
-        dict
-            formated parameters dict
-        """
-
-        if source['access_type'] == 'stations':
-            params = self.weatheradapter_observation_params(source, **kwargs)
-        elif source['access_type'] == 'location':
-            params = self.weatheradapter_forecast_params(source, **kwargs)
-        else:
-            raise ValueError("Unknown access type : " + source['access_type'])
-
-        return params
-
     def get_weatheradapter(self, source: dict, params: dict = None, credentials: dict = None) -> dict:
         """Call weatheradapter service for a given weatherdata source
 
@@ -325,7 +188,7 @@ class IPM(REST):
             A meta_data dict of the source (see self.get_weatherdatasource)
         params : dict, optional
             a dict of formated parameters of the source weatheradapter service
-            If None (default), use self.weatheradapter_params(source) to set some valid parameters
+            If None (default), use fakers.weather_adapter_params(source) to set some valid parameters
         credentials : dict, optional
             a dict of formated credential parameters
 
@@ -342,7 +205,7 @@ class IPM(REST):
         """
 
         if params is None:
-            params = self.weatheradapter_params(source)
+            params = fakers.weather_adapter_params(source)
 
         endpoint = source['endpoint'].format(WEATHER_API_URL=self._url + '/api/wx')
 
@@ -350,7 +213,7 @@ class IPM(REST):
             res = self.http_get(endpoint, params=params, frmt='json')
         else:
             params['credentials'] = json.dumps(credentials)
-            res = self.http_post(endpoint, data= params, frmt='json')
+            res = self.http_post(endpoint, data=params, frmt='json')
 
         return res
 
@@ -389,6 +252,7 @@ class IPM(REST):
                     r['spatial']['geoJSON'] = json.loads(r['spatial']['geoJSON'])
 
         sources = {item['id']: item for item in res}
+        sources = fixes.fix_get_weatherdatasource(sources)
 
         if source_id is None:
             res = sources
@@ -497,22 +361,6 @@ class IPM(REST):
         )
         return res
 
-    def get_dss(self) -> list:
-        """Get a list all DSSs and models available in the platform
-
-        Returns
-        -------
-        list
-            a list all DSSs and models available in the platform
-        """
-        res = self.http_get(
-            "api/dss/rest/dss",
-            frmt='json',
-            headers=self.get_headers(content='json'),
-            params={'callback': self.callback}
-        )
-        return res
-
     def get_pest(self) -> list:
         """Get A list of EPPO codes https://www.eppo.int/RESOURCES/eppo_databases/eppo_codes) for all pests that the DSS models in the platform deals with in some way.
 
@@ -528,6 +376,23 @@ class IPM(REST):
             params={'callback': self.callback}
         )
         return res
+
+    def get_dss(self) -> dict:
+        """Get a {dss_id: dss} dict of all DSSs and models available in the platform
+
+        Returns
+        -------
+        dict
+            dict all DSSs and models available in the platform
+        """
+        res = self.http_get(
+            "api/dss/rest/dss",
+            frmt='json',
+            headers=self.get_headers(content='json'),
+            params={'callback': self.callback}
+        )
+
+        return {dss["id"]: read_dss(dss) for dss in res}
 
     def post_dss_location(
             self,
@@ -558,7 +423,7 @@ class IPM(REST):
     def get_dssId(
             self,
             DSSId: str = 'no.nibio.vips') -> dict:
-        """Get all information about a specific DSS
+        """Get dss meta information, including all models from a specified DSS
 
         Parameters
         ----------
@@ -575,12 +440,12 @@ class IPM(REST):
             frmt='json'
         )
 
-        return res
+        return read_dss(res)
 
     def get_cropCode(
             self,
-            cropCode: str = 'SOLTU') -> list:
-        """Get all information about  DSS for a specific cropCode
+            cropCode: str = 'SOLTU') -> dict:
+        """Get models from all DSS  covering a specific cropCode
 
         Parameters
         ----------
@@ -589,7 +454,7 @@ class IPM(REST):
 
         Returns
         -------
-        list
+        dict
             all informations about  DSS corresponding of cropCode
         """
         res = self.http_get(
@@ -597,13 +462,13 @@ class IPM(REST):
             frmt='json'
         )
 
-        return res
+        return {dss["id"]: read_dss(dss) for dss in res}
 
     def get_dss_location_point(
             self,
             latitude: Union[float, str] = 59.678835236960765,
             longitude: Union[float, str] = 12.01629638671875
-    ) -> list:
+    ) -> dict:
         """Search for models that are valid for the specific point
 
         Parameters
@@ -615,8 +480,8 @@ class IPM(REST):
 
         Returns
         -------
-        list
-            A list of all the matching DSS models
+        dict
+            A dict of all the matching DSS models
         """
         params = dict(
             callback=self.callback,
@@ -631,11 +496,11 @@ class IPM(REST):
             params=params
         )
 
-        return res
+        return {dss["id"]: read_dss(dss) for dss in res}
 
     def get_pestCode(
             self,
-            pestCode: str = 'PSILRO') -> list:
+            pestCode: str = 'PSILRO') -> dict:
         """Get all information about  DSS for a specific pestCode
 
         Parameters
@@ -645,15 +510,15 @@ class IPM(REST):
 
         Returns
         -------
-        list
-            list of DSS models that are applicable to the given pest
+        dict
+            list of DSS (and corresponding models) that are applicable to the given pest
         """
         res = self.http_get(
             'api/dss/rest/dss/pest/{}'.format(pestCode),
             frmt='json'
         )
 
-        return res
+        return {dss["id"]: read_dss(dss) for dss in res}
 
     def get_model(
             self,
@@ -677,6 +542,7 @@ class IPM(REST):
             "api/dss/rest/model/{}/{}".format(DSSId, ModelId),
             frmt='json'
         )
+        res = load_model(res)
 
         return res
 
@@ -819,52 +685,47 @@ class IPM(REST):
 
     ###############################  Run model ##############################################
 
+    def write_weatherdata_schema(self):
+        schema = self.get_schema_weatherdata()
+        json_object = json.dumps(schema, indent=4)
+        with open(datadir + "schema_weatherdata.json", "w") as outfile:
+            outfile.write(json_object)
+
+    def write_fieldobservation_schema(self):
+        schema = self.get_schema_fieldobservation()
+
+        json_object = json.dumps(schema, indent=4)
+        with open(datadir + "schema_fieldobservation.json", "w") as outfile:
+            outfile.write(json_object)
+
     def run_model(
             self,
-            ModelId: str = "no.nibio.vips",
-            DSSId: str = "PSILARTEMP",
-            model_input: Union[str, Path] = "model_input.json"):
+            model: dict,
+            input_data: dict = None):
         """Run Dss Model and get output
 
         Parameters
         ----------
-        ModelId : str, optional
-            The id of the DSS model requested, by default "no.nibio.vips"
-        DSSId : str, optional
-            The id of the DSS containing the model, by default "PSILARTEMP"
-        model_input : Union[str,Path], optional
-            Json file with input data for the model, by default "model_input.json"
+        model : dict
+            The model meta_data dict (see self.get_model)
+        input_data : dict, optional
+            A dict with all inputs as defined in model input schema (see agroservices.ipm.fakers.input_data for generation)
 
         Returns
         -------
         dict
             output of model
         """
+        if input_data is None:
+            input_data = fakers.input_data(model)
 
-        source = self.get_dss()
-
-        # dictionnary containing modelId and DSSid and endpoint
-        d = {el['id']: {el['models'][item]['id']: el['models'][item]['execution']['endpoint'] for item in
-                        range(len(el['models']))} for el in source}
-
-        # Change url according endpoint
-        self.url = d[ModelId][DSSId]
-
-        if (type(model_input) is str and model_input.endswith('.json')):
-            with open(model_input) as json_file:
-                data = json.load(json_file)
-                data = json.dumps(data)
-        else:
-            data = model_input
+        endpoint = model['execution']['endpoint']
 
         res = self.http_post(
-            query=None,
+            endpoint,
             frmt='json',
-            data=data,
+            data=json.dumps(input_data),
             headers={"Content-Type": "application/json"}
         )
-
-        # return url ipm
-        self.url = "https://ipmdecisions.nibio.no/"
 
         return res

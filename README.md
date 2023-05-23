@@ -40,7 +40,7 @@ conda install -c openalea3 -c conda-forge agroservices
 # Install dependency with conda
 conda create -n agroservices -c conda-forge python
 conda activate agroservices
-conda install -c conda-forge appdirs bs4 pygments colorlog requests requests_cache pytest
+conda install -c conda-forge appdirs bs4 pygments colorlog requests requests_cache pytest jsf
 
 # Load agroservice and install
 git clone https://github.com/openalea/agroservices.git
@@ -59,6 +59,7 @@ cd test; pytest
 * requests
 * requests_cache
 * pygments
+* jsf
 
 ## Documentation
 

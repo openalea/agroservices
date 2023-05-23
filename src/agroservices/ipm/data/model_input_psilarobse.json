@@ -1,0 +1,28 @@
+{
+  "modelId": "SEPAPIICOL",
+  "configParameters": {
+    "timeZone": "Europe/Oslo",
+    "startDateCalculation": "2020-05-01",
+    "endDateCalculation": "2020-05-10",
+    "fieldObservations": [
+      {
+        "location": {
+          "type": "Point",
+          "coordinates": [
+            "11.025635",
+            "59.715791"
+          ]
+        },
+        "time": "2020-05-05T12:00:00Z",
+        "pestEPPOCode": "SEPTAP",
+        "cropEPPOCode": "APUGD"
+      }
+    ],
+    "fieldObservationQuantifications": [
+      {
+        "trapCountCropEdge": 22,
+        "trapCountCropInside": 2
+      }
+    ]
+  }
+}
