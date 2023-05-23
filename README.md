@@ -59,6 +59,7 @@ cd test; pytest
 * requests
 * requests_cache
 * pygments
+* jsf
 
 ## Documentation
 

@@ -192,6 +192,7 @@ def input_data(model, weather_data=None, field_observations=None):
     input_schema = model['execution']['input_schema'].copy()
     accept_fieldobservations = False
     where_fieldobservations = None
+    #TODO when there are reference to input schema parameters in model[input'], parameters should be added to the input
     # fill externaly defined refs
     if 'weatherData' in input_schema['properties']:
         input_schema['properties']['weatherData'] = {'type': 'string',
