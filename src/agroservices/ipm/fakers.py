@@ -114,9 +114,9 @@ def weather_data(parameters=(1001, 1002), interval=3600, length=3, longitude =No
     assert interval in [3600, 86400]
     time_start = datetime.datetime.today().astimezone()
     if interval == 3600:
-        time_end = time_start + datetime.timedelta(hours=length)
+        time_end = time_start + datetime.timedelta(hours=length - 1)
     else:
-        time_end = time_start + datetime.timedelta(days=length)
+        time_end = time_start + datetime.timedelta(days=length - 1)
     fake['timeStart'] = time_start.isoformat()
     fake['timeEnd'] = time_end.isoformat()
     fake['interval'] = interval
