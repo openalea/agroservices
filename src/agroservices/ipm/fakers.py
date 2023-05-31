@@ -111,16 +111,6 @@ def weather_data(parameters=(1001, 1002), interval=3600, length=3, longitude =No
     """generate a dict complying IPMDecision weatherData schema"""
     fake = {}
 
-    assert interval in [3600, 86400]
-    time_start = datetime.datetime.today().astimezone()
-    if interval == 3600:
-        time_end = time_start + datetime.timedelta(hours=length - 1)
-    else:
-        time_end = time_start + datetime.timedelta(days=length - 1)
-    fake['timeStart'] = time_start.isoformat()
-    fake['timeEnd'] = time_end.isoformat()
-    fake['interval'] = interval
-
     try:
         iter(parameters)
     except TypeError:
@@ -132,8 +122,20 @@ def weather_data(parameters=(1001, 1002), interval=3600, length=3, longitude =No
         data = [[p / 10 for p in random.sample(range(100), width)] for _ in range(length)]
     else:
         assert len(data) > 0
-        assert len(data)[0] == width, 'data should be a list of tuples, each being as long as parameters'
+        assert len(data[0]) == width, 'data should be a list of tuples, each being as long as parameters'
         length = len(data)
+
+    assert interval in [3600, 86400]
+    time_start = datetime.datetime.today().astimezone()
+    if interval == 3600:
+        time_end = time_start + datetime.timedelta(hours=length - 1)
+    else:
+        time_end = time_start + datetime.timedelta(days=length - 1)
+    fake['timeStart'] = time_start.isoformat()
+    fake['timeEnd'] = time_end.isoformat()
+    fake['interval'] = interval
+
+
 
     if longitude is None:
         longitude = random.uniform(0, 180)
@@ -194,7 +196,7 @@ def input_data(model, weather_data=None, field_observations=None):
     where_fieldobservations = None
     #TODO when there are reference to input schema parameters in model[input'], parameters should be added to the input
     # fill externaly defined refs
-    if 'weatherData' in input_schema['properties']:
+    if len(model['input']['weather_parameters']) > 0:
         input_schema['properties']['weatherData'] = {'type': 'string',
                                                'default': 'WEATHER_DATA'}
     if 'fieldObservations' in input_schema['properties']:
@@ -228,7 +230,7 @@ def input_data(model, weather_data=None, field_observations=None):
                 if 'default' in input_schema['properties'][field]['properties'][sub_field]:
                     fake[field][sub_field] = input_schema['properties'][field]['properties'][sub_field]['default'].format(CURRENT_YEAR=current_year)
 
-    if 'weatherData' in input_schema['properties']:
+    if len(model['input']['weather_parameters']) > 0:
         if weather_data is None:
             weather_data = model_weather_data(model)
         fake['weatherData'] = weather_data
