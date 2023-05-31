@@ -115,7 +115,7 @@ def weather_data(parameters=(1001, 1002), interval=3600, length=3, longitude =No
         iter(parameters)
     except TypeError:
         parameters = list(parameters)
-    fake['weatherParameters'] = [p for p in parameters]
+    fake['weatherParameters'] = [int(p) for p in parameters]
 
     width = len(parameters)
     if data is None:
@@ -124,6 +124,11 @@ def weather_data(parameters=(1001, 1002), interval=3600, length=3, longitude =No
         assert len(data) > 0
         assert len(data[0]) == width, 'data should be a list of tuples, each being as long as parameters'
         length = len(data)
+
+    #TODO hack : web service consider bad request a length=1 input
+    if length == 1:
+        data += data
+        length=2
 
     assert interval in [3600, 86400]
     time_start = datetime.datetime.today().astimezone()
@@ -196,9 +201,10 @@ def input_data(model, weather_data=None, field_observations=None):
     where_fieldobservations = None
     #TODO when there are reference to input schema parameters in model[input'], parameters should be added to the input
     # fill externaly defined refs
-    if len(model['input']['weather_parameters']) > 0:
-        input_schema['properties']['weatherData'] = {'type': 'string',
-                                               'default': 'WEATHER_DATA'}
+    if model['input']['weather_parameters'] is not None:
+        if len(model['input']['weather_parameters']) > 0:
+            input_schema['properties']['weatherData'] = {'type': 'string',
+                                                   'default': 'WEATHER_DATA'}
     if 'fieldObservations' in input_schema['properties']:
         input_schema['properties']['fieldObservations'] = {'type': 'string',
                                                'default': 'FIELD_OBSERVATION'}
@@ -229,11 +235,11 @@ def input_data(model, weather_data=None, field_observations=None):
             for sub_field in fake[field]:
                 if 'default' in input_schema['properties'][field]['properties'][sub_field]:
                     fake[field][sub_field] = input_schema['properties'][field]['properties'][sub_field]['default'].format(CURRENT_YEAR=current_year)
-
-    if len(model['input']['weather_parameters']) > 0:
-        if weather_data is None:
-            weather_data = model_weather_data(model)
-        fake['weatherData'] = weather_data
+    if model['input']['weather_parameters'] is not None:
+        if len(model['input']['weather_parameters']) > 0:
+            if weather_data is None:
+                weather_data = model_weather_data(model)
+            fake['weatherData'] = weather_data
 
     if accept_fieldobservations:
         if field_observations is None:
