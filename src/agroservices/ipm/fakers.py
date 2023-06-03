@@ -196,34 +196,37 @@ def model_field_observations(model, quantifications, latitude=None, longitude=No
 
 
 def input_data(model, weather_data=None, field_observations=None):
+    if model['execution']['type'] == 'LINK':
+        return None
     input_schema = model['execution']['input_schema'].copy()
     accept_fieldobservations = False
     where_fieldobservations = None
     #TODO when there are reference to input schema parameters in model[input'], parameters should be added to the input
     # fill externaly defined refs
-    if model['input']['weather_parameters'] is not None:
-        if len(model['input']['weather_parameters']) > 0:
-            input_schema['properties']['weatherData'] = {'type': 'string',
-                                                   'default': 'WEATHER_DATA'}
-    if 'fieldObservations' in input_schema['properties']:
-        input_schema['properties']['fieldObservations'] = {'type': 'string',
-                                               'default': 'FIELD_OBSERVATION'}
-        if 'fieldObservations' in input_schema['properties']['required']:
-            if 'fieldObservationQuantifications' not in input_schema['properties']['required']:
-                input_schema['properties']['required'].append('fieldObservationQuantifications')
-        accept_fieldobservations=True
-        where_fieldobservations='root'
-    else:
-        for prop in input_schema['properties']:
-            if 'properties' in input_schema['properties'][prop]:
-                if 'fieldObservations' in input_schema['properties'][prop]['properties']:
-                    input_schema['properties'][prop]['properties']['fieldObservations'] = {'type': 'string',
-                                                                   'default': 'FIELD_OBSERVATION'}
-                    if 'fieldObservations' in input_schema['properties'][prop]['required']:
-                        if 'fieldObservationQuantifications' not in input_schema['properties'][prop]['required']:
-                            input_schema['properties'][prop]['required'].append('fieldObservationQuantifications')
-                    accept_fieldobservations = True
-                    where_fieldobservations = prop
+    if model['input'] is not None:
+        if model['input']['weather_parameters'] is not None:
+            if len(model['input']['weather_parameters']) > 0:
+                input_schema['properties']['weatherData'] = {'type': 'string',
+                                                       'default': 'WEATHER_DATA'}
+        if 'fieldObservations' in input_schema['properties']:
+            input_schema['properties']['fieldObservations'] = {'type': 'string',
+                                                   'default': 'FIELD_OBSERVATION'}
+            if 'fieldObservations' in input_schema['properties']['required']:
+                if 'fieldObservationQuantifications' not in input_schema['properties']['required']:
+                    input_schema['properties']['required'].append('fieldObservationQuantifications')
+            accept_fieldobservations=True
+            where_fieldobservations='root'
+        else:
+            for prop in input_schema['properties']:
+                if 'properties' in input_schema['properties'][prop]:
+                    if 'fieldObservations' in input_schema['properties'][prop]['properties']:
+                        input_schema['properties'][prop]['properties']['fieldObservations'] = {'type': 'string',
+                                                                       'default': 'FIELD_OBSERVATION'}
+                        if 'fieldObservations' in input_schema['properties'][prop]['required']:
+                            if 'fieldObservationQuantifications' not in input_schema['properties'][prop]['required']:
+                                input_schema['properties'][prop]['required'].append('fieldObservationQuantifications')
+                        accept_fieldobservations = True
+                        where_fieldobservations = prop
 
     jsf_faker = JSF(input_schema)
     fake = jsf_faker.generate()
@@ -235,11 +238,12 @@ def input_data(model, weather_data=None, field_observations=None):
             for sub_field in fake[field]:
                 if 'default' in input_schema['properties'][field]['properties'][sub_field]:
                     fake[field][sub_field] = input_schema['properties'][field]['properties'][sub_field]['default'].format(CURRENT_YEAR=current_year)
-    if model['input']['weather_parameters'] is not None:
-        if len(model['input']['weather_parameters']) > 0:
-            if weather_data is None:
-                weather_data = model_weather_data(model)
-            fake['weatherData'] = weather_data
+    if model['input'] is not None:
+        if model['input']['weather_parameters'] is not None:
+            if len(model['input']['weather_parameters']) > 0:
+                if weather_data is None:
+                    weather_data = model_weather_data(model)
+                fake['weatherData'] = weather_data
 
     if accept_fieldobservations:
         if field_observations is None:
