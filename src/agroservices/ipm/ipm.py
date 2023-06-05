@@ -21,15 +21,15 @@ import agroservices.ipm.fixes as fixes
 
 __all__ = ["IPM"]
 
-def load_model(model):
-    model = fixes.fix_prior_load_model(model)
+def load_model(dssid, model):
+    model = fixes.fix_prior_load_model(dssid, model)
     if 'input_schema' in model['execution']:
         model['execution']['input_schema'] = json.loads(model['execution']['input_schema'])
-    model = fixes.fix_load_model(model)
+    model = fixes.fix_load_model(dssid, model)
     return model
 
 def read_dss(dss):
-    dss['models'] = {model["id"]: load_model(model) for model in dss["models"]}
+    dss['models'] = {model["id"]: load_model(dss['id'], model) for model in dss["models"]}
     return dss
 
 class IPM(REST):
@@ -717,7 +717,8 @@ class IPM(REST):
     def run_model(
             self,
             model: dict,
-            input_data: dict = None):
+            input_data: dict = None,
+            timeout=2):
         """Run Dss Model and get output
 
         Parameters
@@ -748,7 +749,8 @@ class IPM(REST):
             endpoint,
             frmt='json',
             data=json.dumps(input_data),
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
+            timeout=timeout
         )
 
         return res

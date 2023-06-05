@@ -3,12 +3,13 @@ import pytest
 from agroservices.ipm.ipm import IPM
 import agroservices.ipm.fakers as ipm_fakers
 
-
 ipm = IPM()
 link = ipm.get_dss('LINK')
 onthefly = ipm.get_dss('ONTHEFLY')
 
-link_dss_models = sum([[(d,m) for m in v['models']] for d,v in link.items()],[])
+link_dss_models = sum([[(d, m) for m in v['models']] for d, v in link.items()], [])
+
+
 @pytest.mark.parametrize('dss,model', link_dss_models)
 def test_dss_link(dss, model):
     m = link[dss]['models'][model]
@@ -22,13 +23,38 @@ def test_dss_link(dss, model):
 
 
 onthefly_dss_models = sum([[(d, m) for m in v['models']] for d, v in onthefly.items()], [])
-@pytest.mark.parametrize('dss,model', onthefly_dss_models)
-def test_faker_dss_onthefly(dss, model):
+noweather_nofield = [(d, m) for d, m in onthefly_dss_models if
+                                         onthefly[d]['models'][m]['input'] is None]
+input_not_none = [(d, m) for d, m in onthefly_dss_models if
+                                         onthefly[d]['models'][m]['input'] is not None]
+weather_nofield = [(d, m) for d, m in input_not_none if
+                   (onthefly[d]['models'][m]['input']['weather_parameters'] is not None)
+                   & (onthefly[d]['models'][m]['input']['field_observation'] is None)]
+field = [(d, m) for d, m in input_not_none if
+                   onthefly[d]['models'][m]['input']['field_observation'] is not None]
+
+@pytest.mark.parametrize('dss,model', noweather_nofield)
+def test_faker_dss_onthefly_noweather_nofield(dss, model):
     m = onthefly[dss]['models'][model]
     assert m['execution']['type'] == 'ONTHEFLY'
     assert 'endpoint' in m['execution']
     assert len(m['execution']['endpoint']) > 0
-    assert 'input_schema' in m ['execution']
+    assert 'input_schema' in m['execution']
     assert len(m['execution']['input_schema']) > 0
     fake = ipm_fakers.input_data(m)
     assert isinstance(fake, dict)
+
+@pytest.mark.parametrize('dss,model', weather_nofield)
+def test_faker_dss_onthefly_weather_nofield(dss, model):
+    m = onthefly[dss]['models'][model]
+    assert m['execution']['type'] == 'ONTHEFLY'
+    assert 'endpoint' in m['execution']
+    assert len(m['execution']['endpoint']) > 0
+    assert 'input_schema' in m['execution']
+    assert len(m['execution']['input_schema']) > 0
+    assert 'weatherData' in m['execution']['input_schema']['properties']
+    fake = ipm_fakers.input_data(m)
+    assert isinstance(fake, dict)
+    assert 'weatherData' in fake
+
+
