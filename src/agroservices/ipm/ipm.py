@@ -558,7 +558,7 @@ class IPM(REST):
             "api/dss/rest/model/{}/{}".format(DSSId, ModelId),
             frmt='json'
         )
-        res = load_model(res)
+        res = load_model(DSSId, res)
 
         return res
 
