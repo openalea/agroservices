@@ -2,10 +2,12 @@
 
 import datetime
 import random
+import json
+from copy import deepcopy
 from faker import Faker
 from jsf import JSF
 from agroservices.ipm.datadir import country_mapping
-import json
+
 
 Geojson_point ="""{{
     "type": "FeatureCollection",
@@ -107,7 +109,7 @@ def weather_adapter_params(weather_adapter,
     return fake
 
 
-def weather_data(parameters=(1001, 1002), time_start=None, interval=3600, length=3, longitude =None, latitude=None, altitude=None, data=None):
+def weather_data(parameters=(1001, 1002), time_start=None, time_end=None, interval=3600, length=3, longitude =None, latitude=None, altitude=None, data=None):
     """generate a dict complying IPMDecision weatherData schema"""
     fake = {}
 
@@ -117,27 +119,40 @@ def weather_data(parameters=(1001, 1002), time_start=None, interval=3600, length
         parameters = list(parameters)
     fake['weatherParameters'] = [int(p) for p in parameters]
 
+    assert interval in [3600, 86400]
+    if time_start is None:
+        time_start = datetime.datetime.today().astimezone()
+    else:
+        time_start = datetime.datetime.fromisoformat(time_start).astimezone()
     width = len(parameters)
     if data is None:
+        if time_end is None:
+            if interval == 3600:
+                time_end = time_start + datetime.timedelta(hours=length - 1)
+            else:
+                time_end = time_start + datetime.timedelta(days=length - 1)
+        else:
+            time_end = datetime.datetime.fromisoformat(time_end).astimezone()
+            delta = time_end - time_start
+            if interval == 3600:
+                days, seconds = delta.days, delta.seconds
+                hours = days * 24 + seconds // 3600
+                length = hours + 1
+            else:
+                length = delta.days + 1
         data = [[p / 10 for p in random.sample(range(100), width)] for _ in range(length)]
     else:
         assert len(data) > 0
         assert len(data[0]) == width, 'data should be a list of tuples, each being as long as parameters'
         length = len(data)
+        if interval == 3600:
+            time_end = time_start + datetime.timedelta(hours=length - 1)
+        else:
+            time_end = time_start + datetime.timedelta(days=length - 1)
 
-    assert interval in [3600, 86400]
-    if time_start is None:
-        time_start = datetime.datetime.today().astimezone()
-    else:
-        time_start = datetime.datetime.fromisoformat(time_start)
-    if interval == 3600:
-        time_end = time_start + datetime.timedelta(hours=length - 1)
-    else:
-        time_end = time_start + datetime.timedelta(days=length - 1)
     fake['timeStart'] = time_start.isoformat()
     fake['timeEnd'] = time_end.isoformat()
     fake['interval'] = interval
-
 
     if longitude is None:
         longitude = random.uniform(0, 180)
@@ -166,10 +181,25 @@ def model_weather_data(model, length=3):
         return None
     parameters = [item['parameter_code'] for item in model['input']['weather_parameters']]
     interval = model['input']['weather_parameters'][0]['interval']
-    starts = model['input']['weather_data_period_start']
-    if any([item['determined_by'] == 'FIXED_DATE' for item in starts]):
-        length = 1
-    return weather_data(parameters=parameters, interval=interval, length=length)
+    current_year = datetime.datetime.now().year
+    previous_year = current_year - 1
+    tste = {'start': None, 'end': None}
+    for w in tste:
+        items = model['input']['weather_data_period_' + w]
+        for item in items:
+            if item['determined_by'] == 'FIXED_DATE':
+                tste[w] = item['value'].format(CURRENT_YEAR=current_year, PREVIOUS_YEAR=previous_year)
+                break # avoid seting by input_scehma if found
+            if item['determined_by'] == 'INPUT_SCHEMA_PROPERTY':
+                d = model['execution']['input_schema']['properties']
+                fields = item['value'].split('.')
+                for field in fields[:-1]:
+                    d = d[field]['properties']
+                tste[w] = d[fields[-1]]['default'].format(CURRENT_YEAR=current_year, PREVIOUS_YEAR=previous_year)
+
+    return weather_data(parameters=parameters, time_start=tste['start'],
+                        time_end=tste['end'],
+                        interval=interval, length=length)
 
 
 def model_field_observations(model, quantifications, latitude=None, longitude=None, time=None, pest=None, crop=None):
@@ -200,6 +230,10 @@ def set_default(fake_value, schema):
             fake_value[k] = set_default(v, schema['properties'][k])
     else:
         fake_value = schema.get('default', fake_value)
+        if schema['type'] == 'number':
+            fake_value = float(fake_value)
+        if schema['type'] == 'integer':
+            fake_value = int(fake_value)
     if isinstance(fake_value, str):
         current_year = datetime.datetime.now().year
         previous_year = current_year - 1
@@ -219,7 +253,7 @@ def input_data(model, weather_data=None, field_observations=None, quantification
     if model['execution']['type'] == 'LINK':
         return None
     else:
-        input_schema = model['execution']['input_schema'].copy()
+        input_schema = deepcopy(model['execution']['input_schema'])
 
     weather = False
     fieldobs = False
@@ -278,6 +312,8 @@ def input_data(model, weather_data=None, field_observations=None, quantification
                         d = d[field]
                     assert fields[-1] in d, 'weather_data_period_' + w + ' not found in input_schema properties, but refered in model input to be there (use FIXED _DATE instead)'
                     d[fields[-1]] = weather_data['time' + w[0].upper() + w[1:]]
+                    if model['input']['weather_parameters'][0]['interval'] > 3600:
+                        d[fields[-1]] = d[fields[-1]][:10] #datetime -> date
                     break
     if fieldobs:
         d = fake
