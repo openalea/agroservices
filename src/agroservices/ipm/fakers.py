@@ -2,10 +2,12 @@
 
 import datetime
 import random
+import json
+from copy import deepcopy
 from faker import Faker
 from jsf import JSF
 from agroservices.ipm.datadir import country_mapping
-import json
+
 
 Geojson_point ="""{{
     "type": "FeatureCollection",
@@ -107,7 +109,7 @@ def weather_adapter_params(weather_adapter,
     return fake
 
 
-def weather_data(parameters=(1001, 1002), interval=3600, length=3, longitude =None, latitude=None, altitude=None, data=None):
+def weather_data(parameters=(1001, 1002), time_start=None, time_end=None, interval=3600, length=3, longitude =None, latitude=None, altitude=None, data=None):
     """generate a dict complying IPMDecision weatherData schema"""
     fake = {}
 
@@ -117,30 +119,46 @@ def weather_data(parameters=(1001, 1002), interval=3600, length=3, longitude =No
         parameters = list(parameters)
     fake['weatherParameters'] = [int(p) for p in parameters]
 
+    assert interval in [3600, 86400]
+    if time_start is None:
+        if time_end is not None:
+            if interval == 3600:
+                time_start = time_end - datetime.timedelta(hours=length - 1)
+            else:
+                time_start = time_end - datetime.timedelta(days=length - 1)
+        else:
+            time_start = datetime.datetime.today().astimezone()
+    else:
+        time_start = datetime.datetime.fromisoformat(time_start).astimezone()
     width = len(parameters)
     if data is None:
+        if time_end is None:
+            if interval == 3600:
+                time_end = time_start + datetime.timedelta(hours=length - 1)
+            else:
+                time_end = time_start + datetime.timedelta(days=length - 1)
+        else:
+            time_end = datetime.datetime.fromisoformat(time_end).astimezone()
+            delta = time_end - time_start
+            assert delta.total_seconds() >= 0, 'time_end should be after time_start'
+            if interval == 3600:
+                hours = delta.total_seconds() // 3600
+                length = int(hours) + 1
+            else:
+                length = int(delta.days) + 1
         data = [[p / 10 for p in random.sample(range(100), width)] for _ in range(length)]
     else:
         assert len(data) > 0
         assert len(data[0]) == width, 'data should be a list of tuples, each being as long as parameters'
         length = len(data)
+        if interval == 3600:
+            time_end = time_start + datetime.timedelta(hours=length - 1)
+        else:
+            time_end = time_start + datetime.timedelta(days=length - 1)
 
-    #TODO hack : web service consider bad request a length=1 input
-    if length == 1:
-        data += data
-        length=2
-
-    assert interval in [3600, 86400]
-    time_start = datetime.datetime.today().astimezone()
-    if interval == 3600:
-        time_end = time_start + datetime.timedelta(hours=length - 1)
-    else:
-        time_end = time_start + datetime.timedelta(days=length - 1)
     fake['timeStart'] = time_start.isoformat()
     fake['timeEnd'] = time_end.isoformat()
     fake['interval'] = interval
-
-
 
     if longitude is None:
         longitude = random.uniform(0, 180)
@@ -163,13 +181,48 @@ def weather_data(parameters=(1001, 1002), interval=3600, length=3, longitude =No
     return fake
 
 
-def model_weather_data(model, length=3):
+def default_weather_period(model, current_year=None):
+    if current_year is None:
+        current_year = datetime.datetime.now().year
+    previous_year = current_year - 1
+    period = {'start': None, 'end': None}
+    for w in period:
+        items = model['input']['weather_data_period_' + w]
+        for item in items:
+            if item['determined_by'] == 'FIXED_DATE':
+                period[w] = item['value'].format(CURRENT_YEAR=current_year, PREVIOUS_YEAR=previous_year)
+                break  # items is a priority list
+            elif item['determined_by'] == 'INPUT_SCHEMA_PROPERTY':
+                d = model['execution']['input_schema']['properties']
+                path = item['value'].split('.')
+                for p in path[:-1]:
+                    d = d[p]['properties']
+                period[w] = d[path[-1]]['default'].format(CURRENT_YEAR=current_year, PREVIOUS_YEAR=previous_year)
+                break
+    return period['start'], period['end']
+
+
+def model_weather_data(model, time_start=None, time_end=None, length=3):
     """Generate fake weather data along spec given in model"""
     if model['input']['weather_parameters'] is None:
-        return weather_data(length=length)
+        return None
     parameters = [item['parameter_code'] for item in model['input']['weather_parameters']]
     interval = model['input']['weather_parameters'][0]['interval']
-    return weather_data(parameters=parameters, interval=interval, length=length)
+    start, end = default_weather_period(model)
+    if time_start is None:
+        if time_end is not None:
+            start = None # let use length
+    else:
+        start = time_start
+    if time_end is None:
+        if time_start is not None:
+            end = None
+    else:
+        end = time_end
+    return weather_data(parameters=parameters, time_start=start,
+                        time_end=end,
+                        interval=interval, length=length)
+
 
 def model_field_observations(model, quantifications, latitude=None, longitude=None, time=None, pest=None, crop=None):
     """generate common part of field observation
@@ -190,72 +243,111 @@ def model_field_observations(model, quantifications, latitude=None, longitude=No
                    'time': time[i],
                    'pestEPPOCode': pest,
                    'cropEPPOCode': crop} for i in range(length)]
-    fake={'fieldObservations': field_obs,
-            'fieldObservationQuantifications': quantifications}
-    return fake
+    return field_obs
 
 
-def input_data(model, weather_data=None, field_observations=None):
-    input_schema = model['execution']['input_schema'].copy()
-    accept_fieldobservations = False
-    where_fieldobservations = None
-    #TODO when there are reference to input schema parameters in model[input'], parameters should be added to the input
-    # fill externaly defined refs
-    if model['input']['weather_parameters'] is not None:
-        if len(model['input']['weather_parameters']) > 0:
-            input_schema['properties']['weatherData'] = {'type': 'string',
-                                                   'default': 'WEATHER_DATA'}
-    if 'fieldObservations' in input_schema['properties']:
-        input_schema['properties']['fieldObservations'] = {'type': 'string',
-                                               'default': 'FIELD_OBSERVATION'}
-        if 'fieldObservations' in input_schema['properties']['required']:
-            if 'fieldObservationQuantifications' not in input_schema['properties']['required']:
-                input_schema['properties']['required'].append('fieldObservationQuantifications')
-        accept_fieldobservations=True
-        where_fieldobservations='root'
+def set_default(fake_value, schema):
+    if isinstance(fake_value, dict):
+        for k, v in fake_value.items():
+            fake_value[k] = set_default(v, schema['properties'][k])
     else:
-        for prop in input_schema['properties']:
-            if 'properties' in input_schema['properties'][prop]:
-                if 'fieldObservations' in input_schema['properties'][prop]['properties']:
-                    input_schema['properties'][prop]['properties']['fieldObservations'] = {'type': 'string',
-                                                                   'default': 'FIELD_OBSERVATION'}
-                    if 'fieldObservations' in input_schema['properties'][prop]['required']:
-                        if 'fieldObservationQuantifications' not in input_schema['properties'][prop]['required']:
-                            input_schema['properties'][prop]['required'].append('fieldObservationQuantifications')
-                    accept_fieldobservations = True
-                    where_fieldobservations = prop
+        fake_value = schema.get('default', fake_value)
+        if schema['type'] == 'number':
+            fake_value = float(fake_value)
+        if schema['type'] == 'integer':
+            fake_value = int(fake_value)
+    if isinstance(fake_value, str):
+        current_year = datetime.datetime.now().year
+        previous_year = current_year - 1
+        fake_value = fake_value.format(CURRENT_YEAR=current_year, PREVIOUS_YEAR=previous_year)
+    return fake_value
+
+
+def set_all_required(schema):
+    schema['required'] = list(schema['properties'].keys())
+    for k,v in schema['properties'].items():
+        if v['type'] == 'object':
+            schema['properties'][k] = set_all_required(v)
+    return schema
+
+
+def input_data(model, weather_data=None, field_observations=None, quantifications = None, requires_all=True, check_default=True):
+    if model['execution']['type'] == 'LINK':
+        return None
+    else:
+        input_schema = deepcopy(model['execution']['input_schema'])
+
+    weather = False
+    fieldobs = False
+    fieldloc = input_schema
+    fakeloc = []
+    if model['input'] is None:
+        pass
+    else:
+        if model['input']['weather_parameters'] is not None:
+            weather = True
+            input_schema['properties']['weatherData'] = {'type': 'string',
+                                                         'pattern': '^WEATHER_DATA$'}
+            if 'weatherData' not in input_schema['required']:
+                input_schema['required'].append('weatherData')
+        if model['input']['field_observation'] is not None:
+            if 'fieldObservations' in fieldloc['properties']:
+                fieldobs = True
+            else:
+                for prop in fieldloc['properties']:
+                    if fieldloc['properties'][prop]['type'] == 'object':
+                        if 'fieldObservations' in fieldloc['properties'][prop]['properties']:
+                            fieldobs = True
+                            fieldloc = fieldloc['properties'][prop]
+                            fakeloc.append(prop)
+                            break
+            if fieldobs:
+                fieldloc['properties']['fieldObservations'] = {'type': 'string',
+                                                 'pattern': '^FIELD_OBSERVATION$'}
+                fieldloc['properties']['fieldObservationQuantifications']['minItems'] = 1
+                for w in ('fieldObservations', 'fieldObservationQuantifications'):
+                    if w not in fieldloc['required']:
+                        fieldloc['required'].append(w)
+
+
+    if requires_all:
+        if input_schema['type'] == 'object':
+            input_schema = set_all_required(input_schema)
 
     jsf_faker = JSF(input_schema)
     fake = jsf_faker.generate()
-    current_year = datetime.datetime.now().year
-    for field in fake:
-        if 'default' in input_schema['properties'][field]:
-            fake[field] = input_schema['properties'][field]['default'].format(CURRENT_YEAR=current_year)
-        elif isinstance(fake[field], dict):
-            for sub_field in fake[field]:
-                if 'default' in input_schema['properties'][field]['properties'][sub_field]:
-                    fake[field][sub_field] = input_schema['properties'][field]['properties'][sub_field]['default'].format(CURRENT_YEAR=current_year)
-    if model['input']['weather_parameters'] is not None:
-        if len(model['input']['weather_parameters']) > 0:
-            if weather_data is None:
-                weather_data = model_weather_data(model)
-            fake['weatherData'] = weather_data
 
-    if accept_fieldobservations:
+    if check_default:
+        for k,v in fake.items():
+            fake[k] = set_default(v, input_schema['properties'][k])
+
+    if weather:
+        if weather_data is None:
+            weather_data = model_weather_data(model)
+        fake['weatherData'] = weather_data
+        for w in ('start', 'end'):
+            for bound in model['input']['weather_data_period_' + w]:
+                if bound['determined_by'] == 'INPUT_SCHEMA_PROPERTY':
+                    d = fake
+                    fields = bound['value'].split('.')
+                    for field in fields[:-1]:
+                        d = d[field]
+                    assert fields[-1] in d, 'weather_data_period_' + w + ' not found in input_schema properties, but refered in model input to be there (use FIXED _DATE instead)'
+                    d[fields[-1]] = weather_data['time' + w[0].upper() + w[1:]]
+                    if model['input']['weather_parameters'][0]['interval'] > 3600:
+                        d[fields[-1]] = d[fields[-1]][:10] #datetime -> date
+                    break
+    if fieldobs:
+        d = fake
+        for prop in fakeloc:
+            d = d[prop]
+        if quantifications is not None:
+            d['fieldObservationQuantifications'] = quantifications
         if field_observations is None:
-            if where_fieldobservations == 'root':
-                quantifications = fake['fieldObservationQuantifications']
-            else :
-                quantifications = fake[prop]['fieldObservationQuantifications']
-            field_observations = model_field_observations(model, quantifications)
-
-        if where_fieldobservations == 'root':
-            fake.update(field_observations)
-        else:
-            fake[prop].update(field_observations)
+            field_observations = model_field_observations(model, d['fieldObservationQuantifications'])
+        d['fieldObservations'] = field_observations
 
     return fake
-
 
 
 #TODO: add interpreters for model meta for wralea

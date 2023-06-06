@@ -21,14 +21,15 @@ import agroservices.ipm.fixes as fixes
 
 __all__ = ["IPM"]
 
-def load_model(model):
-    model = fixes.fix_prior_load_model(model)
-    model['execution']['input_schema'] = json.loads(model['execution']['input_schema'])
-    model = fixes.fix_load_model(model)
+def load_model(dssid, model):
+    model = fixes.fix_prior_load_model(dssid, model)
+    if 'input_schema' in model['execution']:
+        model['execution']['input_schema'] = json.loads(model['execution']['input_schema'])
+    model = fixes.fix_load_model(dssid, model)
     return model
 
 def read_dss(dss):
-    dss['models'] = {model["id"]: load_model(model) for model in dss["models"]}
+    dss['models'] = {model["id"]: load_model(dss['id'], model) for model in dss["models"]}
     return dss
 
 class IPM(REST):
@@ -377,8 +378,12 @@ class IPM(REST):
         )
         return res
 
-    def get_dss(self) -> dict:
+    def get_dss(self, execution_type=None) -> dict:
         """Get a {dss_id: dss} dict of all DSSs and models available in the platform
+
+        Parameters
+        ----------
+        execution_type ('LINK' or 'ONTHEFLY') :filter results by execution types, optional
 
         Returns
         -------
@@ -392,7 +397,18 @@ class IPM(REST):
             params={'callback': self.callback}
         )
 
-        return {dss["id"]: read_dss(dss) for dss in res}
+        all_dss = {dss["id"]: read_dss(dss) for dss in res}
+
+        if execution_type is not None:
+            filtered = {}
+            for id, dss in all_dss.items():
+                models = {k:v for k,v in dss['models'].items() if v['execution']['type'] == execution_type}
+                if len(models) > 0:
+                    dss['models'] = models
+                    filtered[id] = dss
+            return filtered
+        else:
+            return all_dss
 
     def post_dss_location(
             self,
@@ -542,7 +558,7 @@ class IPM(REST):
             "api/dss/rest/model/{}/{}".format(DSSId, ModelId),
             frmt='json'
         )
-        res = load_model(res)
+        res = load_model(DSSId, res)
 
         return res
 
@@ -701,7 +717,8 @@ class IPM(REST):
     def run_model(
             self,
             model: dict,
-            input_data: dict = None):
+            input_data: dict = None,
+            timeout=None):
         """Run Dss Model and get output
 
         Parameters
@@ -719,13 +736,29 @@ class IPM(REST):
         if input_data is None:
             input_data = fakers.input_data(model)
 
+        if model['execution']['type'] == 'LINK':
+            res = 'This model could not be run via IPM-Decision API\n See '
+            if model['execution']['endpoint'] == '':
+                return res + model['description_URL']
+            else:
+                return res + model['execution']['endpoint']
+
         endpoint = model['execution']['endpoint']
 
-        res = self.http_post(
-            endpoint,
-            frmt='json',
-            data=json.dumps(input_data),
-            headers={"Content-Type": "application/json"}
-        )
+        if timeout is not None:
+            res = self.http_post(
+                endpoint,
+                frmt='json',
+                data=json.dumps(input_data),
+                headers={"Content-Type": "application/json"},
+                timeout=timeout
+            )
+        else:
+            res = self.http_post(
+                endpoint,
+                frmt='json',
+                data=json.dumps(input_data),
+                headers={"Content-Type": "application/json"}
+            )
 
         return res

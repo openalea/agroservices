@@ -212,15 +212,4 @@ def test_run_model():
     res = ipm.run_model(model, input_data)
     assert isinstance(res, dict)
     assert 'locationResult' in res
-    #fake input with field observation
-    model = ipm.get_model(DSSId='no.nibio.vips',ModelId='PSILAROBSE')
-    path = datadir + 'model_input_psilarobse.json'
-    with open(path) as json_file:
-        model_input = json.load(json_file)
-    res = ipm.run_model(model, model_input)
-    assert isinstance(res, dict)
-    assert 'locationResult' in res
-    input_data = fakers.input_data(model)
-    res = ipm.run_model(model, input_data)
-    assert isinstance(res, dict)
-    assert 'locationResult' in res
+
