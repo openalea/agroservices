@@ -12,6 +12,16 @@ def fix_load_model(dss, model):
             # Use json schema (and not string replace) to declare inputs, similarly to all  other IPM endpoints
             model['execution']['input_schema'] = {'type': 'object', 'required': ['RH'], 'properties': {'RH': {'type': 'number', 'minimum': 0, 'maximum': 100}}}
             model['execution']['endpoint'] = model['execution']['endpoint'][:-8]
+    if dss == 'adas.dss':
+        if model['id'] == 'MELIAE':
+            # add valid default and valid boundaries for growthStage
+            model['execution']['input_schema']['properties']['growthStage']['default'] = 55
+            model['execution']['input_schema']['properties']['growthStage']['type'] = 'integer'
+            model['execution']['input_schema']['properties']['growthStage']['minimum'] = 51
+            model['execution']['input_schema']['properties']['growthStage']['maximum'] = 59
+        if model['id'] == 'DEROAG_Cereals':
+            # observationClass requires at least one item
+            model['execution']['input_schema']['properties']['configParameters']['properties']['observationClass']['minItems'] = 1
     if dss == 'no.nibio.vips':
         if model['id'] == 'PSILAROBSE':
             # field obs object misses type
