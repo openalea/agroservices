@@ -718,7 +718,7 @@ class IPM(REST):
             self,
             model: dict,
             input_data: dict = None,
-            timeout=2):
+            timeout=None):
         """Run Dss Model and get output
 
         Parameters
@@ -745,12 +745,20 @@ class IPM(REST):
 
         endpoint = model['execution']['endpoint']
 
-        res = self.http_post(
-            endpoint,
-            frmt='json',
-            data=json.dumps(input_data),
-            headers={"Content-Type": "application/json"},
-            timeout=timeout
-        )
+        if timeout is not None:
+            res = self.http_post(
+                endpoint,
+                frmt='json',
+                data=json.dumps(input_data),
+                headers={"Content-Type": "application/json"},
+                timeout=timeout
+            )
+        else:
+            res = self.http_post(
+                endpoint,
+                frmt='json',
+                data=json.dumps(input_data),
+                headers={"Content-Type": "application/json"}
+            )
 
         return res

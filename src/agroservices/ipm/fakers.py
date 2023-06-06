@@ -121,7 +121,13 @@ def weather_data(parameters=(1001, 1002), time_start=None, time_end=None, interv
 
     assert interval in [3600, 86400]
     if time_start is None:
-        time_start = datetime.datetime.today().astimezone()
+        if time_end is not None:
+            if interval == 3600:
+                time_start = time_end - datetime.timedelta(hours=length - 1)
+            else:
+                time_start = time_end - datetime.timedelta(days=length - 1)
+        else:
+            time_start = datetime.datetime.today().astimezone()
     else:
         time_start = datetime.datetime.fromisoformat(time_start).astimezone()
     width = len(parameters)
@@ -134,12 +140,12 @@ def weather_data(parameters=(1001, 1002), time_start=None, time_end=None, interv
         else:
             time_end = datetime.datetime.fromisoformat(time_end).astimezone()
             delta = time_end - time_start
+            assert delta.total_seconds() >= 0, 'time_end should be after time_start'
             if interval == 3600:
-                days, seconds = delta.days, delta.seconds
-                hours = days * 24 + seconds // 3600
-                length = hours + 1
+                hours = delta.total_seconds() // 3600
+                length = int(hours) + 1
             else:
-                length = delta.days + 1
+                length = int(delta.days) + 1
         data = [[p / 10 for p in random.sample(range(100), width)] for _ in range(length)]
     else:
         assert len(data) > 0
@@ -175,30 +181,46 @@ def weather_data(parameters=(1001, 1002), time_start=None, time_end=None, interv
     return fake
 
 
-def model_weather_data(model, length=3):
+def default_weather_period(model, current_year=None):
+    if current_year is None:
+        current_year = datetime.datetime.now().year
+    previous_year = current_year - 1
+    period = {'start': None, 'end': None}
+    for w in period:
+        items = model['input']['weather_data_period_' + w]
+        for item in items:
+            if item['determined_by'] == 'FIXED_DATE':
+                period[w] = item['value'].format(CURRENT_YEAR=current_year, PREVIOUS_YEAR=previous_year)
+                break  # items is a priority list
+            elif item['determined_by'] == 'INPUT_SCHEMA_PROPERTY':
+                d = model['execution']['input_schema']['properties']
+                path = item['value'].split('.')
+                for p in path[:-1]:
+                    d = d[p]['properties']
+                period[w] = d[path[-1]]['default'].format(CURRENT_YEAR=current_year, PREVIOUS_YEAR=previous_year)
+                break
+    return period['start'], period['end']
+
+
+def model_weather_data(model, time_start=None, time_end=None, length=3):
     """Generate fake weather data along spec given in model"""
     if model['input']['weather_parameters'] is None:
         return None
     parameters = [item['parameter_code'] for item in model['input']['weather_parameters']]
     interval = model['input']['weather_parameters'][0]['interval']
-    current_year = datetime.datetime.now().year
-    previous_year = current_year - 1
-    tste = {'start': None, 'end': None}
-    for w in tste:
-        items = model['input']['weather_data_period_' + w]
-        for item in items:
-            if item['determined_by'] == 'FIXED_DATE':
-                tste[w] = item['value'].format(CURRENT_YEAR=current_year, PREVIOUS_YEAR=previous_year)
-                break # avoid seting by input_scehma if found
-            if item['determined_by'] == 'INPUT_SCHEMA_PROPERTY':
-                d = model['execution']['input_schema']['properties']
-                fields = item['value'].split('.')
-                for field in fields[:-1]:
-                    d = d[field]['properties']
-                tste[w] = d[fields[-1]]['default'].format(CURRENT_YEAR=current_year, PREVIOUS_YEAR=previous_year)
-
-    return weather_data(parameters=parameters, time_start=tste['start'],
-                        time_end=tste['end'],
+    start, end = default_weather_period(model)
+    if time_start is None:
+        if time_end is not None:
+            start = None # let use length
+    else:
+        start = time_start
+    if time_end is None:
+        if time_start is not None:
+            end = None
+    else:
+        end = time_end
+    return weather_data(parameters=parameters, time_start=start,
+                        time_end=end,
                         interval=interval, length=length)
 
 
