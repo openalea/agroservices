@@ -8,8 +8,7 @@ from faker import Faker
 from jsf import JSF
 from agroservices.ipm.datadir import country_mapping
 
-
-Geojson_point ="""{{
+Geojson_point = """{{
     "type": "FeatureCollection",
     "features": [
         {{
@@ -25,6 +24,7 @@ Geojson_point ="""{{
         }}
     ]
 }}"""
+
 
 def weather_adapter_params(weather_adapter,
                            parameters=None,
@@ -109,7 +109,8 @@ def weather_adapter_params(weather_adapter,
     return fake
 
 
-def weather_data(parameters=(1001, 1002), time_start=None, time_end=None, interval=3600, length=3, longitude =None, latitude=None, altitude=None, data=None):
+def weather_data(parameters=(1001, 1002), time_start=None, time_end=None, interval=3600, length=3, longitude=None,
+                 latitude=None, altitude=None, data=None):
     """generate a dict complying IPMDecision weatherData schema"""
     fake = {}
 
@@ -211,7 +212,7 @@ def model_weather_data(model, time_start=None, time_end=None, length=3):
     start, end = default_weather_period(model)
     if time_start is None:
         if time_end is not None:
-            start = None # let use length
+            start = None  # let use length
     else:
         start = time_start
     if time_end is None:
@@ -239,10 +240,13 @@ def model_field_observations(model, quantifications, latitude=None, longitude=No
         pest = random.sample(model['pests'], 1)[0]
     if crop is None:
         crop = random.sample(model['crops'], 1)[0]
-    field_obs =  [{'location': location,
-                   'time': time[i],
-                   'pestEPPOCode': pest,
-                   'cropEPPOCode': crop} for i in range(length)]
+    field_obs = [{'fieldObservation': {'location': location,
+                                        'time': time[i],
+                                        'pestEPPOCode': pest,
+                                        'cropEPPOCode': crop
+                                       },
+                  'quantification': quantifications[i]
+                  } for i in range(length)]
     return field_obs
 
 
@@ -265,13 +269,14 @@ def set_default(fake_value, schema):
 
 def set_all_required(schema):
     schema['required'] = list(schema['properties'].keys())
-    for k,v in schema['properties'].items():
+    for k, v in schema['properties'].items():
         if v['type'] == 'object':
             schema['properties'][k] = set_all_required(v)
     return schema
 
 
-def input_data(model, weather_data=None, field_observations=None, quantifications = None, requires_all=True, check_default=True):
+def input_data(model, weather_data=None, field_observations=None, requires_all=True,
+               check_default=True):
     if model['execution']['type'] == 'LINK':
         return None
     else:
@@ -302,13 +307,13 @@ def input_data(model, weather_data=None, field_observations=None, quantification
                             fakeloc.append(prop)
                             break
             if fieldobs:
-                fieldloc['properties']['fieldObservations'] = {'type': 'string',
-                                                 'pattern': '^FIELD_OBSERVATION$'}
-                fieldloc['properties']['fieldObservationQuantifications']['minItems'] = 1
-                for w in ('fieldObservations', 'fieldObservationQuantifications'):
-                    if w not in fieldloc['required']:
-                        fieldloc['required'].append(w)
-
+                fieldloc['properties']['fieldObservations']['minItems'] = 1
+                if 'fieldObservations' not in fieldloc['required']:
+                    fieldloc['required'].append('fieldObservations')
+                fieldloc['properties']['fieldObservations']['items']['properties']['fieldObservation'] = {
+                    'type': 'string',
+                    'pattern': '^FIELD_OBSERVATION$'}
+                fieldloc['properties']['fieldObservations']['items']['required'] = ['fieldObservation', 'quantification']
 
     if requires_all:
         if input_schema['type'] == 'object':
@@ -318,7 +323,7 @@ def input_data(model, weather_data=None, field_observations=None, quantification
     fake = jsf_faker.generate()
 
     if check_default:
-        for k,v in fake.items():
+        for k, v in fake.items():
             fake[k] = set_default(v, input_schema['properties'][k])
 
     if weather:
@@ -332,23 +337,21 @@ def input_data(model, weather_data=None, field_observations=None, quantification
                     fields = bound['value'].split('.')
                     for field in fields[:-1]:
                         d = d[field]
-                    assert fields[-1] in d, 'weather_data_period_' + w + ' not found in input_schema properties, but refered in model input to be there (use FIXED _DATE instead)'
+                    assert fields[
+                               -1] in d, 'weather_data_period_' + w + ' not found in input_schema properties, but refered in model input to be there (use FIXED _DATE instead)'
                     d[fields[-1]] = weather_data['time' + w[0].upper() + w[1:]]
                     if model['input']['weather_parameters'][0]['interval'] > 3600:
-                        d[fields[-1]] = d[fields[-1]][:10] #datetime -> date
+                        d[fields[-1]] = d[fields[-1]][:10]  # datetime -> date
                     break
     if fieldobs:
         d = fake
         for prop in fakeloc:
             d = d[prop]
-        if quantifications is not None:
-            d['fieldObservationQuantifications'] = quantifications
         if field_observations is None:
-            field_observations = model_field_observations(model, d['fieldObservationQuantifications'])
+            quantifications = [item['quantification'] for item in d['fieldObservations']]
+            field_observations = model_field_observations(model, quantifications)
         d['fieldObservations'] = field_observations
 
     return fake
 
-
-#TODO: add interpreters for model meta for wralea
-
+# TODO: add interpreters for model meta for wralea

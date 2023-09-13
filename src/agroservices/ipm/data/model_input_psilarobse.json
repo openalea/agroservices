@@ -2,26 +2,26 @@
   "modelId": "PSILAROBSE",
   "configParameters": {
     "timeZone": "Europe/Oslo",
-    "startDateCalculation": "2020-05-01",
-    "endDateCalculation": "2020-05-10",
+    "startDateCalculation": "2023-05-01",
+    "endDateCalculation": "2023-06-05",
     "fieldObservations": [
       {
-        "location": {
-          "type": "Point",
-          "coordinates": [
-            "11.025635",
-            "59.715791"
-          ]
+        "fieldObservation": {
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              10.781989,
+              59.660468
+            ]
+          },
+          "time": "2023-05-28T18:00:00+02:00",
+          "pestEPPOCode": "PSILRO",
+          "cropEPPOCode": "DAUCS"
         },
-        "time": "2020-05-05T12:00:00Z",
-        "pestEPPOCode": "SEPTAP",
-        "cropEPPOCode": "APUGD"
-      }
-    ],
-    "fieldObservationQuantifications": [
-      {
-        "trapCountCropEdge": 22,
-        "trapCountCropInside": 2
+        "quantification": {
+          "trapCountCropEdge": 2,
+          "trapCountCropInside": 55
+        }
       }
     ]
   }
