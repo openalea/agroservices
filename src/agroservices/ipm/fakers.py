@@ -110,7 +110,7 @@ def weather_adapter_params(weather_adapter,
 
 
 def weather_data(parameters=(1001, 1002), time_start=None, time_end=None, interval=3600, length=3, longitude=None,
-                 latitude=None, altitude=None, data=None):
+                 latitude=None, altitude=None, data=None, valid_spatial=None):
     """generate a dict complying IPMDecision weatherData schema"""
     fake = {}
 
@@ -161,10 +161,17 @@ def weather_data(parameters=(1001, 1002), time_start=None, time_end=None, interv
     fake['timeEnd'] = time_end.isoformat()
     fake['interval'] = interval
 
+    if valid_spatial is None:
+        lng  = random.uniform(0, 180)
+        lat = random.uniform(0, 90)
+    else:
+        cmap = country_mapping()
+        faker = Faker()
+        lat, lng, _, _, _ = faker.local_latlng(cmap[valid_spatial])
     if longitude is None:
-        longitude = random.uniform(0, 180)
+        longitude = lng
     if latitude is None:
-        latitude = random.uniform(0, 90)
+        latitude = lat
     if altitude is None:
         altitude = 0
 
@@ -220,9 +227,13 @@ def model_weather_data(model, time_start=None, time_end=None, length=3):
             end = None
     else:
         end = time_end
+    valid_spatial = None
+    if 'valid_spatial' in model:
+        if 'countries' in model['valid_spatial']:
+            valid_spatial = model['valid_spatial']['countries'][0]
     return weather_data(parameters=parameters, time_start=start,
                         time_end=end,
-                        interval=interval, length=length)
+                        interval=interval, length=length, valid_spatial=valid_spatial)
 
 
 def model_field_observations(model, quantifications, latitude=None, longitude=None, time=None, pest=None, crop=None):
