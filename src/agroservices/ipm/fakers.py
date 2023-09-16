@@ -230,7 +230,8 @@ def model_weather_data(model, time_start=None, time_end=None, length=3):
     valid_spatial = None
     if 'valid_spatial' in model:
         if 'countries' in model['valid_spatial']:
-            valid_spatial = model['valid_spatial']['countries'][0]
+            if len(model['valid_spatial']['countries']) > 0:
+                valid_spatial = model['valid_spatial']['countries'][0]
     return weather_data(parameters=parameters, time_start=start,
                         time_end=end,
                         interval=interval, length=length, valid_spatial=valid_spatial)
