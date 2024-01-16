@@ -11,26 +11,31 @@
 ################## Interface Python IPM using Bioservice ########################################################
 
 import json
-from jsf import JSF
-from typing import Union
 from pathlib import Path
-from agroservices.services import REST
-from agroservices.ipm.datadir import datadir
+from typing import Union
+
 import agroservices.ipm.fakers as fakers
 import agroservices.ipm.fixes as fixes
+from agroservices.ipm.datadir import datadir
+from agroservices.services import REST
 
 __all__ = ["IPM"]
+
 
 def load_model(dssid, model):
     model = fixes.fix_prior_load_model(dssid, model)
     if 'input_schema' in model['execution']:
-        model['execution']['input_schema'] = json.loads(model['execution']['input_schema'])
+        model['execution']['input_schema'] = json.loads(
+            model['execution']['input_schema'])
     model = fixes.fix_load_model(dssid, model)
     return model
 
+
 def read_dss(dss):
-    dss['models'] = {model["id"]: load_model(dss['id'], model) for model in dss["models"]}
+    dss['models'] = {model["id"]: load_model(dss['id'], model) for model in
+                     dss["models"]}
     return dss
+
 
 class IPM(REST):
     """
@@ -79,7 +84,8 @@ class IPM(REST):
         >>> ipm.post_schema_dss_yaml_validate() 
     """
 
-    def __init__(self, name='IPM', url="https://platform.ipmdecisions.net", callback=None, *args, **kwargs):
+    def __init__(self, name='IPM', url="https://platform.ipmdecisions.net",
+                 callback=None, *args, **kwargs):
         """Constructor
 
         Parameters
@@ -90,7 +96,7 @@ class IPM(REST):
             Use cache, by default False
         """
         # hack ipmdecisions.net is down
-        #url = 'https://ipmdecisions.nibio.no'
+        # url = 'https://ipmdecisions.nibio.no'
         super().__init__(
             name=name,
             url=url,
@@ -154,7 +160,8 @@ class IPM(REST):
 
         # schema weather data validate
 
-    def post_schema_weatherdata_validate(self, jsonfile: Union[str, Path] = 'weather_data.json') -> dict:
+    def post_schema_weatherdata_validate(self, jsonfile: Union[
+        str, Path] = 'weather_data.json') -> dict:
         """Validates the posted weather data against the Json schema
 
         Parameters
@@ -180,7 +187,8 @@ class IPM(REST):
 
         ###################### WeatherAdaptaterService #############################
 
-    def get_weatheradapter(self, source: dict, params: dict = None, credentials: dict = None) -> dict:
+    def get_weatheradapter(self, source: dict, params: dict = None,
+                           credentials: dict = None) -> dict:
         """Call weatheradapter service for a given weatherdata source
 
         Parameters
@@ -208,7 +216,8 @@ class IPM(REST):
         if params is None:
             params = fakers.weather_adapter_params(source)
 
-        endpoint = source['endpoint'].format(WEATHER_API_URL=self._url + '/api/wx')
+        endpoint = source['endpoint'].format(
+            WEATHER_API_URL=self._url + '/api/wx')
 
         if not source['authentication_type'] == 'CREDENTIALS':
             res = self.http_get(endpoint, params=params, frmt='json')
@@ -222,7 +231,8 @@ class IPM(REST):
 
     # weatherdatasource
 
-    def get_weatherdatasource(self, source_id=None, access_type=None, authentication_type=None) -> list:
+    def get_weatherdatasource(self, source_id=None, access_type=None,
+                              authentication_type=None) -> list:
         """Access a dict of available wetherdata sources, of a source referenced by its id
 
         Parameters
@@ -250,7 +260,8 @@ class IPM(REST):
         for r in res:
             if 'geoJSON' in r['spatial']:
                 if r['spatial']['geoJSON'] is not None:
-                    r['spatial']['geoJSON'] = json.loads(r['spatial']['geoJSON'])
+                    r['spatial']['geoJSON'] = json.loads(
+                        r['spatial']['geoJSON'])
 
         sources = {item['id']: item for item in res}
         sources = fixes.fix_get_weatherdatasource(sources)
@@ -258,15 +269,18 @@ class IPM(REST):
         if source_id is None:
             res = sources
             if access_type is not None:
-                res = {k: v for k, v in res.items() if v['access_type'] == access_type}
+                res = {k: v for k, v in res.items() if
+                       v['access_type'] == access_type}
             if authentication_type is not None:
-                res = {k: v for k, v in res.items() if v['authentication_type'] == authentication_type}
+                res = {k: v for k, v in res.items() if
+                       v['authentication_type'] == authentication_type}
             return res
         elif source_id in sources:
             return sources[source_id]
         else:
             raise ValueError(
-                "datasource error: source_id is not referencing a valid datasource: %s" % (','.join(sources.keys())))
+                "datasource error: source_id is not referencing a valid datasource: %s" % (
+                    ','.join(sources.keys())))
 
     def post_weatherdatasource_location(
             self,
@@ -402,7 +416,8 @@ class IPM(REST):
         if execution_type is not None:
             filtered = {}
             for id, dss in all_dss.items():
-                models = {k:v for k,v in dss['models'].items() if v['execution']['type'] == execution_type}
+                models = {k: v for k, v in dss['models'].items() if
+                          v['execution']['type'] == execution_type}
                 if len(models) > 0:
                     dss['models'] = models
                     filtered[id] = dss
