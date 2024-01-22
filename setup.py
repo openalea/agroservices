@@ -16,11 +16,12 @@
 """
 """
 # ==============================================================================
-from setuptools import setup, find_packages, Extension, Command
+from setuptools import setup, find_namespace_packages
+
 # ==============================================================================
 
 pkg_root_dir = 'src'
-packages = find_packages(pkg_root_dir)
+packages = find_namespace_packages(where='src', include=['openalea', 'openalea.*'])
 top_pkgs = [pkg for pkg in packages if len(pkg.split('.')) <= 2]
 package_dir = dict([('', pkg_root_dir)] +
                    [(pkg, pkg_root_dir + "/" + pkg.replace('.', '/'))
