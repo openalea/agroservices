@@ -78,7 +78,7 @@ class Phis(REST):
 
         :param web_service:  (str) name of web service requested
         :param timeout:  (float) timeout for connexion in seconds
-        :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/api-docs/)
+        :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/wapi-docs/)
         :return:
             (list of dict) data relative to web service and parameters
         """
@@ -91,16 +91,22 @@ class Phis(REST):
             kwargs['pageSize'] = 50000
         else:
             kwargs['pageSize'] = 10
+        if kwargs['sessionId'] is not None:
+            headers = {'Authorization': f'{kwargs['sessionId']}'}
+        else:
+            headers = None
 
         while total_pages > current_page:
             kwargs['page'] = current_page
             response = requests.request(method='GET',
                                         url=self.url + web_service,
+                                        headers=headers,
                                         params=kwargs, timeout=timeout)
             if response.status_code == 200:
                 values.extend(response.json())
             elif response.status_code == 500:
-                raise Exception("Server error")
+                print()
+                raise Exception("Server error " + response.json()["result"]["message"])
             else:
                 raise Exception(
                     response.json()["result"]["message"])
@@ -142,7 +148,7 @@ class Phis(REST):
         :return:
             (list of dict) projects list (one value only in list if project_name specified)
         """
-        return self.get_all_data('projects/' + project_name,
+        return self.get_all_data('core/projects/?name=' + project_name,
                                  sessionId=session_id)
 
     def ws_germplasms(self, session_id, experiment_uri=None, species_uri=None,
@@ -162,12 +168,20 @@ class Phis(REST):
             raise Exception(
                 "You must specify one of experiment_uri, species_uri or germplasms_uri")
         if isinstance(germplasm_uri, six.string_types):
-            return self.get_all_data('germplasms/' + quote(
+            return self.get_all_data('core/germplasm?uri=' + quote(
                                          germplasm_uri), sessionId=session_id)
         else:
             if isinstance(experiment_uri, list):
                 experiment_uri = ','.join(experiment_uri)
-            return self.get_all_data('germplasms',
+
+            query = "core/germplasm"
+            if germplasm_uri is not None:
+                query += "?uri="+quote(germplasm_uri)
+            if species_uri is not None:
+                query += "?species="+quote(species_uri)
+            if experiment_uri is not None:
+                query += "?experiment="+quote(experiment_uri)
+            return self.get_all_data(query,
                                      sessionId=session_id,
                                      experimentURI=experiment_uri,
                                      speciesURI=species_uri,
@@ -226,7 +240,7 @@ class Phis(REST):
         :return:
             (list of dict) available variables for an experiment
         """
-        return self.get_all_data('variables/category/' + category,
+        return self.get_all_data('core/variables' + category,
                                  sessionId=session_id,
                                  experimentURI=experiment_uri,
                                  imageryProvider=provider)
@@ -246,7 +260,8 @@ class Phis(REST):
         """
         if project_name is None and season is None and experiment_uri is None:
             raise Exception(
-                "You must specify one parameter of project_name, season or experiment_uri")
+                "You must specify one parameter of project_name, season or "
+                "experiment_uri")
         if isinstance(experiment_uri, six.string_types):
             return self.get_all_data('core/experiments/' + quote(
                                          experiment_uri) + '/details',

@@ -22,11 +22,11 @@ import os
 import sys
 
 __all__ = ["shellcmd", "swapdict", "check_param_in_list",
-    "check_range", "precision", "AttrDict", "DevTools", "execute",
-    "touch", "mkdirs"]
+           "check_range", "precision", "AttrDict", "DevTools", "execute",
+           "touch", "mkdirs"]
 
 
-def precision(data, digit=2): 
+def precision(data, digit=2):
     """Round values in a list keeping only N digits precision
 
     ::
@@ -37,7 +37,7 @@ def precision(data, digit=2):
         2100
 
     """
-    data = int(data*pow(10, digit))
+    data = int(data * pow(10, digit))
     data /= pow(10., digit)
     return data
 
@@ -58,9 +58,11 @@ def check_range(value, a, b, strict=False):
     """
     if strict is True:
         if value <= a:
-            raise ValueError(" {} must be greater (or equal) than {}".format(value, a))
+            raise ValueError(
+                " {} must be greater (or equal) than {}".format(value, a))
         if value >= b:
-            raise ValueError(" {} must be less (or less) than {}".format(value, b))
+            raise ValueError(
+                " {} must be less (or less) than {}".format(value, b))
     elif strict is False:
         if value < a:
             raise ValueError(" {} must be greater than {}".format(value, a))
@@ -88,8 +90,9 @@ def check_param_in_list(param, valid_values, name=None):
         check_param_in_list(mode, ["on", "off"])
     """
     if isinstance(valid_values, list) is False:
-
-        raise TypeError("the valid_values second argument must be a list of valid values. {0} was provided.".format(valid_values))
+        raise TypeError(
+            "the valid_values second argument must be a list of valid values. {0} was provided.".format(
+                valid_values))
 
     if param not in valid_values:
         if name:
@@ -115,7 +118,7 @@ def shellcmd(cmd, show=False, verbose=False, ignore_errors=False):
         print(cmd)
     try:
         ret = subprocess.Popen([cmd], stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, shell=True)
+                               stderr=subprocess.PIPE, shell=True)
 
         output = ret.stdout.read().strip()
         error = ret.stderr.read().strip()
@@ -133,7 +136,8 @@ def shellcmd(cmd, show=False, verbose=False, ignore_errors=False):
 
         return output
     except Exception as err:
-        raise Exception("Error:: Command (%s) failed. Error message is %s" % (cmd, err))
+        raise Exception(
+            "Error:: Command (%s) failed. Error message is %s" % (cmd, err))
 
 
 def execute(cmd, showcmd=True, verbose=True):
@@ -180,7 +184,8 @@ def swapdict(dic, check_ambiguity=True):
     """
     # this version is more elegant but slightly slower : return {v:k for k,v in dic.items()}
     if check_ambiguity:
-        assert len(set(dic.keys())) == len(set(dic.values())), "values is not a set. ambiguities for keys."
+        assert len(set(dic.keys())) == len(
+            set(dic.values())), "values is not a set. ambiguities for keys."
     return dict(zip(dic.values(), dic.keys()))
 
 
@@ -211,6 +216,7 @@ def mkdirs(newdir, mode=0o777):
         if err.errno != errno.EEXIST or not os.path.isdir(newdir):
             raise
 
+
 class AttrDict(dict):
     """dictionary-like object that exposes its keys as attributes.
 
@@ -231,7 +237,7 @@ class AttrDict(dict):
 
     .. doctest::
 
-        >>> from easydev import AttrDict
+        >>> from openalea.agroservices.extern.easydev.tools import AttrDict
         >>> a = AttrDict(**{'value': 1})
         >>> a.value
         1
@@ -260,6 +266,7 @@ class AttrDict(dict):
     then *a* is indeed a dictionary.
 
     """
+
     def __init__(self, **kwargs):
         dict.__init__(self, kwargs)
         self.__dict__ = self
@@ -273,7 +280,7 @@ class AttrDict(dict):
         # accepts dict and attrdict classes
         try:
             from collections import OrderedDict
-        except:
+        except ImportError:
             OrderedDict = AttrDict
 
         if content.__class__ not in [dict, OrderedDict, AttrDict]:
@@ -291,7 +298,7 @@ class AttrDict(dict):
         does not remove existing keys put replace them if already present
         """
         res = ujson.load(open(filename, "r"))
-        for k,v in res.items():
+        for k, v in res.items():
             self[k] = v
 
     def to_json(self, filename=None):
@@ -303,11 +310,13 @@ class AttrDict(dict):
             return ujson.dumps(self)
 
 
-class DevTools(object):
+class DevTools:
     """Aggregate of easydev.tools functions.
 
     """
-    def check_range(self, value, a, b):
+
+    @staticmethod
+    def check_range(value, a, b):
         """wrapper around :func:`easydev.check_range`"""
         check_range(value, a, b, strict=False)
 
@@ -317,11 +326,13 @@ class DevTools(object):
         for name in param:
             check_param_in_list(name, list(valid_values))
 
-    def swapdict(self, d):
+    @staticmethod
+    def swapdict(d):
         """wrapper around :func:`easydev.swapdict`"""
         return swapdict(d)
 
-    def to_list(self, query):
+    @staticmethod
+    def to_list(query):
         """Cast to a list if possible
 
         'a' ->['a']
@@ -330,7 +341,8 @@ class DevTools(object):
         from easydev import codecs
         return codecs.to_list(query)
 
-    def list2string(self, query, sep=",", space=False):
+    @staticmethod
+    def list2string(query, sep=",", space=False):
         """
         see :func:`easydev.tools.list2string`
 
@@ -338,31 +350,33 @@ class DevTools(object):
         from easydev import codecs
         return codecs.list2string(query, sep=sep, space=space)
 
-    def to_json(self, dictionary):
+    @staticmethod
+    def to_json(dictionary):
         """Transform a dictionary to a json object"""
         return ujson.dumps(dictionary)
 
-    def mkdir(self, dirname):
+    @staticmethod
+    def mkdir(dirname):
         """Create a directory if it does not exists; pass without error otherwise"""
         try:
             os.mkdir(dirname)
         except OSError:
-            pass # exists already
+            pass  # exists already
         except Exception as err:
-            raise(err)
+            raise err
 
-    def shellcmd(self, cmd, show=False, verbose=False, ignore_errors=False):
+    @staticmethod
+    def shellcmd(cmd, show=False, verbose=False, ignore_errors=False):
         """See :func:`shellcmd`"""
-        return shellcmd(cmd, show=show, verbose=verbose, ignore_errors=ignore_errors)
+        return shellcmd(cmd, show=show, verbose=verbose,
+                        ignore_errors=ignore_errors)
 
-    def check_exists(self, filename):
+    @staticmethod
+    def check_exists(filename):
         """Raise error message if the file does not exists"""
         if os.path.exists(filename) is False:
             raise ValueError("This file %s does not exists" % filename)
 
-    def mkdirs(self, dirname, mode=0o777):
+    @staticmethod
+    def mkdirs(dirname, mode=0o777):
         mkdirs(dirname, mode=mode)
-
-
-
-

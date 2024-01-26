@@ -10,10 +10,10 @@
 
 ################## Interface Python IPM using Bioservice ########################################################
 
-import ujson
 from pathlib import Path
 from typing import Union
 
+import ujson
 import yaml
 
 import openalea.agroservices.ipm.fakers as fakers
@@ -145,12 +145,11 @@ class IPM(REST):
     # schema weather data
 
     def get_schema_weatherdata(self) -> dict:
-        """Get a schema that describes the IPM Decision platform's format for exchange of weather data
+        """Get a schema that describes the IPM Decision platform's format for
+        exchange of weather data
 
-        Returns
-        -------
-        dict
-            the schema that describes the IPM Decision platform's format for exchange of weather data
+        Returns ------- dict the schema that describes the IPM Decision
+        platform's format for exchange of weather data
         """
         res = self.http_get(
             "api/wx/rest/schema/weatherdata",

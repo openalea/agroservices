@@ -28,7 +28,7 @@ colors = {
 }
 
 
-class Logging(object):
+class Logging:
     """logging utility.
     ::
         >>> l = Logging("root", "INFO")

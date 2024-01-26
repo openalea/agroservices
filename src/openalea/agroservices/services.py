@@ -63,7 +63,7 @@ class AgroServicesError(Exception):
         return repr(self.value)
 
 
-class Service(object):
+class Service:
     """Base class for WSDL and REST classes
 
     .. seealso:: :class:`REST`, :class:`WSDLService`

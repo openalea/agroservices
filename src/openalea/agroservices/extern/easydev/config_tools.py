@@ -20,12 +20,12 @@ try:
 except ImportError:
     from configparser import ConfigParser
 
-
 import os
 import appdirs
 
-__all__ = ["CustomConfig", "DynamicConfigParser", "ConfigExample", 
+__all__ = ["CustomConfig", "DynamicConfigParser", "ConfigExample",
            "load_configfile"]
+
 
 #  53, 59, 64-65, 181, 260, 262, 267-270, 288-290, 329, 332-337, 340-341, 359-360, 386-388, 400-401, 406-426, 431-435
 
@@ -36,28 +36,30 @@ class _DictSection(object):
     Reference: https://gist.github.com/dangoakachan/3855920
 
     """
+
     def __init__(self, config, section):
         object.__setattr__(self, '_config', config)
         object.__setattr__(self, '_section', section)
 
     def __getattr__(self, attr):
         return self.get(attr, None)
+
     __getitem__ = __getattr__
 
-    def get(self, attr, default = None):
+    def get(self, attr, default=None):
         if attr in self:
             return self._config.get(self._section, attr)
-        else: #pragma: no cover
+        else:  # pragma: no cover
             return default
 
     def __setattr__(self, attr, value):
         if attr.startswith('_'):
             object.__setattr__(self, attr, value)
-        else: #pragma: no cover
+        else:  # pragma: no cover
             self.__setitem__(attr, value)
 
     def __setitem__(self, attr, value):
-        if self._section not in self._config: #pragma: no cover
+        if self._section not in self._config:  # pragma: no cover
             self._config.add_section(self._section)
 
         self._config.set(self._section, attr, str(value))
@@ -75,12 +77,12 @@ class _DictSection(object):
         return config.has_section(section) and config.has_option(section, attr)
 
 
-class ConfigExample(object):
+class ConfigExample:
     """Create a simple example of ConfigParser instance to play with
 
     ::
 
-        >>> from easydev.pipeline.config import ConfigExample
+        >>> from openalea.agroservices.extern.easydev.config_tools import ConfigExample
         >>> c = ConfigExample().config  # The ConfigParser instance
         >>> assert 'General' in c.sections()
         >>> assert 'GA' in c.sections()
@@ -108,6 +110,7 @@ class ConfigExample(object):
         []
 
     """
+
     def __init__(self):
         self.config = ConfigParser()
         self.config.add_section('General')
@@ -124,7 +127,7 @@ class DynamicConfigParser(ConfigParser, object):
 
     .. code-block:: python
 
-        >>> from easydev.config_tools import ConfigExample
+        >>> from openalea.agroservices.extern.easydev.config_tools import ConfigExample
         >>> standard_config_file = ConfigExample().config
         >>> c = DynamicConfigParser(standard_config_file)
         >>>
@@ -163,6 +166,7 @@ class DynamicConfigParser(ConfigParser, object):
 
 
     """
+
     def __init__(self, config_or_filename=None, *args, **kargs):
 
         object.__setattr__(self, '_filename', config_or_filename)
@@ -174,14 +178,15 @@ class DynamicConfigParser(ConfigParser, object):
             self.read(self._filename)
         elif isinstance(config_or_filename, ConfigParser):
             self._replace_config(config_or_filename)
-        elif config_or_filename == None:
+        elif config_or_filename is None:
             pass
         else:
-            raise TypeError("config_or_filename must be a valid filename or valid ConfigParser instance")
+            raise TypeError(
+                "config_or_filename must be a valid filename or valid ConfigParser instance")
 
     def read(self, filename):
         """Load a new config from a filename (remove all previous sections)"""
-        if os.path.isfile(filename)==False:
+        if not os.path.isfile(filename):
             raise IOError("filename {0} not found".format(filename))
 
         config = ConfigParser()
@@ -257,7 +262,7 @@ class DynamicConfigParser(ConfigParser, object):
         .. note:: an integer is cast into an int
         """
         options = {}
-        for option in self.options(section): # pragma no cover
+        for option in self.options(section):  # pragma no cover
             data = self.get(section, option, raw=True)
             if data.lower() in ['true', 'yes']:
                 options[option] = True
@@ -266,12 +271,12 @@ class DynamicConfigParser(ConfigParser, object):
             elif data in ['None', None, 'none', '']:
                 options[option] = None
             else:
-                try: # numbers
+                try:  # numbers
                     try:
                         options[option] = self.getint(section, option)
                     except:
                         options[option] = self.getfloat(section, option)
-                except: #string
+                except:  # string
                     options[option] = self.get(section, option, raw=True)
         return options
 
@@ -287,13 +292,12 @@ class DynamicConfigParser(ConfigParser, object):
 
         """
         try:
-            if os.path.exists(filename) == True:
+            if os.path.exists(filename):
                 print("Warning: over-writing %s " % filename)
-            fp = open(filename,'w')
-        except Exception as err: #pragma: no cover
+            fp = open(filename, 'w')
+        except Exception as err:  # pragma: no cover
             print(err)
             raise Exception('filename could not be opened')
-
 
         self.write(fp)
         fp.close()
@@ -308,7 +312,7 @@ class DynamicConfigParser(ConfigParser, object):
             >>> c.add_option("general", "verbose", True)
         """
         assert section in self.sections(), "unknown section"
-        #TODO I had to cast to str with DictSection
+        # TODO I had to cast to str with DictSection
         self.set(section, option, value=str(value))
 
     def __str__(self):
@@ -316,14 +320,15 @@ class DynamicConfigParser(ConfigParser, object):
         for section in self.sections():
             str_ += '[' + section + ']\n'
             for option in self.options(section):
-                 data = self.get(section, option, raw=True)
-                 str_ += option + ' = ' + str(data)+'\n'
+                data = self.get(section, option, raw=True)
+                str_ += option + ' = ' + str(data) + '\n'
             str_ += '\n\n'
 
         return str_
 
     def __getattr__(self, key):
         return _DictSection(self, key)
+
     __getitem__ = __getattr__
 
     def __setattr__(self, attr, value):
@@ -343,6 +348,7 @@ class DynamicConfigParser(ConfigParser, object):
     def __delattr__(self, attr):
         if attr in self:
             self.remove_section(attr)
+
     def __contains__(self, attr):
         return self.has_section(attr)
 
@@ -356,16 +362,17 @@ class DynamicConfigParser(ConfigParser, object):
 
             for option in self.options(section):
                 try:
-                    if str(self.get(section, option,raw=True)) != \
-                        str(data.get(section,option, raw=True)):
-                        print("option %s in section %s differ" % (option, section))
+                    if str(self.get(section, option, raw=True)) != \
+                            str(data.get(section, option, raw=True)):
+                        print("option %s in section %s differ" % (
+                        option, section))
                         return False
-                except: # pragma: no cover
+                except:  # pragma: no cover
                     return False
         return True
 
 
-class CustomConfig(object):
+class CustomConfig:
     """Base class to manipulate a config directory"""
 
     def __init__(self, name, verbose=False):
@@ -379,32 +386,35 @@ class CustomConfig(object):
     def _get_config_dir(self):
         sdir = self.appdirs.user_config_dir
         return self._get_and_create(sdir)
+
     user_config_dir = property(_get_config_dir,
-          doc="return directory of this configuration file")
+                               doc="return directory of this configuration file")
+
     def _get_and_create(self, sdir):
         if not os.path.exists(sdir):
             print("Creating directory %s " % sdir)
             try:
                 self._mkdirs(sdir)
-            except Exception: #pragma: no cover
+            except Exception:  # pragma: no cover
                 print("Could not create the path %s " % sdir)
                 return None
         return sdir
 
-    def _mkdirs(self, newdir, mode=0o777):
+    @staticmethod
+    def _mkdirs(newdir, mode=0o777):
         """See :func:`easydev.tools.mkdirs`"""
-        from easydev.tools import mkdirs
+        from openalea.agroservices.extern.easydev.tools import mkdirs
         mkdirs(newdir, mode)
 
     def remove(self):
         try:
             sdir = self.appdirs.user_config_dir
             os.rmdir(sdir)
-        except Exception as err: #pragma: no cover
+        except Exception as err:  # pragma: no cover
             raise Exception(err)
 
 
-def _load_configfile(configpath): #pragma: no cover
+def _load_configfile(configpath):  # pragma: no cover
     "Tries to load a JSON or YAML file into a dict."
     try:
         with open(configpath) as f:
@@ -426,7 +436,7 @@ def _load_configfile(configpath): #pragma: no cover
                               "In case of YAML, make sure to not mix "
                               "whitespace and tab indentation.")
     except Exception as err:
-        raise(err)
+        raise err
 
 
 def load_configfile(configpath):
@@ -434,6 +444,5 @@ def load_configfile(configpath):
     config = _load_configfile(configpath)
     if not isinstance(config, dict):
         raise IOError("Config file must be given as JSON or YAML "
-                            "with keys at top level.")
+                      "with keys at top level.")
     return config
-
