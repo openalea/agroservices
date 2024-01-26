@@ -23,7 +23,8 @@ requirements:
     - bs4 
     - pygments 
     - colorlog 
-    - requests 
+    - requests
+    - pyyaml
     - requests_cache
     - jsf
 

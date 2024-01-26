@@ -27,7 +27,7 @@ package_dir = dict([('', pkg_root_dir)] +
                    [(pkg, pkg_root_dir + "/" + pkg.replace('.', '/'))
                     for pkg in top_pkgs])
 
-name = "agroservices"
+name = "openalea.agroservices"
 
 _version = {}
 with open("src/openalea/agroservices/version.py") as fp:
