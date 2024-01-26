@@ -10,14 +10,16 @@
 
 ################## Interface Python IPM using Bioservice ########################################################
 
-import json
+import ujson
 from pathlib import Path
 from typing import Union
 
-import agroservices.ipm.fakers as fakers
-import agroservices.ipm.fixes as fixes
-from agroservices.ipm.datadir import datadir
-from agroservices.services import REST
+import yaml
+
+import openalea.agroservices.ipm.fakers as fakers
+import openalea.agroservices.ipm.fixes as fixes
+from openalea.agroservices.ipm.datadir import datadir
+from openalea.agroservices.services import REST
 
 __all__ = ["IPM"]
 
@@ -25,7 +27,7 @@ __all__ = ["IPM"]
 def load_model(dssid, model):
     model = fixes.fix_prior_load_model(dssid, model)
     if 'input_schema' in model['execution']:
-        model['execution']['input_schema'] = json.loads(
+        model['execution']['input_schema'] = ujson.loads(
             model['execution']['input_schema'])
     model = fixes.fix_load_model(dssid, model)
     return model
@@ -42,7 +44,7 @@ class IPM(REST):
     Interface to the IPM  https://ipmdecisions.nibio.no/
 
     .. doctest::
-        >>> from agroservices.ipm.ipm import IPM
+        >>> from openalea.agroservices.ipm.ipm import IPM
         >>> ipm = IPM()
 
         WeatherMetaDataService
@@ -175,12 +177,12 @@ class IPM(REST):
             if the data is valid or not
         """
         with open(jsonfile) as json_file:
-            data = json.load(json_file)
+            data = ujson.load(json_file)
 
         res = self.http_post(
             "api/wx/rest/schema/weatherdata/validate",
             frmt='json',
-            data=json.dumps(data),
+            data=ujson.dumps(data),
             headers={"Content-Type": "application/json"}
         )
         return res
@@ -222,7 +224,7 @@ class IPM(REST):
         if not source['authentication_type'] == 'CREDENTIALS':
             res = self.http_get(endpoint, params=params, frmt='json')
         else:
-            params['credentials'] = json.dumps(credentials)
+            params['credentials'] = ujson.dumps(credentials)
             res = self.http_post(endpoint, data=params, frmt='json')
 
         return res
@@ -260,7 +262,7 @@ class IPM(REST):
         for r in res:
             if 'geoJSON' in r['spatial']:
                 if r['spatial']['geoJSON'] is not None:
-                    r['spatial']['geoJSON'] = json.loads(
+                    r['spatial']['geoJSON'] = ujson.loads(
                         r['spatial']['geoJSON'])
 
         sources = {item['id']: item for item in res}
@@ -307,12 +309,12 @@ class IPM(REST):
         )
 
         with open(geoJsonfile) as json_file:
-            data = json.load(json_file)
+            data = ujson.load(json_file)
 
         res = self.http_post(
             "api/wx/rest/weatherdatasource/location",
             frmt='json',
-            data=json.dumps(data),
+            data=ujson.dumps(data),
             params=params,
             headers={"Content-Type": "application/json"}
 
@@ -441,12 +443,12 @@ class IPM(REST):
             A list of all the matching DSS models
         """
         with open(geoJsonfile) as json_file:
-            data = json.load(json_file)
+            data = ujson.load(json_file)
 
         res = self.http_post(
             "api/dss/rest/dss/location",
             frmt='json',
-            data=json.dumps(data),
+            data=ujson.dumps(data),
             headers={"Content-Type": "application/json"}
         )
         return res
@@ -464,7 +466,7 @@ class IPM(REST):
         Returns
         -------
         dict
-            informations about a specific DSS
+            information about a specific DSS
         """
         res = self.http_get(
             "api/dss/rest/dss/{}".format(DSSId),
@@ -486,7 +488,7 @@ class IPM(REST):
         Returns
         -------
         dict
-            all informations about  DSS corresponding of cropCode
+            all information about  DSS corresponding of cropCode
         """
         res = self.http_get(
             "api/dss/rest/dss/crop/{}".format(cropCode),
@@ -676,12 +678,12 @@ class IPM(REST):
             if the data is valid or not
         """
         with open(jsonfile) as json_file:
-            data = json.load(json_file)
+            data = ujson.load(json_file)
 
         res = self.http_post(
             "api/dss/rest/schema/modeloutput/validate",
             frmt='json',
-            data=json.dumps(data),
+            data=ujson.dumps(data),
             headers={"Content-Type": "application/json"}
         )
 
@@ -718,14 +720,14 @@ class IPM(REST):
 
     def write_weatherdata_schema(self):
         schema = self.get_schema_weatherdata()
-        json_object = json.dumps(schema, indent=4)
+        json_object = ujson.dumps(schema, indent=4)
         with open(datadir + "schema_weatherdata.json", "w") as outfile:
             outfile.write(json_object)
 
     def write_fieldobservation_schema(self):
         schema = self.get_schema_fieldobservation()
 
-        json_object = json.dumps(schema, indent=4)
+        json_object = ujson.dumps(schema, indent=4)
         with open(datadir + "schema_fieldobservation.json", "w") as outfile:
             outfile.write(json_object)
 
@@ -764,7 +766,7 @@ class IPM(REST):
             res = self.http_post(
                 endpoint,
                 frmt='json',
-                data=json.dumps(input_data),
+                data=ujson.dumps(input_data),
                 headers={"Content-Type": "application/json"},
                 timeout=timeout
             )
@@ -772,7 +774,7 @@ class IPM(REST):
             res = self.http_post(
                 endpoint,
                 frmt='json',
-                data=json.dumps(input_data),
+                data=ujson.dumps(input_data),
                 headers={"Content-Type": "application/json"}
             )
 

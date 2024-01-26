@@ -1,15 +1,19 @@
 import os
-import json
+import ujson
 
 datadir = os.path.dirname(__file__) + '/data/'
 
+
 def postman_tests():
     """Undeclared options of weatheradapter services"""
-    with open(datadir + 'IPM Decisions Weather API tests.postman_collection.json') as jsonfile:
-        postman = json.load(jsonfile)
+    with open(
+            datadir + 'IPM Decisions Weather API tests.postman_collection.json') as jsonfile:
+        postman = ujson.load(jsonfile)
     adapters = {it['name']: it for it in
-                [item for item in postman['item'] if item['name'] == 'WeatherAdapterService'][0]['item']
+                [item for item in postman['item'] if
+                 item['name'] == 'WeatherAdapterService'][0]['item']
                 }
+
     def _read(test):
         d = dict()
         d['name'] = test['name']
@@ -17,6 +21,7 @@ def postman_tests():
         d['endpoint'] = '/'.join(url['host'] + url['path'])
         d['call'] = {it['key']: it['value'] for it in url['query']}
         return d
+
     mapping = {'FruitWeb/Davis': 'info.fruitweb',
                'MeteoBot': 'com.meteobot',
                'Metos (FieldClimate)': 'net.ipmdecisions.metos',
@@ -26,7 +31,8 @@ def postman_tests():
                'FMI (Finnish Meteorological Service) forecasts': 'fi.fmi.forecast.location',
                'DMI (Danish Meteorological Service) PointWeb GRID': 'dk.dmi.pointweather',
                'SLU Lantmet (Sweden) GRID': 'se.slu.lantmet'}
-    return {mapping[k] : _read(v) for k,v in adapters.items()}
+    return {mapping[k]: _read(v) for k, v in adapters.items()}
+
 
 def country_mapping():
     """mapping of alpha3 to alpha 2 country codes
@@ -34,5 +40,5 @@ def country_mapping():
     {c.alpha_3: c.alpha_2 for c in pycountry.countries}
     """
     with open(datadir + 'countries.json') as input:
-        mapping = json.load(input)
+        mapping = ujson.load(input)
     return mapping

@@ -17,7 +17,7 @@
 ##############################################################################
 """toolkit to ease development"""
 import subprocess
-import json
+import ujson
 import os
 import sys
 
@@ -290,17 +290,17 @@ class AttrDict(dict):
         """
         does not remove existing keys put replace them if already present
         """
-        res = json.load(open(filename, "r"))
+        res = ujson.load(open(filename, "r"))
         for k,v in res.items():
             self[k] = v
 
     def to_json(self, filename=None):
-        import json
+        import ujson
         if filename is not None:
             with open(filename, "w") as fout:
-                json.dump(self, fout)
+                ujson.dump(self, fout)
         else:
-            return json.dumps(self)
+            return ujson.dumps(self)
 
 
 class DevTools(object):
@@ -340,7 +340,7 @@ class DevTools(object):
 
     def to_json(self, dictionary):
         """Transform a dictionary to a json object"""
-        return json.dumps(dictionary)
+        return ujson.dumps(dictionary)
 
     def mkdir(self, dirname):
         """Create a directory if it does not exists; pass without error otherwise"""

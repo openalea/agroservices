@@ -409,8 +409,8 @@ def _load_configfile(configpath): #pragma: no cover
     try:
         with open(configpath) as f:
             try:
-                import json
-                return json.load(f)
+                import ujson
+                return ujson.load(f)
             except ValueError:
                 f.seek(0)  # try again
             try:

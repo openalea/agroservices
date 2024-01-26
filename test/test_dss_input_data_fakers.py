@@ -1,6 +1,6 @@
 import pytest
-from agroservices.ipm.ipm import IPM
-from agroservices.ipm import fakers as ipm_fakers
+from openalea.agroservices.ipm.ipm import IPM
+from openalea.agroservices.ipm import fakers as ipm_fakers
 
 ipm = IPM()
 onthefly = ipm.get_dss('ONTHEFLY')

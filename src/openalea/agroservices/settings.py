@@ -5,7 +5,7 @@ Created on Fri Aug  8 15:31:34 2014
 @author: cokelaer
 """
 import os
-from agroservices.extern.easydev.config_tools import DynamicConfigParser
+from openalea.agroservices.extern.easydev.config_tools import DynamicConfigParser
 import copy
 import shutil
 

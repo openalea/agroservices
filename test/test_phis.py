@@ -1,5 +1,5 @@
 import requests
-from agroservices.phis.phis import Phis
+from openalea.agroservices.phis.phis import Phis
 
 
 def test_url():

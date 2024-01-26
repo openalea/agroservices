@@ -8,12 +8,11 @@
 """ Web service to GET and POST data to phis v1 """
 
 # ==============================================================================
-import urllib
 from urllib.parse import quote
 import requests
 import six
 
-from agroservices.services import REST
+from openalea.agroservices.services import REST
 
 # ==============================================================================
 

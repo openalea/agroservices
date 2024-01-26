@@ -16,11 +16,12 @@
 """
 """
 # ==============================================================================
-from setuptools import setup, find_packages, Extension, Command
+from setuptools import setup, find_namespace_packages
+
 # ==============================================================================
 
 pkg_root_dir = 'src'
-packages = find_packages(pkg_root_dir)
+packages = find_namespace_packages(where='src', include=['openalea.*'])
 top_pkgs = [pkg for pkg in packages if len(pkg.split('.')) <= 2]
 package_dir = dict([('', pkg_root_dir)] +
                    [(pkg, pkg_root_dir + "/" + pkg.replace('.', '/'))
@@ -29,7 +30,7 @@ package_dir = dict([('', pkg_root_dir)] +
 name = "agroservices"
 
 _version = {}
-with open("src/agroservices/version.py") as fp:
+with open("src/openalea/agroservices/version.py") as fp:
     exec(fp.read(), _version)
 version = _version['version']
 
@@ -41,9 +42,9 @@ easily implement Web Services wrappers.
 This package is intended to be close to the webservice. 
 Therefore the requests will have the same API that each web service. 
 '''
-author= 'Christian Fournier, Marc Labadie, Christophe Pradal'
-url='https://github.com/H2020-IPM-openalea/agroservices'
-license="GPL-v3"
+author = 'Christian Fournier, Marc Labadie, Christophe Pradal'
+url = 'https://github.com/H2020-IPM-openalea/agroservices'
+license = "GPL-v3"
 
 setup(
     name=name,
@@ -64,4 +65,4 @@ setup(
 
     # See MANIFEST.in
     include_package_data=True,
-    )
+)

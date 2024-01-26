@@ -2,11 +2,11 @@
 
 import datetime
 import random
-import json
+import ujson
 from copy import deepcopy
 from faker import Faker
 from jsf import JSF
-from agroservices.ipm.datadir import country_mapping
+from openalea.agroservices.ipm.datadir import country_mapping
 
 Geojson_point = """{{
     "type": "FeatureCollection",
@@ -244,7 +244,7 @@ def model_field_observations(model, quantifications, latitude=None, longitude=No
     length = len(quantifications)
     latitude = random.uniform(0, 90) if latitude is None else latitude
     longitude = random.uniform(0, 180) if longitude is None else longitude
-    location = json.loads(Geojson_point.format(longitude=longitude, latitude=latitude))
+    location = ujson.loads(Geojson_point.format(longitude=longitude, latitude=latitude))
     if time is None:
         start = datetime.datetime.today().astimezone()
         time = [(start + datetime.timedelta(days=i)).isoformat() for i in range(length)]
