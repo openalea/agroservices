@@ -104,7 +104,7 @@ class IPM(REST):
             url=url,
             *args, **kwargs)
 
-        self.callback = callback  # use in all methods)
+        self.callback = callback  # use in all methods
 
     ########################## MetaDataService ##########################################
 
@@ -429,7 +429,7 @@ class IPM(REST):
     def post_dss_location(
             self,
             geoJsonfile: Union[str, Path] = "GeoJson.json") -> list:
-        """Search for DSS models that have been validated for the specific location. The location can by any valid Geometry, such as Point or Polygon. Example geoJson input
+        """Search for DSS models that have been validated for the specific location. The location can be any valid Geometry, such as Point or Polygon. Example geoJson input
 
         Parameters
         ----------
