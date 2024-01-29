@@ -29,7 +29,7 @@ class Phis(REST):
             url=url,
             *args, **kwargs)
 
-        self.callback = callback  # use in all methods)
+        self.callback = callback  # use in all methods
 
     def post_json(self, web_service, json_txt, timeout=10.,
                   overwriting=False, **kwargs):
@@ -92,7 +92,7 @@ class Phis(REST):
         else:
             kwargs['pageSize'] = 10
         if kwargs['sessionId'] is not None:
-            headers = {'Authorization': f'{kwargs['sessionId']}'}
+            headers = {'Authorization': f'{kwargs["sessionId"]}'}
         else:
             headers = None
 
@@ -253,7 +253,7 @@ class Phis(REST):
 
         :param session_id: (str) token got from ws_token()
         :param project_name: (str) specify a project name to get specifics experiments information
-        :param season: (int or str) find experiments by season (eg. 2012, 2013...)
+        :param season: (int or str) find experiments by season (e.g. 2012, 2013...)
         :param experiment_uri: (str) specify an experiment URI to get detailed information
         :return:
             (list of dict) experiments information
@@ -407,7 +407,7 @@ class Phis(REST):
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) an experiment URI
-        :param date: (str) retrieve phenotypes data from images which have been took at a specific day . Format :yyyy-MM-dd
+        :param date: (str) retrieve phenotypes data from images which have been taken at a specific day . Format :yyyy-MM-dd
         :param provider: (str) origin of the data
         :param label_view: (str) label view, something like side0, side30, ..., side330, top0
         :param variables_name: (str or list of str) name of one or several weighing variables

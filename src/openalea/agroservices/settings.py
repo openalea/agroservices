@@ -41,7 +41,7 @@ def underline(text, symbol="="):
 # second item if a type or TUPLE of types possible
 # third item is documentation
 defaultParams = {
-    'user.email': ["unknown", (str),
+    'user.email': ["unknown", str,
                    "email addresss that may be used in some utilities (e.g. EUtils)"],
     'general.timeout': [30, (int, float), ""],
     'general.max_retries': [3, int, ''],

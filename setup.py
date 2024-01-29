@@ -32,7 +32,7 @@ name = "openalea.agroservices"
 _version = {}
 with open("src/openalea/agroservices/version.py") as fp:
     exec(fp.read(), _version)
-version = _version['version']
+version = _version['__version__']
 
 description = ''
 long_description = '''

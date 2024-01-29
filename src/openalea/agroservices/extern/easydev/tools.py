@@ -52,7 +52,7 @@ def check_range(value, a, b, strict=False):
 
     .. doctest::
 
-        >>> from easydev.tools import check_range
+        >>> from openalea.agroservices.extern.easydev.tools import check_range
         >>> check_range(1,0, 2)
 
     """
@@ -338,7 +338,7 @@ class DevTools:
         'a' ->['a']
         1 -> [1]
         """
-        from easydev import codecs
+        from openalea.agroservices.extern.easydev import codecs
         return codecs.to_list(query)
 
     @staticmethod
@@ -347,7 +347,7 @@ class DevTools:
         see :func:`easydev.tools.list2string`
 
         """
-        from easydev import codecs
+        from openalea.agroservices.extern.easydev import codecs
         return codecs.list2string(query, sep=sep, space=space)
 
     @staticmethod
@@ -357,7 +357,7 @@ class DevTools:
 
     @staticmethod
     def mkdir(dirname):
-        """Create a directory if it does not exists; pass without error otherwise"""
+        """Create a directory if it does not exist; pass without error otherwise"""
         try:
             os.mkdir(dirname)
         except OSError:
@@ -373,7 +373,7 @@ class DevTools:
 
     @staticmethod
     def check_exists(filename):
-        """Raise error message if the file does not exists"""
+        """Raise error message if the file does not exist"""
         if os.path.exists(filename) is False:
             raise ValueError("This file %s does not exists" % filename)
 

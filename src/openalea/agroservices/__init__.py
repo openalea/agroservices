@@ -8,8 +8,8 @@
 #
 # ==============================================================================
 
-from .version import version
-__version__ = version
+from .version import __version__
+__version__ = __version__
 
 from . import ipm
 from .ipm import *

@@ -229,7 +229,6 @@ class DynamicConfigParser(ConfigParser, object):
     def section2dict(self, section):
         """utility that extract options of a ConfigParser section into a dictionary
 
-        :param ConfigParser config: a ConfigParser instance
         :param str section: the section to extract
 
         :returns: a dictionary where key/value contains all the

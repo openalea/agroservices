@@ -94,7 +94,7 @@ class Service:
         :param requests_per_sec: maximum number of requests per seconds
             are restricted to 3. You can change that value. If you reach the
             limit, an error is raise. The reason for this limitation is
-            that some services (e.g.., NCBI) may black list you IP.
+            that some services (e.g.., NCBI) may blacklist you IP.
             If you need or can do more (e.g., ChEMBL does not seem to have
             restrictions), change the value. You can also have several instance
             but again, if you send too many requests at the same, your future
@@ -111,7 +111,7 @@ class Service:
 
         The attribute :attr:`~Service.debugLevel`  can be used to set the behaviour
         of the logging messages. If the argument verbose is True, the debugLebel
-        is set to INFO. If verbose if False, the debugLevel is set to WARNING.
+        is set to INFO. If verbose is False, the debugLevel is set to WARNING.
         However, you can use the :attr:`debugLevel` attribute to change it to
         one of DEBUG, INFO, WARNING, ERROR, CRITICAL. debugLevel=WARNING means
         that only WARNING, ERROR and CRITICAL messages are shown.
@@ -193,7 +193,7 @@ class Service:
                                  doc="""If True, xml output from a request are converted to easyXML object (Default behaviour).""")
 
     def easyXML(self, res):
-        """Use this method to convert a XML document into an
+        """Use this method to convert an XML document into an
             :class:`~agroservices.xmltools.easyXML` object
 
         The easyXML object provides utilities to ease access to the XML
@@ -218,7 +218,8 @@ class Service:
         txt = "This is an instance of %s service" % self.name
         return txt
 
-    def pubmed(self, Id):
+    @staticmethod
+    def pubmed(Id):
         """Open a pubmed Id into a browser tab
 
         :param Id: a valid pubmed Id in string or integer format.
@@ -231,12 +232,14 @@ class Service:
         import webbrowser
         webbrowser.open(url + str(Id))
 
-    def on_web(self, url):
+    @staticmethod
+    def on_web(url):
         """Open a URL into a browser"""
         import webbrowser
         webbrowser.open(url)
 
-    def save_str_to_image(self, data, filename):
+    @staticmethod
+    def save_str_to_image(data, filename):
         """Save string object into a file converting into binary"""
         with open(filename, 'wb') as f:
             import binascii
@@ -371,7 +374,7 @@ class RESTbase(Service):
 
 import requests  # replacement for urllib2 (2-3 times faster)
 from requests.models import Response
-import requests_cache  # use caching wihh requests
+import requests_cache  # use caching with requests
 
 
 # import grequests        # use asynchronous requests with gevent
@@ -403,7 +406,7 @@ class REST(RESTbase):
         >>> # requests will be stored in a local sqlite database
         >>> s.get_one("targets/CHEMBL2476")
         >>> # Disconnect your wiki and any network connections.
-        >>> # Without caching you cannot fetch any requests but with
+        >>> # Without caching, you cannot fetch any requests but with
         >>> # the CACHING on, you can retrieve previous requests:
         >>> s.get_one("targets/CHEMBL2476")
 
@@ -496,7 +499,8 @@ class REST(RESTbase):
             else:
                 self.logging.info("Reply 'y' to delete the file")
 
-    def clear_cache(self):
+    @staticmethod
+    def clear_cache():
         from requests_cache import clear
         clear()
 
@@ -583,7 +587,8 @@ class REST(RESTbase):
         # finally
         return res.content
 
-    def _apply(self, iterable, fn, *args, **kwargs):
+    @staticmethod
+    def _apply(iterable, fn, *args, **kwargs):
         return [fn(x, *args, **kwargs) for x in iterable if x is not None]
 
     def _get_async(self, keys, frmt='json', params={}):
@@ -649,8 +654,7 @@ class REST(RESTbase):
         # agroservices and the content defined here above
         headers = kargs.get("headers")
         if headers is None:
-            headers = {}
-            headers['User-Agent'] = self.getUserAgent()
+            headers = {'User-Agent': self.getUserAgent()}
             if content is None:
                 headers['Accept'] = self.content_types[frmt]
             else:
@@ -709,8 +713,7 @@ class REST(RESTbase):
         # if user provide a header, we use it otherwise, we use the header from
         # agroservices and the content defined here above
         if headers is None:
-            headers = {}
-            headers['User-Agent'] = self.getUserAgent()
+            headers = {'User-Agent': self.getUserAgent()}
             if content is None:
                 headers['Accept'] = self.content_types[frmt]
             else:
@@ -746,7 +749,8 @@ class REST(RESTbase):
             traceback.print_exc()
             return None
 
-    def getUserAgent(self):
+    @staticmethod
+    def getUserAgent():
         # self.logging.info('getUserAgent: Begin')
         urllib_agent = 'Python-requests/%s' % requests.__version__
         # clientRevision = ''
@@ -767,10 +771,9 @@ class REST(RESTbase):
             so that it has the same behaviour as urllib2 (Sept 2014)
 
         """
-        headers = {}
-        headers['User-Agent'] = self.getUserAgent()
-        headers['Accept'] = self.content_types[content]
-        headers['Content-Type'] = self.content_types[content]
+        headers = {'User-Agent': self.getUserAgent(),
+                   'Accept': self.content_types[content],
+                   'Content-Type': self.content_types[content]}
         # "application/json;odata=verbose" required in reactome
         # headers['Content-Type'] = "application/json;odata=verbose" required in reactome
         return headers
