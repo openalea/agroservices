@@ -21,12 +21,7 @@ from setuptools import setup, find_namespace_packages
 # ==============================================================================
 
 pkg_root_dir = 'src'
-packages = find_namespace_packages(where='src', include=['openalea', 'openalea.*'])
-top_pkgs = [pkg for pkg in packages if len(pkg.split('.')) <= 2]
-package_dir = dict([('', pkg_root_dir)] +
-                   [(pkg, pkg_root_dir + "/" + pkg.replace('.', '/'))
-                    for pkg in top_pkgs])
-
+packages = find_namespace_packages(where='src', include=['openalea.*'])
 name = "agroservices"
 
 _version = {}
@@ -42,9 +37,9 @@ easily implement Web Services wrappers.
 This package is intended to be close to the webservice. 
 Therefore the requests will have the same API that each web service. 
 '''
-author= 'Christian Fournier, Marc Labadie, Christophe Pradal'
-url='https://github.com/H2020-IPM-openalea/agroservices'
-license="GPL-v3"
+author = 'Christian Fournier, Marc Labadie, Christophe Pradal'
+url = 'https://github.com/H2020-IPM-openalea/agroservices'
+license = "CeCILL-C"
 
 setup(
     name=name,
@@ -60,9 +55,9 @@ setup(
 
     # package installation
     packages=packages,
-    package_dir=package_dir,
+    package_dir={'': 'src'},
     zip_safe=False,
 
     # See MANIFEST.in
     include_package_data=True,
-    )
+)
