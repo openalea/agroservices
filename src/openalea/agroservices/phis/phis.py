@@ -106,7 +106,8 @@ class Phis(REST):
                 values.extend(response.json())
             elif response.status_code == 500:
                 print()
-                raise Exception("Server error " + response.json()["result"]["message"])
+                raise Exception(
+                    "Server error " + response.json()["result"]["message"])
             else:
                 raise Exception(
                     response.json()["result"]["message"])
@@ -169,18 +170,18 @@ class Phis(REST):
                 "You must specify one of experiment_uri, species_uri or germplasms_uri")
         if isinstance(germplasm_uri, six.string_types):
             return self.get_all_data('core/germplasm?uri=' + quote(
-                                         germplasm_uri), sessionId=session_id)
+                germplasm_uri), sessionId=session_id)
         else:
             if isinstance(experiment_uri, list):
                 experiment_uri = ','.join(experiment_uri)
 
             query = "core/germplasm"
             if germplasm_uri is not None:
-                query += "?uri="+quote(germplasm_uri)
+                query += "?uri=" + quote(germplasm_uri)
             if species_uri is not None:
-                query += "?species="+quote(species_uri)
+                query += "?species=" + quote(species_uri)
             if experiment_uri is not None:
-                query += "?experiment="+quote(experiment_uri)
+                query += "?experiment=" + quote(experiment_uri)
             return self.get_all_data(query,
                                      sessionId=session_id,
                                      experimentURI=experiment_uri,
@@ -264,7 +265,7 @@ class Phis(REST):
                 "experiment_uri")
         if isinstance(experiment_uri, six.string_types):
             return self.get_all_data('core/experiments/' + quote(
-                                         experiment_uri) + '/details',
+                experiment_uri) + '/details',
                                      sessionId=session_id)
         else:
             return self.get_all_data('core/experiments',
@@ -362,7 +363,7 @@ class Phis(REST):
             (list of dict) plant moves data
         """
         return self.get_all_data('plants/' + quote(
-                                     plant_uri) + '/moves',
+            plant_uri) + '/moves',
                                  timeout=20.,
                                  sessionId=session_id,
                                  experimentURI=experiment_uri,
@@ -433,3 +434,22 @@ class Phis(REST):
                                      date=date, provider=provider,
                                      labelView=label_view,
                                      variablesName=variables_name)
+
+    def ws_species(self, session_id, name=None, uri=None):
+        """ Get images analysis data for a specific experiment
+            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+
+        :param session_id: (str) token got from ws_token()
+        :param name: (str) the common name of the plant
+        :param uri: (str) plant URI to get only values specified plant
+        :return:
+            (list of dict) images analysis data for a specific experiment
+        """
+        if name is not None:
+            return self.get_all_data('core/species',
+                                     sessionId=session_id,
+                                     name=name)
+        elif uri is not None:
+            return self.get_all_data('core/species',
+                                     sessionId=session_id,
+                                     uri=uri)

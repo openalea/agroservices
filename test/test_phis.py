@@ -60,3 +60,17 @@ def test_ws_germplasms(phis):
     data = phis.ws_germplasms(session_id=token,
                               species_uri="http://aims.fao.org/aos/agrovoc/c_8504")
     print(data)
+
+
+def test_ws_species(phis):
+    json = '{ \
+      "identifier": "phenoarch@lepse.inra.fr",\
+      "password": "phenoarch"\
+    }'
+
+    response, _ = phis.post_json('security/authenticate', json)
+    token = response.json()['result']['token']
+    data_name = phis.ws_species(session_id=token, name="sorghum")
+    data_uri = phis.ws_species(session_id=token,
+                               uri="http://aims.fao.org/aos/agrovoc/c_7247")
+    assert data_uri == data_name
