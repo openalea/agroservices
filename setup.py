@@ -22,12 +22,13 @@ from setuptools import setup, find_namespace_packages
 
 pkg_root_dir = 'src'
 packages = find_namespace_packages(where='src', include=['openalea.*'])
-name = "agroservices"
+
+name = "openalea.agroservices"
 
 _version = {}
-with open("src/agroservices/version.py") as fp:
+with open("src/openalea/agroservices/version.py") as fp:
     exec(fp.read(), _version)
-version = _version['version']
+version = _version['__version__']
 
 description = ''
 long_description = '''
@@ -40,6 +41,7 @@ Therefore the requests will have the same API that each web service.
 author = 'Christian Fournier, Marc Labadie, Christophe Pradal'
 url = 'https://github.com/H2020-IPM-openalea/agroservices'
 license = "CeCILL-C"
+
 
 setup(
     name=name,

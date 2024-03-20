@@ -1,8 +1,8 @@
 # run pytest with -rP option to see which service passes
 import pytest
-from agroservices.ipm.ipm import IPM
-from agroservices.ipm.fakers import weather_adapter_params
-from agroservices.credentials import get_credentials
+from openalea.agroservices.ipm.ipm import IPM
+from openalea.agroservices.ipm.fakers import weather_adapter_params
+from openalea.agroservices.credentials import get_credentials
 
 
 def keys_exists(dict_, keys, test=all):

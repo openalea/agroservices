@@ -1,5 +1,5 @@
 import os
-import json
+import ujson
 
 credential_dir = os.path.dirname(__file__) + '/credentials/'
 
@@ -9,5 +9,5 @@ def get_credentials(agroservice='ipm'):
     res = {}
     if os.path.exists(jsonfile):
         with open(jsonfile) as json_file:
-            res = json.load(json_file)
+            res = ujson.load(json_file)
     return res

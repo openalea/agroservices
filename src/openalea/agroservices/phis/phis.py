@@ -8,12 +8,11 @@
 """ Web service to GET and POST data to phis v1 """
 
 # ==============================================================================
-import urllib
 from urllib.parse import quote
 import requests
 import six
 
-from agroservices.services import REST
+from openalea.agroservices.services import REST
 
 # ==============================================================================
 
@@ -30,7 +29,7 @@ class Phis(REST):
             url=url,
             *args, **kwargs)
 
-        self.callback = callback  # use in all methods)
+        self.callback = callback  # use in all methods
 
     def post_json(self, web_service, json_txt, timeout=10.,
                   overwriting=False, **kwargs):
@@ -79,7 +78,7 @@ class Phis(REST):
 
         :param web_service:  (str) name of web service requested
         :param timeout:  (float) timeout for connexion in seconds
-        :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/api-docs/)
+        :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/wapi-docs/)
         :return:
             (list of dict) data relative to web service and parameters
         """
@@ -92,16 +91,23 @@ class Phis(REST):
             kwargs['pageSize'] = 50000
         else:
             kwargs['pageSize'] = 10
+        if kwargs['sessionId'] is not None:
+            headers = {'Authorization': f'{kwargs["sessionId"]}'}
+        else:
+            headers = None
 
         while total_pages > current_page:
             kwargs['page'] = current_page
             response = requests.request(method='GET',
                                         url=self.url + web_service,
+                                        headers=headers,
                                         params=kwargs, timeout=timeout)
             if response.status_code == 200:
                 values.extend(response.json())
             elif response.status_code == 500:
-                raise Exception("Server error")
+                print()
+                raise Exception(
+                    "Server error " + response.json()["result"]["message"])
             else:
                 raise Exception(
                     response.json()["result"]["message"])
@@ -143,7 +149,7 @@ class Phis(REST):
         :return:
             (list of dict) projects list (one value only in list if project_name specified)
         """
-        return self.get_all_data('projects/' + project_name,
+        return self.get_all_data('core/projects/?name=' + project_name,
                                  sessionId=session_id)
 
     def ws_germplasms(self, session_id, experiment_uri=None, species_uri=None,
@@ -163,12 +169,20 @@ class Phis(REST):
             raise Exception(
                 "You must specify one of experiment_uri, species_uri or germplasms_uri")
         if isinstance(germplasm_uri, six.string_types):
-            return self.get_all_data('germplasms/' + quote(
-                                         germplasm_uri), sessionId=session_id)
+            return self.get_all_data('core/germplasm?uri=' + quote(
+                germplasm_uri), sessionId=session_id)
         else:
             if isinstance(experiment_uri, list):
                 experiment_uri = ','.join(experiment_uri)
-            return self.get_all_data('germplasms',
+
+            query = "core/germplasm"
+            if germplasm_uri is not None:
+                query += "?uri=" + quote(germplasm_uri)
+            if species_uri is not None:
+                query += "?species=" + quote(species_uri)
+            if experiment_uri is not None:
+                query += "?experiment=" + quote(experiment_uri)
+            return self.get_all_data(query,
                                      sessionId=session_id,
                                      experimentURI=experiment_uri,
                                      speciesURI=species_uri,
@@ -227,7 +241,7 @@ class Phis(REST):
         :return:
             (list of dict) available variables for an experiment
         """
-        return self.get_all_data('variables/category/' + category,
+        return self.get_all_data('core/variables' + category,
                                  sessionId=session_id,
                                  experimentURI=experiment_uri,
                                  imageryProvider=provider)
@@ -240,17 +254,18 @@ class Phis(REST):
 
         :param session_id: (str) token got from ws_token()
         :param project_name: (str) specify a project name to get specifics experiments information
-        :param season: (int or str) find experiments by season (eg. 2012, 2013...)
+        :param season: (int or str) find experiments by season (e.g. 2012, 2013...)
         :param experiment_uri: (str) specify an experiment URI to get detailed information
         :return:
             (list of dict) experiments information
         """
         if project_name is None and season is None and experiment_uri is None:
             raise Exception(
-                "You must specify one parameter of project_name, season or experiment_uri")
+                "You must specify one parameter of project_name, season or "
+                "experiment_uri")
         if isinstance(experiment_uri, six.string_types):
             return self.get_all_data('core/experiments/' + quote(
-                                         experiment_uri) + '/details',
+                experiment_uri) + '/details',
                                      sessionId=session_id)
         else:
             return self.get_all_data('core/experiments',
@@ -348,7 +363,7 @@ class Phis(REST):
             (list of dict) plant moves data
         """
         return self.get_all_data('plants/' + quote(
-                                     plant_uri) + '/moves',
+            plant_uri) + '/moves',
                                  timeout=20.,
                                  sessionId=session_id,
                                  experimentURI=experiment_uri,
@@ -393,7 +408,7 @@ class Phis(REST):
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) an experiment URI
-        :param date: (str) retrieve phenotypes data from images which have been took at a specific day . Format :yyyy-MM-dd
+        :param date: (str) retrieve phenotypes data from images which have been taken at a specific day . Format :yyyy-MM-dd
         :param provider: (str) origin of the data
         :param label_view: (str) label view, something like side0, side30, ..., side330, top0
         :param variables_name: (str or list of str) name of one or several weighing variables
@@ -419,3 +434,22 @@ class Phis(REST):
                                      date=date, provider=provider,
                                      labelView=label_view,
                                      variablesName=variables_name)
+
+    def ws_species(self, session_id, name=None, uri=None):
+        """ Get images analysis data for a specific experiment
+            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+
+        :param session_id: (str) token got from ws_token()
+        :param name: (str) the common name of the plant
+        :param uri: (str) plant URI to get only values specified plant
+        :return:
+            (list of dict) images analysis data for a specific experiment
+        """
+        if name is not None:
+            return self.get_all_data('core/species',
+                                     sessionId=session_id,
+                                     name=name)
+        elif uri is not None:
+            return self.get_all_data('core/species',
+                                     sessionId=session_id,
+                                     uri=uri)

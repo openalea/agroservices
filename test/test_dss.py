@@ -1,12 +1,12 @@
 # run pytest -rA --tb=no to see which service passes
-import json
+import ujson
 
 import pytest
 
-from agroservices.ipm.datadir import datadir
-from agroservices.ipm.ipm import IPM
-import agroservices.ipm.fakers as ipm_fakers
-from agroservices.services import Service
+from openalea.agroservices.ipm.datadir import datadir
+from openalea.agroservices.ipm.ipm import IPM
+import openalea.agroservices.ipm.fakers as ipm_fakers
+from openalea.agroservices.services import Service
 
 
 ipm = IPM()
@@ -99,7 +99,7 @@ def test_run_model_field():
     model = ipm.get_model(DSSId='no.nibio.vips', ModelId='PSILAROBSE')
     path = datadir + 'model_input_psilarobse.json'
     with open(path) as json_file:
-        model_input = json.load(json_file)
+        model_input = ujson.load(json_file)
     res = ipm.run_model(model, model_input)
     assert isinstance(res, dict)
     assert 'locationResult' in res
