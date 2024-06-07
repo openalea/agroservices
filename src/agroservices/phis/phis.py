@@ -9,7 +9,7 @@
 
 # ==============================================================================
 import urllib
-from urllib.parse import quote
+from urllib.parse import quote, quote_plus
 import requests
 import six
 
@@ -59,92 +59,203 @@ class Phis(REST):
             overwrote = True
         return response, overwrote
 
-    def get(self, web_service, timeout=10., **kwargs):
-        """
+    # def get(self, web_service, timeout=10., **kwargs):
+    #     """
 
-        :param web_service: (str) name of web service requested
-        :param timeout: (float) timeout for connexion in seconds
-        :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/api-docs/)
-        :return:
-            (dict) response of the server (standard http)
-        """
-        response = requests.request(method='GET',
-                                    url=self.url + web_service,
-                                    params=kwargs, timeout=timeout)
+    #     :param web_service: (str) name of web service requested
+    #     :param timeout: (float) timeout for connexion in seconds
+    #     :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/api-docs/)
+    #     :return:
+    #         (dict) response of the server (standard http)
+    #     """
+    #     response = requests.request(method='GET',
+    #                                 url=self.url + web_service,
+    #                                 params=kwargs, timeout=timeout)
 
-        return response
+    #     return response
 
-    def get_all_data(self, web_service, timeout=10., **kwargs):
-        """
+    # def get_all_data(self, web_service, timeout=10., **kwargs):
+    #     """
 
-        :param web_service:  (str) name of web service requested
-        :param timeout:  (float) timeout for connexion in seconds
-        :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/api-docs/)
-        :return:
-            (list of dict) data relative to web service and parameters
-        """
-        current_page = 0
-        total_pages = 1
-        values = list()
+    #     :param web_service:  (str) name of web service requested
+    #     :param timeout:  (float) timeout for connexion in seconds
+    #     :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/api-docs/)
+    #     :return:
+    #         (list of dict) data relative to web service and parameters
+    #     """
+    #     current_page = 0
+    #     total_pages = 1
+    #     values = list()
 
-        # TODO remove 'plants' specificity as soon as web service delay fixed
-        if not web_service == 'plants':
-            kwargs['pageSize'] = 50000
-        else:
-            kwargs['pageSize'] = 10
+    #     # TODO remove 'plants' specificity as soon as web service delay fixed
+    #     if not web_service == 'plants':
+    #         kwargs['pageSize'] = 50000
+    #     else:
+    #         kwargs['pageSize'] = 10
 
-        while total_pages > current_page:
-            kwargs['page'] = current_page
-            response = requests.request(method='GET',
-                                        url=self.url + web_service,
-                                        params=kwargs, timeout=timeout)
-            if response.status_code == 200:
-                values.extend(response.json())
-            elif response.status_code == 500:
-                raise Exception("Server error")
-            else:
-                raise Exception(
-                    response.json()["result"]["message"])
+    #     while total_pages > current_page:
+    #         kwargs['page'] = current_page
+    #         response = requests.request(method='GET',
+    #                                     url=self.url + web_service,
+    #                                     params=kwargs, timeout=timeout)
+    #         if response.status_code == 200:
+    #             values.extend(response.json())
+    #         elif response.status_code == 500:
+    #             raise Exception("Server error")
+    #         else:
+    #             raise Exception(
+    #                 response.json()["result"]["message"])
 
-            if response.json()["metadata"]["pagination"] is None:
-                total_pages = 0
-            else:
-                total_pages = response.json()["metadata"]["pagination"][
-                    "totalPages"]
-            current_page += 1
+    #         if response.json()["metadata"]["pagination"] is None:
+    #             total_pages = 0
+    #         else:
+    #             total_pages = response.json()["metadata"]["pagination"][
+    #                 "totalPages"]
+    #         current_page += 1
 
-        return values
+    #     return values
 
-    def ws_token(self, username='pheonoarch@lepse.inra.fr',
+    def authenticate(self, identifier='phenoarch@lepse.inra.fr',
                  password='phenoarch'):
-        """ Get token for PHIS web service
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
-
-        :param username: (str)
-        :param password: (str)
-        :return:
-            (str) token value
+        """ Authenticate a user and return an access token
         """
-        response = self.get('security/authenticate', username=username,
-                            password=password)
-        if response.status_code in [200, 201]:
-            return response.json()['result']
-        elif response.status_code == 500:
-            raise Exception("Server error")
+        json = f"""{{
+            "identifier": "{identifier}",
+            "password": "{password}"
+        }}"""
+        
+        response, _ = self.post_json('security/authenticate', json)
+        status_code = response.status_code
+        if status_code == 200:
+            token = response.json()['result']['token']
+        elif status_code == 403:
+            raise ValueError(response.json()["result"]["message"])
         else:
             raise Exception(response.json()["result"]["message"])
+        return token, status_code
 
-    def ws_projects(self, session_id, project_name=''):
-        """ Get all projects information if project_name is empty, or only information about project_name specified
+
+
+    def get_list_experiment(self, token, name=None, year=None, is_ended=None, species=None, factors=None, 
+                            projects=None, is_public=None, facilities=None, order_by=None, page=None, page_size=None):
+        
+        url = self.url + 'core/experiments'
+        query = {}
+
+        if name:
+            query['name'] = name
+        if year is not None:
+            query['year'] = str(year)
+        if is_ended is not None:
+            query['is_ended'] = str(is_ended).lower()
+        if species:
+            query['species'] = species
+        if factors:
+            query['factors'] = factors
+        if projects:
+            query['projects'] = projects
+        if is_public is not None:
+            query['is_public'] = str(is_public).lower()
+        if facilities:
+            query['facilities'] = facilities
+        if order_by:
+            query['order_by'] = order_by
+        if page is not None:
+            query['page'] = str(page)
+        if page_size is not None:
+            query['page_size'] = str(page_size)
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+        
+        try:
+            response = self.http_get(url, headers={'Authorization': token})
+            if response['result'] == []:
+                raise Exception("Empty result")
+            return response, True  # Succès de la requête
+        except Exception as e:
+            return str(e), False  # Erreur lors de la requête
+
+
+    def get_experiment(self, uri, token):
+        """ Get all experiments information from a project or/and a season, or only information about experiment_uri
+            specified
             See http://147.100.202.17/m3p/api-docs/ for exact documentation
 
-        :param session_id: (str) token got from ws_token()
-        :param project_name: (str) specify a project name to get detailed information
+        :param uri: (str) specify an experiment URI to get detailed information
+        :param token: (str) token received from authenticate()
         :return:
-            (list of dict) projects list (one value only in list if project_name specified)
+            (dict) experiment information
+        :raises:
+            Exception: if the experiment is not found (HTTP 404)
         """
-        return self.get_all_data('projects/' + project_name,
-                                 sessionId=session_id)
+        result = self.http_get(self.url + 'core/experiments/'
+                                + quote_plus(uri), headers={'Authorization':token})
+        if result == 404:
+            raise Exception("Experiment not found")
+        return result
+
+
+    def get_list_variable(self, token):
+        return self.http_get(self.url + 'core/variables/', headers={'Authorization':token})
+    
+
+    def get_variable(self, uri, token):
+        result = self.http_get(self.url + 'core/variables/'
+                                + quote_plus(uri), headers={'Authorization':token})
+        if result == 404:
+            raise Exception("Experiment not found")
+        return result
+
+
+    def get_list_project(self, token):
+        return self.http_get(self.url + 'core/projects', headers={'Authorization':token})
+    
+
+    def get_project(self, uri, token):
+        result = self.http_get(self.url + 'core/projects/'
+                                + quote_plus(uri), headers={'Authorization':token})
+        if (result == 404 or result == 500):
+            raise Exception("Experiment not found")
+        return result
+
+
+    def get_list_facility(self, token):
+        return self.http_get(self.url + 'core/facilities', headers={'Authorization':token})
+    
+
+    def get_facility(self, uri, token):
+        result = self.http_get(self.url + 'core/facilities/'
+                                + quote_plus(uri), headers={'Authorization':token})
+        if (result == 404):
+            raise Exception("Experiment not found")
+        return result
+    
+
+    def get_list_germplasm(self, token):
+        return self.http_get(self.url + 'core/germplasm', headers={'Authorization':token})
+    
+
+    def get_germplasm(self, uri, token):
+        result = self.http_get(self.url + 'core/germplasm/'
+                                + quote_plus(uri), headers={'Authorization':token})
+        if result == 404:
+            raise Exception("Experiment not found")
+        return result
+
+
+    def get_list_device(self, token):
+        return self.http_get(self.url + 'core/devices', headers={'Authorization':token})
+    
+
+    def get_device(self, uri, token):
+        result = self.http_get(self.url + 'core/devices/'
+                                + quote_plus(uri), headers={'Authorization':token})
+        if result == 404:
+            raise Exception("Experiment not found")
+        return result
+
 
     def ws_germplasms(self, session_id, experiment_uri=None, species_uri=None,
                       project_name=None, germplasm_uri=None):
@@ -232,30 +343,6 @@ class Phis(REST):
                                  experimentURI=experiment_uri,
                                  imageryProvider=provider)
 
-    def ws_experiments(self, session_id, project_name=None, season=None,
-                       experiment_uri=None):
-        """ Get all experiments information from a project or/and a season, or only information about experiment_uri
-            specified
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
-
-        :param session_id: (str) token got from ws_token()
-        :param project_name: (str) specify a project name to get specifics experiments information
-        :param season: (int or str) find experiments by season (eg. 2012, 2013...)
-        :param experiment_uri: (str) specify an experiment URI to get detailed information
-        :return:
-            (list of dict) experiments information
-        """
-        if project_name is None and season is None and experiment_uri is None:
-            raise Exception(
-                "You must specify one parameter of project_name, season or experiment_uri")
-        if isinstance(experiment_uri, six.string_types):
-            return self.get_all_data('core/experiments/' + quote(
-                                         experiment_uri) + '/details',
-                                     sessionId=session_id)
-        else:
-            return self.get_all_data('core/experiments',
-                                     sessionId=session_id,
-                                     projectName=project_name, season=season)
 
     def ws_label_views(self, session_id, experiment_uri, camera_angle=None,
                        view_type=None, provider=None):
@@ -419,3 +506,7 @@ class Phis(REST):
                                      date=date, provider=provider,
                                      labelView=label_view,
                                      variablesName=variables_name)
+        
+
+
+
