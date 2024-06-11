@@ -135,10 +135,43 @@ class Phis(REST):
         return token, status_code
 
 
-
-    def get_list_experiment(self, token, name=None, year=None, is_ended=None, species=None, factors=None, 
+    def get_experiment(self, token, uri=None, name=None, year=None, is_ended=None, species=None, factors=None, 
                             projects=None, is_public=None, facilities=None, order_by=None, page=None, page_size=None):
+        """
+        Retrieve experiment information based on various parameters or a specific URI.
+
+        This function can either get detailed information about a specific experiment by its URI or list
+        experiments based on various filtering criteria.
+
+        :param token: (str) Token received from authenticate()
+        :param uri: (str) Specify an experiment URI to get detailed information about that specific experiment
+        :param name: (str) Filter experiments by name
+        :param year: (int or str) Filter experiments by year (e.g., 2012, 2013...)
+        :param is_ended: (bool) Filter experiments by their ended status
+        :param species: (str) Filter experiments by species
+        :param factors: (str) Filter experiments by factors
+        :param projects: (str) Filter experiments by projects
+        :param is_public: (bool) Filter experiments by their public status
+        :param facilities: (str) Filter experiments by facilities
+        :param order_by: (str) Order the experiments by a specific field
+        :param page: (int or str) Specify the page number for pagination
+        :param page_size: (int or str) Specify the page size for pagination
+        :return:
+            (tuple) A tuple containing:
+                - (dict or str) The experiment information or an error message
+                - (bool) True if the request was successful, False otherwise
+        :raises:
+            Exception: if the experiment is not found (HTTP 404) or if the result is empty
+        """
+
+        # Get specific experiment information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/experiments/' + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Experiment not found")
+            return result
         
+        # Get list of experiments based on filtering criteria
         url = self.url + 'core/experiments'
         query = {}
 
@@ -170,91 +203,499 @@ class Phis(REST):
             url += '?' + query_string
         
         try:
-            response = self.http_get(url, headers={'Authorization': token})
-            if response['result'] == []:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
                 raise Exception("Empty result")
-            return response, True  # Succès de la requête
+            return response 
         except Exception as e:
-            return str(e), False  # Erreur lors de la requête
+            return str(e) 
+        
 
-
-    def get_experiment(self, uri, token):
-        """ Get all experiments information from a project or/and a season, or only information about experiment_uri
-            specified
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
-
-        :param uri: (str) specify an experiment URI to get detailed information
-        :param token: (str) token received from authenticate()
-        :return:
-            (dict) experiment information
-        :raises:
-            Exception: if the experiment is not found (HTTP 404)
-        """
-        result = self.http_get(self.url + 'core/experiments/'
+    def get_variable(self, token, uri=None, name=None, entity=None, entity_of_interest=None, characteristic=None, 
+                     method=None, unit=None, group_of_variables=None, not_included_in_group_of_variables=None, data_type=None,
+                     time_interval=None, species=None, withAssociatedData=None, experiments=None, scientific_objects=None,
+                     devices=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
+        
+        # Get specific variable information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/variables/'
                                 + quote_plus(uri), headers={'Authorization':token})
-        if result == 404:
-            raise Exception("Experiment not found")
-        return result
+            if result == 404:
+                raise Exception("Variable not found")
+            return result
+        
+        # Get list of variables based on filtering criteria
+        url = self.url + 'core/variables'
+        query = {}
+
+        if name:
+            query['name'] = name
+        if entity:
+            query['entity'] = entity
+        if entity_of_interest:
+            query['entity_of_interest'] = entity_of_interest
+        if characteristic:
+            query['characteristic'] = characteristic
+        if method:
+            query['method'] = method
+        if unit:
+            query['unit'] = unit
+        if group_of_variables:
+            query['group_of_variables'] = group_of_variables
+        if not_included_in_group_of_variables:
+            query['not_included_in_group_of_variables'] = not_included_in_group_of_variables
+        if data_type:
+            query['data_type'] = data_type
+        if time_interval:
+            query['time_interval'] = time_interval
+        if species:
+            query['species'] = species
+        if withAssociatedData is not None:
+            query['withAssociatedData'] = str(withAssociatedData).lower()
+        if experiments:
+            query['experiments'] = experiments
+        if scientific_objects:
+            query['scientific_objects'] = scientific_objects
+        if devices:
+            query['devices'] = devices
+        if order_by:
+            query['order_by'] = order_by
+        if page is not None:
+            query['page'] = str(page)
+        if page_size is not None:
+            query['page_size'] = str(page_size)
+        if sharedResourceInstance:
+            query['sharedResourceInstance'] = sharedResourceInstance
 
 
-    def get_list_variable(self, token):
-        return self.http_get(self.url + 'core/variables/', headers={'Authorization':token})
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
     
 
-    def get_variable(self, uri, token):
-        result = self.http_get(self.url + 'core/variables/'
-                                + quote_plus(uri), headers={'Authorization':token})
-        if result == 404:
-            raise Exception("Experiment not found")
-        return result
+    def get_project(self, token, uri=None, name=None, year=None, keyword=None, financial_funding=None, order_by=None,
+                     page=None, page_size=None):
+        # Get specific project information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/projects/'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if (result == 404 or result == 500):
+                raise Exception("Project not found")
+            return result
+        
+        # Get list of projects based on filtering criteria
+        url = self.url + 'core/projects'
+        query = {}
 
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
 
-    def get_list_project(self, token):
-        return self.http_get(self.url + 'core/projects', headers={'Authorization':token})
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
     
 
-    def get_project(self, uri, token):
-        result = self.http_get(self.url + 'core/projects/'
-                                + quote_plus(uri), headers={'Authorization':token})
-        if (result == 404 or result == 500):
-            raise Exception("Experiment not found")
-        return result
+    def get_facility(self, token, uri=None):
+        # Get specific facility information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/facilities/'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if (result == 404):
+                raise Exception("Facility not found")
+            return result
+        
+        # Get list of facilities based on filtering criteria
+        url = self.url + 'core/facilities'
+        query = {}
 
-
-    def get_list_facility(self, token):
-        return self.http_get(self.url + 'core/facilities', headers={'Authorization':token})
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+        
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
     
 
-    def get_facility(self, uri, token):
-        result = self.http_get(self.url + 'core/facilities/'
-                                + quote_plus(uri), headers={'Authorization':token})
-        if (result == 404):
-            raise Exception("Experiment not found")
-        return result
+    def get_germplasm(self, token, uri=None):
+        # Get specific germplasm information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/germplasm/'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Germplasm not found")
+            return result
+        
+        # Get list of germplasms based on filtering criteria
+        url = self.url + 'core/germplasm'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
     
 
-    def get_list_germplasm(self, token):
-        return self.http_get(self.url + 'core/germplasm', headers={'Authorization':token})
+    def get_device(self, token, uri=None):
+        # Get specific device information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/devices/'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Device not found")
+            return result
+        
+        # Get list of devices based on filtering criteria
+        url = self.url + 'core/devices'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
+        
+
+    def get_annotation(self, token, uri=None):
+        # Get specific annotation information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/annotations/'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Annotation not found")
+            return result
+        
+        # Get list of annotations based on filtering criteria
+        url = self.url + 'core/annotations'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
     
 
-    def get_germplasm(self, uri, token):
-        result = self.http_get(self.url + 'core/germplasm/'
-                                + quote_plus(uri), headers={'Authorization':token})
-        if result == 404:
-            raise Exception("Experiment not found")
-        return result
+    def get_document(self, token, uri=None):
+        # Get specific document information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/documents/'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Document not found")
+            return result
+        
+        # Get list of documents based on filtering criteria
+        url = self.url + 'core/documents'
+        query = {}
 
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
 
-    def get_list_device(self, token):
-        return self.http_get(self.url + 'core/devices', headers={'Authorization':token})
-    
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
+        
 
-    def get_device(self, uri, token):
-        result = self.http_get(self.url + 'core/devices/'
-                                + quote_plus(uri), headers={'Authorization':token})
-        if result == 404:
-            raise Exception("Experiment not found")
-        return result
+    def get_factor(self, token, uri=None):
+        # Get specific factor information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/experiments/factors'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Factor not found")
+            return result
+        
+        # Get list of factors based on filtering criteria
+        url = self.url + 'core/experiments/factors'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
+        
+
+    def get_organization(self, token, uri=None):
+        # Get specific organization information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/organisations'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Organization not found")
+            return result
+        
+        # Get list of organizations based on filtering criteria
+        url = self.url + 'core/organisations'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
+        
+
+    def get_site(self, token, uri=None):
+        # Get specific site information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/sites'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Site not found")
+            return result
+        
+        # Get list of sites based on filtering criteria
+        url = self.url + 'core/sites'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
+        
+
+    def get_scientific_object(self, token, uri=None):
+        # Get specific scientific object information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/scientific_objects'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Scientific object not found")
+            return result
+        
+        # Get list of scientific objects based on filtering criteria
+        url = self.url + 'core/scientific_objects'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
+        
+
+    def get_species(self, token):        
+        # Get list of species
+        url = self.url + 'core/species'
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e) 
+        
+
+    def get_system_info(self, token):
+        # Get system informations
+        url = self.url + 'core/system/info'
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
+        
+
+    def get_characteristic(self, token, uri=None):
+        # Get specific characteristic information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/characteristics'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Characteristic not found")
+            return result
+        
+        # Get list of characterstics based on filtering criteria
+        url = self.url + 'core/characteristics'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
+        
+
+    def get_entity(self, token, uri=None):
+        # Get specific entity information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/entities'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Entity not found")
+            return result
+        
+        # Get list of entities based on filtering criteria
+        url = self.url + 'core/entities'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
+        
+
+    def get_entity_of_interest(self, token, uri=None):
+        # Get specific entity of interest information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/entities_of_interest'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Entity of interest not found")
+            return result
+        
+        # Get list of entities of interest based on filtering criteria
+        url = self.url + 'core/entities_of_interest'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
+        
+
+    def get_method(self, token, uri=None):
+        # Get specific method information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/methods'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Method not found")
+            return result
+        
+        # Get list of methods based on filtering criteria
+        url = self.url + 'core/methods'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
+        
+
+    def get_unit(self, token, uri=None):
+        # Get specific unit information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/units'
+                                    + quote_plus(uri), headers={'Authorization':token})
+            if result == 404:
+                raise Exception("Unit not found")
+            return result
+        
+        # Get list of units based on filtering criteria
+        url = self.url + 'core/units'
+        query = {}
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
 
 
     def ws_germplasms(self, session_id, experiment_uri=None, species_uri=None,
