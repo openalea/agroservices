@@ -23,7 +23,7 @@ __all__ = ["phis"]
 class Phis(REST):
     # TODO: Complete with the up to date requests
     def __init__(self, name='Phis',
-                 url="http://147.100.202.17/m3p/rest/",
+                 url="https://phenome.inrae.fr/m3p/rest/",
                  callback=None, *args, **kwargs):
         super().__init__(
             name=name,
@@ -441,7 +441,7 @@ class Phis(REST):
     def get_factor(self, token, uri=None):
         # Get specific factor information by uri
         if uri:
-            result = self.http_get(self.url + 'core/experiments/factors'
+            result = self.http_get(self.url + 'core/experiments/factors/'
                                     + quote_plus(uri), headers={'Authorization':token})
             if result == 404:
                 raise Exception("Factor not found")
@@ -467,7 +467,7 @@ class Phis(REST):
     def get_organization(self, token, uri=None):
         # Get specific organization information by uri
         if uri:
-            result = self.http_get(self.url + 'core/organisations'
+            result = self.http_get(self.url + 'core/organisations/'
                                     + quote_plus(uri), headers={'Authorization':token})
             if result == 404:
                 raise Exception("Organization not found")
@@ -493,7 +493,7 @@ class Phis(REST):
     def get_site(self, token, uri=None):
         # Get specific site information by uri
         if uri:
-            result = self.http_get(self.url + 'core/sites'
+            result = self.http_get(self.url + 'core/sites/'
                                     + quote_plus(uri), headers={'Authorization':token})
             if result == 404:
                 raise Exception("Site not found")
@@ -519,7 +519,7 @@ class Phis(REST):
     def get_scientific_object(self, token, uri=None):
         # Get specific scientific object information by uri
         if uri:
-            result = self.http_get(self.url + 'core/scientific_objects'
+            result = self.http_get(self.url + 'core/scientific_objects/'
                                     + quote_plus(uri), headers={'Authorization':token})
             if result == 404:
                 raise Exception("Scientific object not found")
@@ -571,7 +571,7 @@ class Phis(REST):
     def get_characteristic(self, token, uri=None):
         # Get specific characteristic information by uri
         if uri:
-            result = self.http_get(self.url + 'core/characteristics'
+            result = self.http_get(self.url + 'core/characteristics/'
                                     + quote_plus(uri), headers={'Authorization':token})
             if result == 404:
                 raise Exception("Characteristic not found")
@@ -597,7 +597,7 @@ class Phis(REST):
     def get_entity(self, token, uri=None):
         # Get specific entity information by uri
         if uri:
-            result = self.http_get(self.url + 'core/entities'
+            result = self.http_get(self.url + 'core/entities/'
                                     + quote_plus(uri), headers={'Authorization':token})
             if result == 404:
                 raise Exception("Entity not found")
@@ -623,7 +623,7 @@ class Phis(REST):
     def get_entity_of_interest(self, token, uri=None):
         # Get specific entity of interest information by uri
         if uri:
-            result = self.http_get(self.url + 'core/entities_of_interest'
+            result = self.http_get(self.url + 'core/entities_of_interest/'
                                     + quote_plus(uri), headers={'Authorization':token})
             if result == 404:
                 raise Exception("Entity of interest not found")
@@ -649,7 +649,7 @@ class Phis(REST):
     def get_method(self, token, uri=None):
         # Get specific method information by uri
         if uri:
-            result = self.http_get(self.url + 'core/methods'
+            result = self.http_get(self.url + 'core/methods/'
                                     + quote_plus(uri), headers={'Authorization':token})
             if result == 404:
                 raise Exception("Method not found")
@@ -675,7 +675,7 @@ class Phis(REST):
     def get_unit(self, token, uri=None):
         # Get specific unit information by uri
         if uri:
-            result = self.http_get(self.url + 'core/units'
+            result = self.http_get(self.url + 'core/units/'
                                     + quote_plus(uri), headers={'Authorization':token})
             if result == 404:
                 raise Exception("Unit not found")

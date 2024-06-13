@@ -78,7 +78,7 @@ def test_get_variable():
     try:
         data = phis.get_variable(uri='http://phenome.inrae.fr/m3p/id/variable/ev000020', token=token)
     except Exception as err:
-        assert False, "Unexpected error: " + err
+        assert False, "Unexpected error: " + str(err)
 
     # Test with an invalid URI
     try:
@@ -102,7 +102,7 @@ def test_get_project():
     try:
         data = phis.get_project(uri='m3p:id/project/vitsec', token=token)
     except Exception as err:
-        assert False, "Unexpected error: " + err
+        assert False, "Unexpected error: " + str(err)
 
     # Test with an invalid URI
     try:
@@ -126,7 +126,7 @@ def test_get_facility():
     try:
         data = phis.get_facility(uri='m3p:id/organization/facility.phenoarch', token=token)
     except Exception as err:
-        assert False, "Unexpected error: " + err
+        assert False, "Unexpected error: " + str(err)
 
     # Test with an invalid URI
     try:
@@ -150,7 +150,7 @@ def test_get_germplasm():
     try:
         data = phis.get_germplasm(uri='http://aims.fao.org/aos/agrovoc/c_1066', token=token)
     except Exception as err:
-        assert False, "Unexpected error: " + err
+        assert False, "Unexpected error: " + str(err)
 
     # Test with an invalid URI
     try:
@@ -174,7 +174,7 @@ def test_get_device():
     try:
         data = phis.get_device(uri='http://www.phenome-fppn.fr/m3p/ec1/2016/sa1600064', token=token)
     except Exception as err:
-        assert False, "Unexpected error: " + err
+        assert False, "Unexpected error: " + str(err)
 
     # Test with an invalid URI
     try:
@@ -194,6 +194,13 @@ def test_get_annotation():
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
 
+    # Test with a valid URI
+    # No URIs
+    # try:
+    #     data = phis.get_annotation(uri='', token=token)
+    # except Exception as err:
+    #     assert False, "Unexpected error: " + str(err)
+
 
 def test_get_document():
     phis = Phis()
@@ -203,6 +210,12 @@ def test_get_document():
     data = phis.get_document(token=token)
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
+
+    # Test with a valid URI
+    # try:
+    #     data = phis.get_document(uri='m3p:id/document/test_isa_doc_post_deploy', token=token)
+    # except Exception as err:
+    #     assert False, "Unexpected error: " + str(err)
 
 
 def test_get_factor():
@@ -214,6 +227,13 @@ def test_get_factor():
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
 
+    # Test with a valid URI
+    # No URIs
+    # try:
+    #     data = phis.get_factor(uri='', token=token)
+    # except Exception as err:
+    #     assert False, "Unexpected error: " + str(err)
+
 
 def test_get_organization():
     phis = Phis()
@@ -223,6 +243,12 @@ def test_get_organization():
     data = phis.get_organization(token=token)
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
+
+    # Test with a valid URI
+    try:
+        data = phis.get_organization(uri='m3p:id/organization/phenoarch', token=token)
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)
 
 
 def test_get_site():
@@ -234,6 +260,13 @@ def test_get_site():
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
 
+    # Test with a valid URI
+    # No URIs
+    # try:
+    #     data = phis.get_site(uri='', token=token)
+    # except Exception as err:
+    #     assert False, "Unexpected error: " + str(err)
+
 
 def test_get_scientific_object():
     phis = Phis()
@@ -243,6 +276,13 @@ def test_get_scientific_object():
     data = phis.get_scientific_object(token=token)
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
+
+    # Test with a valid URI
+    try:
+        data = phis.get_scientific_object(uri='m3p:id/scientific-object/za20/so-0001zm4531eppn7_lwd1eppn_rep_101_01arch2020-02-03',
+                                           token=token)
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)
 
 
 def test_get_species():
@@ -274,6 +314,12 @@ def test_get_characteristic():
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
 
+    # Test with a valid URI
+    try:
+        data = phis.get_characteristic(uri='http://phenome.inrae.fr/m3p/id/variable/characteristic.humidity', token=token)
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)
+
 
 def test_get_entity():
     phis = Phis()
@@ -284,8 +330,14 @@ def test_get_entity():
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
 
+    # Test with a valid URI
+    try:
+        data = phis.get_entity(uri='http://phenome.inrae.fr/m3p/id/variable/entity.solar', token=token)
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)
 
-def test_get_entity():
+
+def test_get_entity_of_interest():
     phis = Phis()
     token, _ = phis.authenticate()
 
@@ -293,6 +345,13 @@ def test_get_entity():
     data = phis.get_entity_of_interest(token=token)
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
+
+    # Test with a valid URI
+    # No URIs
+    # try:
+    #     data = phis.get_entity_of_interest(uri='', token=token)
+    # except Exception as err:
+    #     assert False, "Unexpected error: " + err
 
 
 def test_get_method():
@@ -303,6 +362,12 @@ def test_get_method():
     data = phis.get_method(token=token)
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
+    
+    # Test with a valid URI
+    try:
+        data = phis.get_method(uri='http://phenome.inrae.fr/m3p/id/variable/method.measurement', token=token)
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)
 
 
 def test_get_unit():
@@ -313,3 +378,9 @@ def test_get_unit():
     data = phis.get_unit(token=token)
     if data['metadata']['pagination']['totalCount'] != 0:
         assert data['result'] != [], "Request failed"
+
+    # Test with a valid URI
+    try:
+        data = phis.get_unit(uri='http://qudt.org/vocab/unit/J', token=token)
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)
