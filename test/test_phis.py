@@ -1,6 +1,5 @@
 import requests
 from agroservices.phis.phis import Phis
-from urllib.parse import quote_plus
 
 
 def test_url():
@@ -212,10 +211,10 @@ def test_get_document():
         assert data['result'] != [], "Request failed"
 
     # Test with a valid URI
-    # try:
-    #     data = phis.get_document(uri='m3p:id/document/test_isa_doc_post_deploy', token=token)
-    # except Exception as err:
-    #     assert False, "Unexpected error: " + str(err)
+    try:
+        data = phis.get_document(uri='m3p:id/document/test_dataset', token=token)
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)
 
 
 def test_get_factor():
@@ -382,5 +381,37 @@ def test_get_unit():
     # Test with a valid URI
     try:
         data = phis.get_unit(uri='http://qudt.org/vocab/unit/J', token=token)
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)
+
+
+def test_get_provenance():
+    phis = Phis()
+    token, _ = phis.authenticate()
+
+    # Search test
+    data = phis.get_provenance(token=token)
+    if data['metadata']['pagination']['totalCount'] != 0:
+        assert data['result'] != [], "Request failed"
+
+    # Test with a valid URI
+    try:
+        data = phis.get_provenance(uri='http://www.phenome-fppn.fr/m3p/Prov_watering_WateringStation05_6l', token=token)
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)
+
+
+def test_get_datafile():
+    phis = Phis()
+    token, _ = phis.authenticate()
+
+    # Search test
+    data = phis.get_datafile(token=token)
+    if data['metadata']['pagination']['totalCount'] != 0:
+        assert data['result'] != [], "Request failed"
+
+    # Test with a valid URI
+    try:
+        data = phis.get_datafile(uri='m3p:id/file/1597964400.af46ac07f735ced228cf181aa85ebced', token=token)
     except Exception as err:
         assert False, "Unexpected error: " + str(err)
