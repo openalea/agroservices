@@ -32,6 +32,7 @@ class Phis(REST):
             *args, **kwargs)
 
         self.callback = callback  # use in all methods)
+        self.token, _ = self.authenticate()
 
     def post_json(self, web_service, json_txt, timeout=10.,
                   overwriting=False, **kwargs):
@@ -136,7 +137,7 @@ class Phis(REST):
         return token, status_code
 
 
-    def get_experiment(self, token, uri=None, name=None, year=None, is_ended=None, species=None, factors=None, 
+    def get_experiment(self, uri=None, name=None, year=None, is_ended=None, species=None, factors=None, 
                             projects=None, is_public=None, facilities=None, order_by=None, page=None, page_size=None):
         """
         Retrieve experiment information based on various parameters or a specific URI.
@@ -167,7 +168,7 @@ class Phis(REST):
 
         # Get specific experiment information by uri
         if uri:
-            result = self.http_get(self.url + 'core/experiments/' + quote_plus(uri), headers={'Authorization':token})
+            result = self.http_get(self.url + 'core/experiments/' + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Experiment not found")
             return result
@@ -204,7 +205,7 @@ class Phis(REST):
             url += '?' + query_string
         
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -212,7 +213,7 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_variable(self, token, uri=None, name=None, entity=None, entity_of_interest=None, characteristic=None, 
+    def get_variable(self,uri=None, name=None, entity=None, entity_of_interest=None, characteristic=None, 
                      method=None, unit=None, group_of_variables=None, not_included_in_group_of_variables=None, data_type=None,
                      time_interval=None, species=None, withAssociatedData=None, experiments=None, scientific_objects=None,
                      devices=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
@@ -220,7 +221,7 @@ class Phis(REST):
         # Get specific variable information by uri
         if uri:
             result = self.http_get(self.url + 'core/variables/'
-                                + quote_plus(uri), headers={'Authorization':token})
+                                + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Variable not found")
             return result
@@ -276,7 +277,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -284,12 +285,12 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_project(self, token, uri=None, name=None, year=None, keyword=None, financial_funding=None, order_by=None,
+    def get_project(self, uri=None, name=None, year=None, keyword=None, financial_funding=None, order_by=None,
                      page=None, page_size=None):
         # Get specific project information by uri
         if uri:
             result = self.http_get(self.url + 'core/projects/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if (result == 404 or result == 500):
                 raise Exception("Project not found")
             return result
@@ -310,7 +311,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -318,11 +319,11 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_facility(self, token, uri=None, page=None, page_size=None):
+    def get_facility(self, uri=None, page=None, page_size=None):
         # Get specific facility information by uri
         if uri:
             result = self.http_get(self.url + 'core/facilities/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if (result == 404):
                 raise Exception("Facility not found")
             return result
@@ -343,7 +344,7 @@ class Phis(REST):
             url += '?' + query_string
         
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -351,11 +352,11 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_germplasm(self, token, uri=None, page=None, page_size=None):
+    def get_germplasm(self, uri=None, page=None, page_size=None):
         # Get specific germplasm information by uri
         if uri:
             result = self.http_get(self.url + 'core/germplasm/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Germplasm not found")
             return result
@@ -376,7 +377,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -384,11 +385,11 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_device(self, token, uri=None, page=None, page_size=None):
+    def get_device(self, uri=None, page=None, page_size=None):
         # Get specific device information by uri
         if uri:
             result = self.http_get(self.url + 'core/devices/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Device not found")
             return result
@@ -409,7 +410,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -417,11 +418,11 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_annotation(self, token, uri=None, page=None, page_size=None):
+    def get_annotation(self, uri=None, page=None, page_size=None):
         # Get specific annotation information by uri
         if uri:
             result = self.http_get(self.url + 'core/annotations/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Annotation not found")
             return result
@@ -442,7 +443,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -450,7 +451,7 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_document(self, token, uri=None, page=None, page_size=None):
+    def get_document(self, uri=None, page=None, page_size=None):
         # Get specific document information by uri
         # Doesn't work
         # if uri:
@@ -462,7 +463,7 @@ class Phis(REST):
         
         if uri:
             result = self.http_get(self.url + 'core/documents/'
-                                    + quote_plus(uri) + '/description', headers={'Authorization':token})
+                                    + quote_plus(uri) + '/description', headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Document not found")
             return result
@@ -483,7 +484,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -491,11 +492,11 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_factor(self, token, uri=None, page=None, page_size=None):
+    def get_factor(self, uri=None, page=None, page_size=None):
         # Get specific factor information by uri
         if uri:
             result = self.http_get(self.url + 'core/experiments/factors/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Factor not found")
             return result
@@ -516,7 +517,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -524,11 +525,11 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_organization(self, token, uri=None, page=None, page_size=None):
+    def get_organization(self, uri=None, page=None, page_size=None):
         # Get specific organization information by uri
         if uri:
             result = self.http_get(self.url + 'core/organisations/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Organization not found")
             return result
@@ -549,7 +550,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -557,11 +558,11 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_site(self, token, uri=None, page=None, page_size=None):
+    def get_site(self, uri=None, page=None, page_size=None):
         # Get specific site information by uri
         if uri:
             result = self.http_get(self.url + 'core/sites/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Site not found")
             return result
@@ -582,7 +583,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -590,11 +591,11 @@ class Phis(REST):
             return str(e)
         
 
-    def get_scientific_object(self, token, uri=None, page=None, page_size=None):
+    def get_scientific_object(self, uri=None, page=None, page_size=None):
         # Get specific scientific object information by uri
         if uri:
             result = self.http_get(self.url + 'core/scientific_objects/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Scientific object not found")
             return result
@@ -615,7 +616,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -623,12 +624,12 @@ class Phis(REST):
             return str(e)
         
 
-    def get_species(self, token):        
+    def get_species(self):        
         # Get list of species
         url = self.url + 'core/species'
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -636,12 +637,12 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_system_info(self, token):
+    def get_system_info(self):
         # Get system informations
         url = self.url + 'core/system/info'
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -649,11 +650,11 @@ class Phis(REST):
             return str(e)
         
 
-    def get_characteristic(self, token, uri=None, page=None, page_size=None):
+    def get_characteristic(self, uri=None, page=None, page_size=None):
         # Get specific characteristic information by uri
         if uri:
             result = self.http_get(self.url + 'core/characteristics/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Characteristic not found")
             return result
@@ -674,7 +675,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -682,11 +683,11 @@ class Phis(REST):
             return str(e)
         
 
-    def get_entity(self, token, uri=None, page=None, page_size=None):
+    def get_entity(self, uri=None, page=None, page_size=None):
         # Get specific entity information by uri
         if uri:
             result = self.http_get(self.url + 'core/entities/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Entity not found")
             return result
@@ -707,7 +708,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -715,11 +716,11 @@ class Phis(REST):
             return str(e)
         
 
-    def get_entity_of_interest(self, token, uri=None, page=None, page_size=None):
+    def get_entity_of_interest(self, uri=None, page=None, page_size=None):
         # Get specific entity of interest information by uri
         if uri:
             result = self.http_get(self.url + 'core/entities_of_interest/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Entity of interest not found")
             return result
@@ -740,7 +741,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -748,11 +749,11 @@ class Phis(REST):
             return str(e)
         
 
-    def get_method(self, token, uri=None, page=None, page_size=None):
+    def get_method(self, uri=None, page=None, page_size=None):
         # Get specific method information by uri
         if uri:
             result = self.http_get(self.url + 'core/methods/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Method not found")
             return result
@@ -773,7 +774,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -781,11 +782,11 @@ class Phis(REST):
             return str(e)
         
 
-    def get_unit(self, token, uri=None, page=None, page_size=None):
+    def get_unit(self, uri=None, page=None, page_size=None):
         # Get specific unit information by uri
         if uri:
             result = self.http_get(self.url + 'core/units/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Unit not found")
             return result
@@ -806,7 +807,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -814,11 +815,11 @@ class Phis(REST):
             return str(e)
         
 
-    def get_provenance(self, token, uri=None, page=None, page_size=None):
+    def get_provenance(self, uri=None, page=None, page_size=None):
         # Get specific provenance information by uri
         if uri:
             result = self.http_get(self.url + 'core/provenances/'
-                                    + quote_plus(uri), headers={'Authorization':token})
+                                    + quote_plus(uri), headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Provenance not found")
             return result
@@ -839,7 +840,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
@@ -847,7 +848,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_datafile(self, token, uri=None, page=None, page_size=None):
+    def get_datafile(self, uri=None, page=None, page_size=None):
         # Get specific datafile information by uri
         # Doesn't work
         # if uri:
@@ -859,7 +860,7 @@ class Phis(REST):
 
         if uri:
             result = self.http_get(self.url + 'core/datafiles/'
-                                    + quote_plus(uri) + '/description', headers={'Authorization':token})
+                                    + quote_plus(uri) + '/description', headers={'Authorization':self.token})
             if result == 404:
                 raise Exception("Datafile not found")
             return result
@@ -880,7 +881,7 @@ class Phis(REST):
             url += '?' + query_string
 
         try:
-            response = self.http_get(url, headers={'Authorization':token})
+            response = self.http_get(url, headers={'Authorization':self.token})
             if response == 404:
                 raise Exception("Empty result")
             return response 
