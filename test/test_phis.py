@@ -393,3 +393,18 @@ def test_get_datafile():
         data = phis.get_datafile(uri='m3p:id/file/1597964400.af46ac07f735ced228cf181aa85ebced')
     except Exception as err:
         assert False, "Unexpected error: " + str(err)
+
+
+def test_get_event():
+    phis = Phis()
+
+    # Search test
+    data = phis.get_event()
+    if data['metadata']['pagination']['totalCount'] != 0:
+        assert data['result'] != [], "Request failed"
+
+    # Test with a valid URI
+    try:
+        data = phis.get_event(uri='m3p:id/event/cb8b96ea-4d0b-4bc6-804f-e3cf2b56092e')
+    except Exception as err:
+        assert False, "Unexpected error: " + str(err)

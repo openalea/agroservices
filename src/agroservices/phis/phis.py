@@ -213,7 +213,7 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_variable(self,uri=None, name=None, entity=None, entity_of_interest=None, characteristic=None, 
+    def get_variable(self, uri=None, name=None, entity=None, entity_of_interest=None, characteristic=None, 
                      method=None, unit=None, group_of_variables=None, not_included_in_group_of_variables=None, data_type=None,
                      time_interval=None, species=None, withAssociatedData=None, experiments=None, scientific_objects=None,
                      devices=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
@@ -853,7 +853,7 @@ class Phis(REST):
         # Doesn't work
         # if uri:
         #     result = self.http_get(self.url + 'core/datafiles/'
-        #                             + quote_plus(uri), headers={'Authorization':token})
+        #                             + quote_plus(uri), headers={'Authorization':self.token})
         #     if result == 404:
         #         raise Exception("Datafile not found")
         #     return result
@@ -867,6 +867,43 @@ class Phis(REST):
         
         # Get list of datafiles based on filtering criteria
         url = self.url + 'core/datafiles'
+        query = {}
+
+        if page is not None:
+            query['page'] = str(page)
+        if page_size is not None:
+            query['page_size'] = str(page_size)
+        else:
+            query['page_size'] = str(DEFAULT_PAGE_SIZE)
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':self.token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
+        
+
+    def get_event(self, uri=None, details=False, page=None, page_size=None):
+        # Get specific event information by uri
+        if uri:
+            if details == True:
+                result = self.http_get(self.url + 'core/events/'
+                                    + quote_plus(uri) + '/details', headers={'Authorization':self.token})
+            else:
+                result = self.http_get(self.url + 'core/events/'
+                                    + quote_plus(uri), headers={'Authorization':self.token})
+            if result == 404:
+                raise Exception("Event not found")
+            return result
+        
+        # Get list of events based on filtering criteria
+        url = self.url + 'core/events'
         query = {}
 
         if page is not None:
