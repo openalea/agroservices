@@ -137,7 +137,7 @@ class Phis(REST):
         return token, status_code
 
 
-    def get_experiment(self, uri=None, name=None, year=None, is_ended=None, species=None, factors=None, 
+    def get_experiment_api(self, uri=None, name=None, year=None, is_ended=None, species=None, factors=None, 
                             projects=None, is_public=None, facilities=None, order_by=None, page=None, page_size=None):
         """
         This function can either retrieve detailed information about a specific experiment by its URI or list
@@ -208,7 +208,7 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_variable(self, uri=None, name=None, entity=None, entity_of_interest=None, characteristic=None, 
+    def get_variable_api(self, uri=None, name=None, entity=None, entity_of_interest=None, characteristic=None, 
                      method=None, unit=None, group_of_variables=None, not_included_in_group_of_variables=None, data_type=None,
                      time_interval=None, species=None, withAssociatedData=None, experiments=None, scientific_objects=None,
                      devices=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
@@ -308,7 +308,7 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_project(self, uri=None, name=None, year=None, keyword=None, financial_funding=None, order_by=None,
+    def get_project_api(self, uri=None, name=None, year=None, keyword=None, financial_funding=None, order_by=None,
                      page=None, page_size=None):
         """
         This function can either retrieve detailed information about a specific project by its URI or list
@@ -369,7 +369,7 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_facility(self, uri=None, pattern=None, organizations=None, order_by=None, page=None, page_size=None):
+    def get_facility_api(self, uri=None, pattern=None, organizations=None, order_by=None, page=None, page_size=None):
         """
         This function can either retrieve detailed information about a specific facility by its URI or list
         facilities based on various filtering criteria.
@@ -423,7 +423,7 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_germplasm(self, uri=None, rdf_type=None, name=None, code=None, production_year=None, species=None, variety=None,
+    def get_germplasm_api(self, uri=None, rdf_type=None, name=None, code=None, production_year=None, species=None, variety=None,
                       accession=None, group_of_germplasm=None, institute=None, experiment=None, parent_germplasms=None, 
                       parent_germplasms_m=None, parent_germplasms_f=None, metadata=None, order_by=None, page=None, page_size=None):
         """
@@ -515,7 +515,7 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_device(self, uri=None, rdf_type=None, include_subtypes=None, name=None, variable=None, year=None, existence_date=None,
+    def get_device_api(self, uri=None, rdf_type=None, include_subtypes=None, name=None, variable=None, year=None, existence_date=None,
                    facility=None, brand=None, model=None, serial_number=None, metadata=None, order_by=None, page=None, 
                    page_size=None):
         """
@@ -598,7 +598,7 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_annotation(self, uri=None, description=None, target=None, motivation=None, author=None, order_by=None,
+    def get_annotation_api(self, uri=None, description=None, target=None, motivation=None, author=None, order_by=None,
                        page=None, page_size=None):
         """
         This function can either retrieve detailed information about a specific annotation by its URI or list
@@ -659,7 +659,7 @@ class Phis(REST):
             return str(e) 
     
 
-    def get_document(self, uri=None, rdf_type=None, title=None, date=None, targets=None, authors=None, keyword=None, multiple=None,
+    def get_document_api(self, uri=None, rdf_type=None, title=None, date=None, targets=None, authors=None, keyword=None, multiple=None,
                      deprecated=None, order_by=None, page=None, page_size=None):
         """
         This function can either retrieve detailed information about a specific document by its URI or list
@@ -740,7 +740,7 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_factor(self, uri=None, name=None, description=None, category=None, experiment=None, order_by=None, page=None, 
+    def get_factor_api(self, uri=None, name=None, description=None, category=None, experiment=None, order_by=None, page=None, 
                    page_size=None):
         """
         This function can either retrieve detailed information about a specific factor by its URI or list
@@ -801,7 +801,7 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_organization(self, uri=None, pattern=None, organisation_uris=None, page=None, page_size=None):
+    def get_organization_api(self, uri=None, pattern=None, organisation_uris=None, page=None, page_size=None):
         """
         This function can either retrieve detailed information about a specific organization by its URI or list
         organizations based on various filtering criteria.
@@ -852,7 +852,7 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_site(self, uri=None, pattern=None, organizations=None, order_by=None, page=None, page_size=None):
+    def get_site_api(self, uri=None, pattern=None, organizations=None, order_by=None, page=None, page_size=None):
         """
         This function can either retrieve detailed information about a specific site by its URI or list
         sites based on various filtering criteria.
@@ -906,7 +906,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_scientific_object(self, uri=None, experiment=None, rdf_types=None, name=None, parent=None, germplasms=None,
+    def get_scientific_object_api(self, uri=None, experiment=None, rdf_types=None, name=None, parent=None, germplasms=None,
                               factor_levels=None, facility=None, variables=None, devices=None, existence_date=None,
                               creation_date=None, criteria_on_data=None, order_by=None, page=None, page_size=None):
         """
@@ -992,7 +992,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_species(self, sharedResourceInstance=None):
+    def get_species_api(self, sharedResourceInstance=None):
         """
         Retrieve a list of species based on optional filtering criteria.
 
@@ -1022,7 +1022,7 @@ class Phis(REST):
             return str(e) 
         
 
-    def get_system_info(self):
+    def get_system_info_api(self):
         """
         Retrieve system information.
 
@@ -1043,7 +1043,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_characteristic(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
+    def get_characteristic_api(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
         """
         Retrieve specific characteristic information by URI or list characteristics based on filtering criteria.
 
@@ -1096,7 +1096,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_entity(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
+    def get_entity_api(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
         """
         Retrieve specific entity information by URI or list entities based on filtering criteria.
 
@@ -1149,7 +1149,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_entity_of_interest(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
+    def get_entity_of_interest_api(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
         """
         Retrieve specific entity of interest information by URI or list entities of interest based on filtering criteria.
 
@@ -1202,7 +1202,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_method(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
+    def get_method_api(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
         """
         Retrieve specific method information by URI or list methods based on filtering criteria.
 
@@ -1255,7 +1255,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_unit(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
+    def get_unit_api(self, uri=None, name=None, order_by=None, page=None, page_size=None, sharedResourceInstance=None):
         # Get specific unit information by uri
         if uri:
             result = self.http_get(self.url + 'core/units/'
@@ -1294,7 +1294,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_provenance(self, uri=None, name=None, description=None, activity=None, activity_type=None, agent=None,
+    def get_provenance_api(self, uri=None, name=None, description=None, activity=None, activity_type=None, agent=None,
                        agent_type=None, order_by=None, page=None, page_size=None):
         """
         Retrieve specific provenance information by URI or list provenances based on filtering criteria.
@@ -1360,7 +1360,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_datafile(self, uri=None, rdf_type=None, start_date=None, end_date=None, timezone=None, experiments=None,
+    def get_datafile_api(self, uri=None, rdf_type=None, start_date=None, end_date=None, timezone=None, experiments=None,
                      targets=None, devices=None, provenances=None, metadata=None, order_by=None, page=None, page_size=None):
         """
         Retrieve specific datafile information by URI or list datafiles based on filtering criteria.
@@ -1443,7 +1443,7 @@ class Phis(REST):
             return str(e)
         
 
-    def get_event(self, uri=None, details=False, rdf_type=None, start=None, end=None, target=None, description=None, 
+    def get_event_api(self, uri=None, details=False, rdf_type=None, start=None, end=None, target=None, description=None, 
                   order_by=None, page=None, page_size=None):
         """
         Retrieve specific event information by URI or list events based on filtering criteria.
@@ -1510,3 +1510,87 @@ class Phis(REST):
         except Exception as e:
             return str(e)
 
+
+    def get_data_api(self, uri=None, start_date=None, end_date=None, timezone=None, experiments=None, targets=None, variables=None,
+                 devices=None, min_confidence=None, max_confidence=None, provenances=None, metadata=None, operators=None,
+                 order_by=None, page=None, page_size=None):
+        """
+        Retrieve specific data information by URI or list data based on filtering criteria.
+
+        :param uri: (str) URI of the specific data to retrieve
+        :param start_date: (str) Filter data by start date/time (e.g., '2023-01-01T00:00:00Z')
+        :param end_date: (str) Filter data by end date/time (e.g., '2023-12-31T23:59:59Z')
+        :param timezone: (str) Filter data by timezone (e.g., 'UTC', 'Europe/Paris')
+        :param experiments: (array[str]) Filter data by experiments
+        :param targets: (array[str]) Filter data by targets
+        :param variables: (array[str]) Filter data by variables
+        :param devices: (array[str]) Filter data by devices
+        :param min_confidence: (float) Filter data by minimum confidence level
+        :param max_confidence: (float) Filter data by maximum confidence level
+        :param provenances: (array[str]) Filter data by provenances
+        :param metadata: (str) Filter data by metadata
+        :param operators: (array[str]) Filter data by operators
+        :param order_by: (array[str]) Order the data by specific fields
+        :param page: (int) Page number for pagination
+        :param page_size: (int) Page size for pagination (default is DEFAULT_PAGE_SIZE)
+        :return:
+            (dict or str) Data information or an error message
+        :raises:
+            Exception: if the data is not found (HTTP 404) or if the result is empty
+        """
+        # Get specific data information by uri
+        if uri:
+            result = self.http_get(self.url + 'core/data/'
+                                    + quote_plus(uri), headers={'Authorization':self.token})
+            if result == 404:
+                raise Exception("Data not found")
+            return result
+        
+        # Get list of data based on filtering criteria
+        url = self.url + 'core/data'
+        query = {}
+
+        if start_date is not None:
+            query['start_date'] = start_date
+        if end_date is not None:
+            query['end_date'] = end_date
+        if timezone is not None:
+            query['timezone'] = timezone
+        if experiments is not None:
+            query['experiments'] = experiments
+        if targets is not None:
+            query['targets'] = targets
+        if variables is not None:
+            query['variables'] = variables
+        if devices is not None:
+            query['devices'] = devices
+        if min_confidence is not None:
+            query['min_confidence'] = str(min_confidence)
+        if max_confidence is not None:
+            query['max_confidence'] = str(max_confidence)
+        if provenances is not None:
+            query['provenances'] = provenances
+        if metadata is not None:
+            query['metadata'] = metadata
+        if operators is not None:
+            query['operators'] = operators
+        if order_by is not None:
+            query['order_by'] = order_by
+        if page is not None:
+            query['page'] = str(page)
+        if page_size is not None:
+            query['page_size'] = str(page_size)
+        else:
+            query['page_size'] = str(DEFAULT_PAGE_SIZE)
+
+        if query:
+            query_string = '&'.join(f'{key}={quote_plus(value)}' for key, value in query.items())
+            url += '?' + query_string
+
+        try:
+            response = self.http_get(url, headers={'Authorization':self.token})
+            if response == 404:
+                raise Exception("Empty result")
+            return response 
+        except Exception as e:
+            return str(e)
