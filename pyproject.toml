@@ -8,6 +8,7 @@ authors = [
   { name = "Christian Fournier"},
   { name = "Christophe Pradal"},
   { name = "Marc Labadie"},
+  { name = "Aurelien Besnier"},
 ]
 description = "AgroService is a Python package that provides access to IPM Web Services (at least) and a framework to easily implement Web Services wrappers. This package is intended to be close to the webservice. Therefore the requests will have the same API that each web service."
 license.file = "LICENSE.txt"
