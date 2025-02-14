@@ -3,7 +3,7 @@ channels:
   - conda-forge
 
 dependencies:
- - python=3.8
+ - python
  - appdirs 
  - bs4 
  - pygments 
@@ -11,6 +11,8 @@ dependencies:
  - requests 
  - requests_cache
  - pytest
- - sphinx_rtd_theme
+ - pydata_sphinx_theme
+ - sphinx-favicon
  - nbsphinx
  - nbsphinx-link
+ - myst-parser

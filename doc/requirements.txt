@@ -1,4 +1,3 @@
-python=3.8
 appdirs
 bs4
 colorlog
@@ -6,5 +5,7 @@ requests
 requests_cache
 pygments
 nbsphinx
-sphinx_rtd_theme
+pydata_sphinx_theme
 nbsphinx-link
+myst-parser
+sphinx-favicon
