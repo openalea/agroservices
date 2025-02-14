@@ -1,6 +1,8 @@
+{% set pyproject = load_file_data('pyproject.toml') %}
+
 package:
   name: agroservices
-  version: "1.0.1"
+  version: {{ pyproject.get('version') }}
 
 source:
   path: ..
