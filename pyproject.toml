@@ -43,7 +43,7 @@ dependencies = [
 test = ["pytest"]
 
 [project.urls]
-Homepage = "https://github.com/openalea/agroservices"
+Homepage = "https://openalea.readthedocs.io/"
 "Bug Tracker" = "https://github.com/openalea/agroservices/issues"
 Discussions = "https://github.com/openalea/agroservices/discussions"
 Changelog = "https://github.com/openalea/agroservices/releases"
