@@ -322,10 +322,11 @@ class AttrDict(dict):
             return json.dumps(self)
 
 
-class DevTools(object):
+class DevTools:
     """Aggregate of easydev.tools functions."""
 
-    def check_range(self, value, a, b):
+    @staticmethod
+    def check_range(value, a, b):
         """wrapper around :func:`easydev.check_range`"""
         check_range(value, a, b, strict=False)
 
@@ -335,11 +336,13 @@ class DevTools(object):
         for name in param:
             check_param_in_list(name, list(valid_values))
 
-    def swapdict(self, d):
+    @staticmethod
+    def swapdict(d):
         """wrapper around :func:`easydev.swapdict`"""
         return swapdict(d)
 
-    def to_list(self, query):
+    @staticmethod
+    def to_list(query):
         """Cast to a list if possible
 
         'a' ->['a']
@@ -349,7 +352,8 @@ class DevTools(object):
 
         return codecs.to_list(query)
 
-    def list2string(self, query, sep=",", space=False):
+    @staticmethod
+    def list2string(query, sep=",", space=False):
         """
         see :func:`easydev.tools.list2string`
 
@@ -358,27 +362,32 @@ class DevTools(object):
 
         return codecs.list2string(query, sep=sep, space=space)
 
-    def to_json(self, dictionary):
+    @staticmethod
+    def to_json(dictionary):
         """Transform a dictionary to a json object"""
         return json.dumps(dictionary)
 
-    def mkdir(self, dirname):
-        """Create a directory if it does not exists; pass without error otherwise"""
+    @staticmethod
+    def mkdir(dirname):
+        """Create a directory if it does not exist; pass without error otherwise"""
         try:
             os.mkdir(dirname)
         except OSError:
             pass  # exists already
         except Exception as err:
-            raise (err)
+            raise err
 
-    def shellcmd(self, cmd, show=False, verbose=False, ignore_errors=False):
+    @staticmethod
+    def shellcmd(cmd, show=False, verbose=False, ignore_errors=False):
         """See :func:`shellcmd`"""
         return shellcmd(cmd, show=show, verbose=verbose, ignore_errors=ignore_errors)
 
-    def check_exists(self, filename):
-        """Raise error message if the file does not exists"""
+    @staticmethod
+    def check_exists(filename):
+        """Raise error message if the file does not exist"""
         if os.path.exists(filename) is False:
             raise ValueError("This file %s does not exists" % filename)
 
-    def mkdirs(self, dirname, mode=0o777):
+    @staticmethod
+    def mkdirs(dirname, mode=0o777):
         mkdirs(dirname, mode=mode)
