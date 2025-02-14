@@ -1,6 +1,6 @@
 package:
   name: agroservices
-  version: {{ data.get('version') }}
+  version: "1.0.1"
 
 source:
   path: ..
