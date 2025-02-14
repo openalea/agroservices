@@ -1,5 +1,3 @@
-{% set data = load_setup_py_data() %}
-
 package:
   name: agroservices
   version: {{ data.get('version') }}
@@ -11,7 +9,7 @@ build:
   noarch: python
   preserve_egg_dir: True
   number: 0
-  script: {{PYTHON}} -m pip install .
+  script: python -m pip install .
 
 requirements:
   build:
