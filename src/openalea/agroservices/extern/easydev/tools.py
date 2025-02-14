@@ -16,14 +16,24 @@
 #
 ##############################################################################
 """toolkit to ease development"""
+
 import subprocess
-import ujson
+import json
 import os
 import sys
 
-__all__ = ["shellcmd", "swapdict", "check_param_in_list",
-           "check_range", "precision", "AttrDict", "DevTools", "execute",
-           "touch", "mkdirs"]
+__all__ = [
+    "shellcmd",
+    "swapdict",
+    "check_param_in_list",
+    "check_range",
+    "precision",
+    "AttrDict",
+    "DevTools",
+    "execute",
+    "touch",
+    "mkdirs",
+]
 
 
 def precision(data, digit=2):
@@ -38,7 +48,7 @@ def precision(data, digit=2):
 
     """
     data = int(data * pow(10, digit))
-    data /= pow(10., digit)
+    data /= pow(10.0, digit)
     return data
 
 
@@ -52,17 +62,15 @@ def check_range(value, a, b, strict=False):
 
     .. doctest::
 
-        >>> from openalea.agroservices.extern.easydev.tools import check_range
+        >>> from easydev.tools import check_range
         >>> check_range(1,0, 2)
 
     """
     if strict is True:
         if value <= a:
-            raise ValueError(
-                " {} must be greater (or equal) than {}".format(value, a))
+            raise ValueError(" {} must be greater (or equal) than {}".format(value, a))
         if value >= b:
-            raise ValueError(
-                " {} must be less (or less) than {}".format(value, b))
+            raise ValueError(" {} must be less (or less) than {}".format(value, b))
     elif strict is False:
         if value < a:
             raise ValueError(" {} must be greater than {}".format(value, a))
@@ -92,7 +100,9 @@ def check_param_in_list(param, valid_values, name=None):
     if isinstance(valid_values, list) is False:
         raise TypeError(
             "the valid_values second argument must be a list of valid values. {0} was provided.".format(
-                valid_values))
+                valid_values
+            )
+        )
 
     if param not in valid_values:
         if name:
@@ -117,8 +127,9 @@ def shellcmd(cmd, show=False, verbose=False, ignore_errors=False):
     if show:
         print(cmd)
     try:
-        ret = subprocess.Popen([cmd], stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, shell=True)
+        ret = subprocess.Popen(
+            [cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
 
         output = ret.stdout.read().strip()
         error = ret.stderr.read().strip()
@@ -136,8 +147,7 @@ def shellcmd(cmd, show=False, verbose=False, ignore_errors=False):
 
         return output
     except Exception as err:
-        raise Exception(
-            "Error:: Command (%s) failed. Error message is %s" % (cmd, err))
+        raise Exception("Error:: Command (%s) failed. Error message is %s" % (cmd, err))
 
 
 def execute(cmd, showcmd=True, verbose=True):
@@ -148,6 +158,7 @@ def execute(cmd, showcmd=True, verbose=True):
     :param verbose:
     """
     import pexpect
+
     if showcmd is True:
         print(cmd)
 
@@ -165,10 +176,8 @@ def execute(cmd, showcmd=True, verbose=True):
 
 
 def touch(fname, times=None):
-    """Touch a file (like unix command)
-
-    """
-    with open(fname, 'a'):
+    """Touch a file (like unix command)"""
+    with open(fname, "a"):
         os.utime(fname, times)
 
 
@@ -184,8 +193,9 @@ def swapdict(dic, check_ambiguity=True):
     """
     # this version is more elegant but slightly slower : return {v:k for k,v in dic.items()}
     if check_ambiguity:
-        assert len(set(dic.keys())) == len(
-            set(dic.values())), "values is not a set. ambiguities for keys."
+        assert len(set(dic.keys())) == len(set(dic.values())), (
+            "values is not a set. ambiguities for keys."
+        )
     return dict(zip(dic.values(), dic.keys()))
 
 
@@ -212,6 +222,7 @@ def mkdirs(newdir, mode=0o777):
                     os.makedirs(thispart, mode)
     except OSError as err:
         import errno
+
         # Reraise the error unless it's about an already existing directory
         if err.errno != errno.EEXIST or not os.path.isdir(newdir):
             raise
@@ -237,7 +248,7 @@ class AttrDict(dict):
 
     .. doctest::
 
-        >>> from openalea.agroservices.extern.easydev.tools import AttrDict
+        >>> from easydev import AttrDict
         >>> a = AttrDict(**{'value': 1})
         >>> a.value
         1
@@ -280,7 +291,7 @@ class AttrDict(dict):
         # accepts dict and attrdict classes
         try:
             from collections import OrderedDict
-        except ImportError:
+        except:
             OrderedDict = AttrDict
 
         if content.__class__ not in [dict, OrderedDict, AttrDict]:
@@ -297,26 +308,24 @@ class AttrDict(dict):
         """
         does not remove existing keys put replace them if already present
         """
-        res = ujson.load(open(filename, "r"))
+        res = json.load(open(filename, "r"))
         for k, v in res.items():
             self[k] = v
 
     def to_json(self, filename=None):
-        import ujson
+        import json
+
         if filename is not None:
             with open(filename, "w") as fout:
-                ujson.dump(self, fout)
+                json.dump(self, fout)
         else:
-            return ujson.dumps(self)
+            return json.dumps(self)
 
 
-class DevTools:
-    """Aggregate of easydev.tools functions.
+class DevTools(object):
+    """Aggregate of easydev.tools functions."""
 
-    """
-
-    @staticmethod
-    def check_range(value, a, b):
+    def check_range(self, value, a, b):
         """wrapper around :func:`easydev.check_range`"""
         check_range(value, a, b, strict=False)
 
@@ -326,57 +335,50 @@ class DevTools:
         for name in param:
             check_param_in_list(name, list(valid_values))
 
-    @staticmethod
-    def swapdict(d):
+    def swapdict(self, d):
         """wrapper around :func:`easydev.swapdict`"""
         return swapdict(d)
 
-    @staticmethod
-    def to_list(query):
+    def to_list(self, query):
         """Cast to a list if possible
 
         'a' ->['a']
         1 -> [1]
         """
-        from openalea.agroservices.extern.easydev import codecs
+        from easydev import codecs
+
         return codecs.to_list(query)
 
-    @staticmethod
-    def list2string(query, sep=",", space=False):
+    def list2string(self, query, sep=",", space=False):
         """
         see :func:`easydev.tools.list2string`
 
         """
-        from openalea.agroservices.extern.easydev import codecs
+        from easydev import codecs
+
         return codecs.list2string(query, sep=sep, space=space)
 
-    @staticmethod
-    def to_json(dictionary):
+    def to_json(self, dictionary):
         """Transform a dictionary to a json object"""
-        return ujson.dumps(dictionary)
+        return json.dumps(dictionary)
 
-    @staticmethod
-    def mkdir(dirname):
-        """Create a directory if it does not exist; pass without error otherwise"""
+    def mkdir(self, dirname):
+        """Create a directory if it does not exists; pass without error otherwise"""
         try:
             os.mkdir(dirname)
         except OSError:
             pass  # exists already
         except Exception as err:
-            raise err
+            raise (err)
 
-    @staticmethod
-    def shellcmd(cmd, show=False, verbose=False, ignore_errors=False):
+    def shellcmd(self, cmd, show=False, verbose=False, ignore_errors=False):
         """See :func:`shellcmd`"""
-        return shellcmd(cmd, show=show, verbose=verbose,
-                        ignore_errors=ignore_errors)
+        return shellcmd(cmd, show=show, verbose=verbose, ignore_errors=ignore_errors)
 
-    @staticmethod
-    def check_exists(filename):
-        """Raise error message if the file does not exist"""
+    def check_exists(self, filename):
+        """Raise error message if the file does not exists"""
         if os.path.exists(filename) is False:
             raise ValueError("This file %s does not exists" % filename)
 
-    @staticmethod
-    def mkdirs(dirname, mode=0o777):
+    def mkdirs(self, dirname, mode=0o777):
         mkdirs(dirname, mode=mode)

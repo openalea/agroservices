@@ -20,17 +20,16 @@ try:
 except ImportError:
     from configparser import ConfigParser
 
+
 import os
 import appdirs
 
-__all__ = ["CustomConfig", "DynamicConfigParser", "ConfigExample",
-           "load_configfile"]
-
+__all__ = ["CustomConfig", "DynamicConfigParser", "ConfigExample", "load_configfile"]
 
 #  53, 59, 64-65, 181, 260, 262, 267-270, 288-290, 329, 332-337, 340-341, 359-360, 386-388, 400-401, 406-426, 431-435
 
 
-class _DictSection(object):
+class _DictSection:
     """Dictionary section.
 
     Reference: https://gist.github.com/dangoakachan/3855920
@@ -38,8 +37,8 @@ class _DictSection(object):
     """
 
     def __init__(self, config, section):
-        object.__setattr__(self, '_config', config)
-        object.__setattr__(self, '_section', section)
+        object.__setattr__(self, "_config", config)
+        object.__setattr__(self, "_section", section)
 
     def __getattr__(self, attr):
         return self.get(attr, None)
@@ -53,7 +52,7 @@ class _DictSection(object):
             return default
 
     def __setattr__(self, attr, value):
-        if attr.startswith('_'):
+        if attr.startswith("_"):
             object.__setattr__(self, attr, value)
         else:  # pragma: no cover
             self.__setitem__(attr, value)
@@ -82,7 +81,7 @@ class ConfigExample:
 
     ::
 
-        >>> from openalea.agroservices.extern.easydev.config_tools import ConfigExample
+        >>> from easydev.pipeline.config import ConfigExample
         >>> c = ConfigExample().config  # The ConfigParser instance
         >>> assert 'General' in c.sections()
         >>> assert 'GA' in c.sections()
@@ -113,13 +112,13 @@ class ConfigExample:
 
     def __init__(self):
         self.config = ConfigParser()
-        self.config.add_section('General')
-        self.config.set('General', 'verbose', 'true')
-        self.config.add_section('GA')
-        self.config.set('GA', 'popsize', '50')
+        self.config.add_section("General")
+        self.config.set("General", "verbose", "true")
+        self.config.add_section("GA")
+        self.config.set("GA", "popsize", "50")
 
 
-class DynamicConfigParser(ConfigParser, object):
+class DynamicConfigParser(ConfigParser):
     """Enhanced version of Config Parser
 
     Provide some aliases to the original ConfigParser class and
@@ -127,7 +126,7 @@ class DynamicConfigParser(ConfigParser, object):
 
     .. code-block:: python
 
-        >>> from openalea.agroservices.extern.easydev.config_tools import ConfigExample
+        >>> from easydev.config_tools import ConfigExample
         >>> standard_config_file = ConfigExample().config
         >>> c = DynamicConfigParser(standard_config_file)
         >>>
@@ -168,8 +167,7 @@ class DynamicConfigParser(ConfigParser, object):
     """
 
     def __init__(self, config_or_filename=None, *args, **kargs):
-
-        object.__setattr__(self, '_filename', config_or_filename)
+        object.__setattr__(self, "_filename", config_or_filename)
         # why not a super usage here ? Maybe there were issues related
         # to old style class ?
         ConfigParser.__init__(self, *args, **kargs)
@@ -178,15 +176,16 @@ class DynamicConfigParser(ConfigParser, object):
             self.read(self._filename)
         elif isinstance(config_or_filename, ConfigParser):
             self._replace_config(config_or_filename)
-        elif config_or_filename is None:
+        elif config_or_filename == None:
             pass
         else:
             raise TypeError(
-                "config_or_filename must be a valid filename or valid ConfigParser instance")
+                "config_or_filename must be a valid filename or valid ConfigParser instance"
+            )
 
     def read(self, filename):
         """Load a new config from a filename (remove all previous sections)"""
-        if not os.path.isfile(filename):
+        if os.path.isfile(filename) == False:
             raise IOError("filename {0} not found".format(filename))
 
         config = ConfigParser()
@@ -229,6 +228,7 @@ class DynamicConfigParser(ConfigParser, object):
     def section2dict(self, section):
         """utility that extract options of a ConfigParser section into a dictionary
 
+        :param ConfigParser config: a ConfigParser instance
         :param str section: the section to extract
 
         :returns: a dictionary where key/value contains all the
@@ -263,11 +263,11 @@ class DynamicConfigParser(ConfigParser, object):
         options = {}
         for option in self.options(section):  # pragma no cover
             data = self.get(section, option, raw=True)
-            if data.lower() in ['true', 'yes']:
+            if data.lower() in ["true", "yes"]:
                 options[option] = True
-            elif data.lower() in ['false', 'no']:
+            elif data.lower() in ["false", "no"]:
                 options[option] = False
-            elif data in ['None', None, 'none', '']:
+            elif data in ["None", None, "none", ""]:
                 options[option] = None
             else:
                 try:  # numbers
@@ -291,12 +291,12 @@ class DynamicConfigParser(ConfigParser, object):
 
         """
         try:
-            if os.path.exists(filename):
+            if os.path.exists(filename) == True:
                 print("Warning: over-writing %s " % filename)
-            fp = open(filename, 'w')
+            fp = open(filename, "w")
         except Exception as err:  # pragma: no cover
             print(err)
-            raise Exception('filename could not be opened')
+            raise Exception("filename could not be opened")
 
         self.write(fp)
         fp.close()
@@ -317,11 +317,11 @@ class DynamicConfigParser(ConfigParser, object):
     def __str__(self):
         str_ = ""
         for section in self.sections():
-            str_ += '[' + section + ']\n'
+            str_ += "[" + section + "]\n"
             for option in self.options(section):
                 data = self.get(section, option, raw=True)
-                str_ += option + ' = ' + str(data) + '\n'
-            str_ += '\n\n'
+                str_ += option + " = " + str(data) + "\n"
+            str_ += "\n\n"
 
         return str_
 
@@ -331,7 +331,7 @@ class DynamicConfigParser(ConfigParser, object):
     __getitem__ = __getattr__
 
     def __setattr__(self, attr, value):
-        if attr.startswith('_') or attr:
+        if attr.startswith("_") or attr:
             object.__setattr__(self, attr, value)
         else:
             self.__setitem__(attr, value)
@@ -342,7 +342,7 @@ class DynamicConfigParser(ConfigParser, object):
             for k, v in value.items():
                 section[k] = v
         else:
-            raise TypeError('value must be a valid dictionary')
+            raise TypeError("value must be a valid dictionary")
 
     def __delattr__(self, attr):
         if attr in self:
@@ -358,20 +358,19 @@ class DynamicConfigParser(ConfigParser, object):
             print("Sections differ")
             return False
         for section in self.sections():
-
             for option in self.options(section):
                 try:
-                    if str(self.get(section, option, raw=True)) != \
-                            str(data.get(section, option, raw=True)):
-                        print("option %s in section %s differ" % (
-                        option, section))
+                    if str(self.get(section, option, raw=True)) != str(
+                        data.get(section, option, raw=True)
+                    ):
+                        print("option %s in section %s differ" % (option, section))
                         return False
                 except:  # pragma: no cover
                     return False
         return True
 
 
-class CustomConfig:
+class CustomConfig(object):
     """Base class to manipulate a config directory"""
 
     def __init__(self, name, verbose=False):
@@ -386,8 +385,9 @@ class CustomConfig:
         sdir = self.appdirs.user_config_dir
         return self._get_and_create(sdir)
 
-    user_config_dir = property(_get_config_dir,
-                               doc="return directory of this configuration file")
+    user_config_dir = property(
+        _get_config_dir, doc="return directory of this configuration file"
+    )
 
     def _get_and_create(self, sdir):
         if not os.path.exists(sdir):
@@ -403,6 +403,7 @@ class CustomConfig:
     def _mkdirs(newdir, mode=0o777):
         """See :func:`easydev.tools.mkdirs`"""
         from openalea.agroservices.extern.easydev.tools import mkdirs
+
         mkdirs(newdir, mode)
 
     def remove(self):
@@ -418,30 +419,36 @@ def _load_configfile(configpath):  # pragma: no cover
     try:
         with open(configpath) as f:
             try:
-                import ujson
-                return ujson.load(f)
+                import json
+
+                return json.load(f)
             except ValueError:
                 f.seek(0)  # try again
             try:
                 import yaml
             except ImportError:
-                raise IOError("Config file is not valid JSON and PyYAML "
-                              "has not been installed. Please install "
-                              "PyYAML to use YAML config files.")
+                raise IOError(
+                    "Config file is not valid JSON and PyYAML "
+                    "has not been installed. Please install "
+                    "PyYAML to use YAML config files."
+                )
             try:
                 return yaml.load(f, Loader=yaml.FullLoader)
             except yaml.YAMLError:
-                raise IOError("Config file is not valid JSON or YAML. "
-                              "In case of YAML, make sure to not mix "
-                              "whitespace and tab indentation.")
+                raise IOError(
+                    "Config file is not valid JSON or YAML. "
+                    "In case of YAML, make sure to not mix "
+                    "whitespace and tab indentation."
+                )
     except Exception as err:
         raise err
 
 
 def load_configfile(configpath):
-    "Loads a JSON or YAML configfile as a dict."
+    """Loads a JSON or YAML configfile as a dict."""
     config = _load_configfile(configpath)
     if not isinstance(config, dict):
-        raise IOError("Config file must be given as JSON or YAML "
-                      "with keys at top level.")
+        raise IOError(
+            "Config file must be given as JSON or YAML with keys at top level."
+        )
     return config

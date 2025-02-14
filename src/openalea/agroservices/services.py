@@ -17,6 +17,7 @@
 ##############################################################################
 # $Id$
 """Modules with common tools to access web resources"""
+
 from __future__ import print_function
 from __future__ import division
 
@@ -29,11 +30,11 @@ import traceback
 from .settings import AgroServicesConfig
 from openalea.agroservices.extern.xmltools import easyXML
 
-# fixing compatiblity python 2 and 3 related to merging or urllib and urllib2 in python 3
+# fixing compatibility python 2 and 3 related to merging or urllib and urllib2 in python 3
 try:
     # python 3
     from urllib.request import urlopen
-    from urllib.parse import urlparse, urlencode
+    from urllib.parse import urlencode
     from urllib.error import HTTPError
     from urllib.request import Request
 except:
@@ -43,16 +44,24 @@ except:
 from openalea.agroservices.extern.easydev.logging_tools import Logging
 from openalea.agroservices.extern.easydev.tools import DevTools
 
+import requests  # replacement for urllib2 (2-3 times faster)
+from requests.models import Response
+import requests_cache  # use caching with requests
+# import grequests        # use asynchronous requests with gevent
+# Note that grequests should be imported after requests_cache. Otherwise,
+# one should use a session instance when calling grequests.get, which we do
+# here below
+
 # fixing compatibility issue of input/raw_input
-if 'raw_input' in __builtins__: input = raw_input
+if "raw_input" in __builtins__:
+    input = raw_input
 
 # This is a hack in case suds is already installed.
-# Indded, we want suds_jurko instead
-sys.path = [x for x in sys.path if 'suds-' not in x]
+# Indeed, we want suds_jurko instead
+sys.path = [x for x in sys.path if "suds-" not in x]
 
 
-__all__ = ["Service", "WSDLService",
-           "AgroServicesError", "REST"]
+__all__ = ["Service", "WSDLService", "AgroServicesError", "REST"]
 
 
 class AgroServicesError(Exception):
@@ -71,20 +80,21 @@ class Service:
 
     #: some useful response codes
     response_codes = {
-        200: 'OK',
-        201: 'Created',
-        400: 'Bad Request. There is a problem with your input',
-        404: 'Not found. The resource you requests does not exist',
-        405: 'Method not allowed',
+        200: "OK",
+        201: "Created",
+        400: "Bad Request. There is a problem with your input",
+        404: "Not found. The resource you requests does not exist",
+        405: "Method not allowed",
         406: "Not Acceptable. Usually headers issue",
-        410: 'Gone. The resource you requested was removed.',
+        410: "Gone. The resource you requested was removed.",
         415: "Unsupported Media Type",
-        500: 'Internal server error. Most likely a temporary problem',
-        503: 'Service not available. The server is being updated, try again later'
+        500: "Internal server error. Most likely a temporary problem",
+        503: "Service not available. The server is being updated, try again later",
     }
 
-    def __init__(self, name, url=None, verbose=True, requests_per_sec=10,
-                 url_defined_later=False):
+    def __init__(
+        self, name, url=None, verbose=True, requests_per_sec=10, url_defined_later=False
+    ):
         """.. rubric:: Constructor
 
         :param str name: a name for this service
@@ -98,7 +108,7 @@ class Service:
             If you need or can do more (e.g., ChEMBL does not seem to have
             restrictions), change the value. You can also have several instance
             but again, if you send too many requests at the same, your future
-            requests may be retricted. Currently implemented for REST only
+            requests may be restricted. Currently implemented for REST only
 
 
         All instances have an attribute called :attr:`~Service.logging` that
@@ -111,7 +121,7 @@ class Service:
 
         The attribute :attr:`~Service.debugLevel`  can be used to set the behaviour
         of the logging messages. If the argument verbose is True, the debugLebel
-        is set to INFO. If verbose is False, the debugLevel is set to WARNING.
+        is set to INFO. If verbose if False, the debugLevel is set to WARNING.
         However, you can use the :attr:`debugLevel` attribute to change it to
         one of DEBUG, INFO, WARNING, ERROR, CRITICAL. debugLevel=WARNING means
         that only WARNING, ERROR and CRITICAL messages are shown.
@@ -127,9 +137,11 @@ class Service:
             if self.url is not None:
                 urlopen(self.url, timeout=5)
         except Exception as err:
+            traceback.print_exception(err)
             if url_defined_later is False:
                 self.logging.warning(
-                    "The URL (%s) provided cannot be reached." % self.url)
+                    "The URL (%s) provided cannot be reached." % self.url
+                )
         self._easyXMLConversion = True
 
         # used by HGNC where some XML contains non-utf-8 characters !!
@@ -143,7 +155,7 @@ class Service:
         self._last_call = 0
 
     def _calls(self):
-        time_lapse = 1. / self.requests_per_sec
+        time_lapse = 1.0 / self.requests_per_sec
         current_time = time.time()
         dt = current_time - self._last_call
 
@@ -158,11 +170,11 @@ class Service:
                 time.sleep(time_lapse - dt)
 
     def _get_caching(self):
-        return self.settings.params['cache.on'][0]
+        return self.settings.params["cache.on"][0]
 
     def _set_caching(self, caching):
         self.devtools.check_param_in_list(caching, [True, False])
-        self.settings.params['cache.on'][0] = caching
+        self.settings.params["cache.on"][0] = caching
         # reset the session, which will be automatically created if we
         # access to the session attribute
         self._session = None
@@ -188,12 +200,15 @@ class Service:
             raise TypeError("value must be a boolean value (True/False)")
         self._easyXMLConversion = value
 
-    easyXMLConversion = property(_get_easyXMLConversion,
-                                 _set_easyXMLConversion,
-                                 doc="""If True, xml output from a request are converted to easyXML object (Default behaviour).""")
+    easyXMLConversion = property(
+        _get_easyXMLConversion,
+        _set_easyXMLConversion,
+        doc="""If True, xml output from a request are converted to easyXML object (Default behaviour).""",
+    )
 
-    def easyXML(self, res):
-        """Use this method to convert an XML document into an
+    @staticmethod
+    def easyXML(res):
+        """Use this method to convert a XML document into an
             :class:`~agroservices.xmltools.easyXML` object
 
         The easyXML object provides utilities to ease access to the XML
@@ -230,23 +245,26 @@ class Service:
         """
         url = "http://www.ncbi.nlm.nih.gov/pubmed/"
         import webbrowser
+
         webbrowser.open(url + str(Id))
 
     @staticmethod
     def on_web(url):
         """Open a URL into a browser"""
         import webbrowser
+
         webbrowser.open(url)
 
     @staticmethod
     def save_str_to_image(data, filename):
         """Save string object into a file converting into binary"""
-        with open(filename, 'wb') as f:
+        with open(filename, "wb") as f:
             import binascii
+
             try:
                 # python3
                 newres = binascii.a2b_base64(bytes(data, "utf-8"))
-            except:
+            except binascii.Error:
                 newres = binascii.a2b_base64(data)
             f.write(newres)
 
@@ -257,6 +275,7 @@ class WSDLService(Service):
     .. seealso:: :class:`RESTService`, :class:`Service`
 
     """
+
     _service = "WSDL"
 
     def __init__(self, name, url, verbose=True, cache=False):
@@ -281,6 +300,7 @@ class WSDLService(Service):
             #: attribute to access to the methods provided by this WSDL service
             from suds.client import Client
             from suds.cache import ObjectCache
+
             oc = ObjectCache(self.settings.user_config_dir, days=0)
             if self.CACHING is True:
                 self.suds = Client(self.url, cache=oc, cachingpolicy=1)
@@ -290,8 +310,7 @@ class WSDLService(Service):
             self.serv = self.suds.service
             self._update_settings()
         except Exception:
-            self.logging.error(
-                "Could not connect to the service %s " % self.url)
+            self.logging.error("Could not connect to the service %s " % self.url)
             raise Exception
 
     def _update_settings(self):
@@ -301,34 +320,42 @@ class WSDLService(Service):
         methods = self.suds.wsdl.services[0].ports[0].methods.values()
         for method in methods:
             try:
-                print('%s(%s) ' % (
-                    method.name,
-                    ', '.join('type:%s: %s - element %s' %
-                              (part.type, part.name, part.element) for part in
-                              method.soap.input.body.parts)))
+                print(
+                    "%s(%s) "
+                    % (
+                        method.name,
+                        ", ".join(
+                            "type:%s: %s - element %s"
+                            % (part.type, part.name, part.element)
+                            for part in method.soap.input.body.parts
+                        ),
+                    )
+                )
             except:
                 print(method)
 
     def _get_methods(self):
-        return [x.name for x in
-                self.suds.wsdl.services[0].ports[0].methods.values()]
+        return [x.name for x in self.suds.wsdl.services[0].ports[0].methods.values()]
 
-    wsdl_methods = property(_get_methods,
-                            doc="returns methods available in the WSDL service")
+    wsdl_methods = property(
+        _get_methods, doc="returns methods available in the WSDL service"
+    )
 
     def wsdl_create_factory(self, name, **kargs):
         params = self.suds.factory.create(name)
 
         # e.g., for eutils
         if "email" in dict(params).keys():
-            params.email = self.settings.params['user.email'][0]
+            params.email = self.settings.params["user.email"][0]
 
         if "tool" in dict(params).keys():
-            import agroservices
+            from .. import agroservices
+
             params.tool = "BioServices, " + agroservices.__version__
 
         for k, v in kargs.items():
             from suds import sudsobject
+
             keys = sudsobject.asdict(params).keys()
             if k in keys:
                 params[k] = v
@@ -350,16 +377,21 @@ class WSDLService(Service):
 class RESTbase(Service):
     _service = "REST"
 
-    def __init__(self, name, url=None, verbose=True, requests_per_sec=3,
-                 url_defined_later=False):
-        super(RESTbase, self).__init__(name, url, verbose=verbose,
-                                       requests_per_sec=requests_per_sec,
-                                       url_defined_later=url_defined_later)
+    def __init__(
+        self, name, url=None, verbose=True, requests_per_sec=3, url_defined_later=False
+    ):
+        super(RESTbase, self).__init__(
+            name,
+            url,
+            verbose=verbose,
+            requests_per_sec=requests_per_sec,
+            url_defined_later=url_defined_later,
+        )
         self.logging.info("Initialising %s service (REST)" % self.name)
         self.last_response = None
 
     def http_get(self):
-        # should return unicode
+        # should return Unicode
         raise NotImplementedError
 
     def http_post(self):
@@ -370,17 +402,6 @@ class RESTbase(Service):
 
     def http_delete(self):
         raise NotImplementedError
-
-
-import requests  # replacement for urllib2 (2-3 times faster)
-from requests.models import Response
-import requests_cache  # use caching with requests
-
-
-# import grequests        # use asynchronous requests with gevent
-# Note that grequests should be imported after requests_cache. Otherwise,
-# one should use a session instance when calling grequests.get, which we do
-# here below
 
 
 class REST(RESTbase):
@@ -427,52 +448,66 @@ class REST(RESTbase):
         s.authentication = ('user', 'pass')
 
 
-    Note about headers and content type. The Accept header is 
-    used by HTTP clients to tell the server what content types 
+    Note about headers and content type. The Accept header is
+    used by HTTP clients to tell the server what content types
     they will accept. The server will then send back a
-    response, which will include a Content-Type header telling 
-    the client what the content type of the returned content 
+    response, which will include a Content-Type header telling
+    the client what the content type of the returned content
     actually is. When using the :meth:`get__headers`, you can see
-    the User-Agent, the Accept and Content-Type keys. So, here the 
+    the User-Agent, the Accept and Content-Type keys. So, here the
     HTTP requests also contain Content-Type headers. In POST or PUT requests
     the client is actually sendingdata to the server as part of the
     request, and the Content-Type header tells the server what the data actually is
     For a POST request resulting from an HTML form submission, the
     Content-Type of the request should be one of the standard form content
-    types: application/x-www-form-urlencoded (default, older, simpler) or 
+    types: application/x-www-form-urlencoded (default, older, simpler) or
     multipart/form-data (newer, adds support for file uploads)
 
     """
+
     content_types = {
-        'bed': 'text/x-bed',
-        'default': "application/x-www-form-urlencoded",
-        'gff3': 'text/x-gff3',
-        'fasta': 'text/x-fasta',
-        'json': 'application/json',
+        "bed": "text/x-bed",
+        "default": "application/x-www-form-urlencoded",
+        "gff3": "text/x-gff3",
+        "fasta": "text/x-fasta",
+        "json": "application/json",
         "jsonp": "text/javascript",
         "nh": "text/x-nh",
-        'phylip': 'text/x-phyloxml+xml',
-        'phyloxml': 'text/x-phyloxml+xml',
-        'seqxml': 'text/x-seqxml+xml',
-        'png': 'image/png',
-        'jpg': 'image/jpg',
-        'svg': 'image/svg',
-        'gif': 'image/gif',
-        'jpeg': 'image/jpg',
-        'txt': 'text/plain',
-        'text': 'text/plain',
-        'xml': 'application/xml',
-        'yaml': 'text/x-yaml'
+        "phylip": "text/x-phyloxml+xml",
+        "phyloxml": "text/x-phyloxml+xml",
+        "seqxml": "text/x-seqxml+xml",
+        "png": "image/png",
+        "jpg": "image/jpg",
+        "svg": "image/svg",
+        "gif": "image/gif",
+        "jpeg": "image/jpg",
+        "txt": "text/plain",
+        "text": "text/plain",
+        "xml": "application/xml",
+        "yaml": "text/x-yaml",
     }
-
     # special_characters = ['/', '#', '+']
 
-    def __init__(self, name, url=None, verbose=True, cache=False,
-                 requests_per_sec=3, proxies=[], cert=None,
-                 url_defined_later=False):
-        super(REST, self).__init__(name, url, verbose=verbose,
-                                   requests_per_sec=requests_per_sec,
-                                   url_defined_later=url_defined_later)
+    def __init__(
+        self,
+        name,
+        url=None,
+        verbose=True,
+        cache=False,
+        requests_per_sec=3,
+        proxies=None,
+        cert=None,
+        url_defined_later=False,
+    ):
+        super(REST, self).__init__(
+            name,
+            url,
+            verbose=verbose,
+            requests_per_sec=requests_per_sec,
+            url_defined_later=url_defined_later,
+        )
+        if proxies is None:
+            proxies = []
         self.proxies = proxies
         self.cert = cert
 
@@ -481,7 +516,7 @@ class REST(RESTbase):
 
         self._session = None
 
-        self.settings.params['cache.on'][0] = cache
+        self.settings.params["cache.on"][0] = cache
 
         if self.CACHING:
             # import requests_cache
@@ -489,9 +524,11 @@ class REST(RESTbase):
             requests_cache.install_cache(self.CACHE_NAME)
 
     def delete_cache(self):
-        cache_file = self.CACHE_NAME + '.sqlite'
+        cache_file = self.CACHE_NAME + ".sqlite"
         if os.path.exists(cache_file):
-            msg = "You are about to delete this agroservices cache: %s. Proceed? (y/[n]) "
+            msg = (
+                "You are about to delete this agroservices cache: %s. Proceed? (y/[n]) "
+            )
             res = input(msg % cache_file)
             if res == "y":
                 os.remove(cache_file)
@@ -502,11 +539,10 @@ class REST(RESTbase):
     @staticmethod
     def clear_cache():
         from requests_cache import clear
+
         clear()
 
     def _build_url(self, query):
-        url = None
-
         if query is None:
             url = self.url
         else:
@@ -514,7 +550,7 @@ class REST(RESTbase):
                 # assume we do want to use self.url
                 url = query
             else:
-                url = '%s/%s' % (self.url, query)
+                url = "%s/%s" % (self.url, query)
 
         return url
 
@@ -535,11 +571,10 @@ class REST(RESTbase):
         """
         self.logging.debug("Creating session (uncached version)")
         self._session = requests.Session()
-        adapter = requests.adapters.HTTPAdapter(
-            max_retries=self.settings.MAX_RETRIES)
+        adapter = requests.adapters.HTTPAdapter(max_retries=self.settings.MAX_RETRIES)
         # , pool_block=True does not work with asynchronous requests
-        self._session.mount('http://', adapter)
-        self._session.mount('https://', adapter)
+        self._session.mount("http://", adapter)
+        self._session.mount("https://", adapter)
         return self._session
 
     def _create_cache_session(self):
@@ -548,9 +583,9 @@ class REST(RESTbase):
         if not self._session:
             # import requests_cache
             self.logging.debug("No cached session created yet. Creating one")
-            self._session = requests_cache.CachedSession(self.CACHE_NAME,
-                                                         backend='sqlite',
-                                                         fast_save=self.settings.FAST_SAVE)
+            self._session = requests_cache.CachedSession(
+                self.CACHE_NAME, backend="sqlite", fast_save=self.settings.FAST_SAVE
+            )
         return self._session
 
     def _get_timeout(self):
@@ -582,7 +617,7 @@ class REST(RESTbase):
         if frmt == "json":
             try:
                 return res.json()
-            except:
+            except requests.exceptions.JSONDecodeError:
                 return res
         # finally
         return res.content
@@ -591,38 +626,44 @@ class REST(RESTbase):
     def _apply(iterable, fn, *args, **kwargs):
         return [fn(x, *args, **kwargs) for x in iterable if x is not None]
 
-    def _get_async(self, keys, frmt='json', params={}):
+    def _get_async(self, keys, frmt="json", params=None):
         # does not work under pyhon3 so local import
+        if params is None:
+            params = {}
         import grequests
+
         session = self._get_session()
         try:
             # build the requests
-            urls = self._get_all_urls(keys, frmt)
+            urls = self._get_all_urls(keys)
             self.logging.debug("grequests.get processing")
-            rs = (grequests.get(url, session=session, params=params) for
-                  key, url in zip(keys, urls))
+            rs = (
+                grequests.get(url, session=session, params=params)
+                for key, url in zip(keys, urls)
+            )
             # execute them
             self.logging.debug("grequests.map call")
-            ret = grequests.map(rs,
-                                size=min(self.settings.CONCURRENT, len(keys)))
+            ret = grequests.map(rs, size=min(self.settings.CONCURRENT, len(keys)))
             self.last_response = ret
             self.logging.debug("grequests.map call done")
             return ret
         except Exception as err:
-            self.logging.warning("Error caught in async. " + err.message)
+            self.logging.warning("Error caught in async. " + err.__str__())
             return []
 
-    def _get_all_urls(self, keys, frmt=None):
-        return ('%s/%s' % (self.url, query) for query in keys)
+    def _get_all_urls(self, keys):
+        return ("%s/%s" % (self.url, query) for query in keys)
 
-    def get_async(self, keys, frmt='json', params={}, **kargs):
+    def get_async(self, keys, frmt="json", params=None, **kargs):
+        if params is None:
+            params = {}
         ret = self._get_async(keys, frmt, params=params, **kargs)
         return self._apply(ret, self._interpret_returned_request, frmt)
 
-    def get_sync(self, keys, frmt='json', **kargs):
+    def get_sync(self, keys, frmt="json", **kargs):
         return [self.get_one(key, frmt=frmt, **kargs) for key in keys]
 
-    def http_get(self, query, frmt='json', params={}, **kargs):
+    def http_get(self, query, frmt="json", params=None, **kargs):
         """
 
         * query is the suffix that will be appended to the main url attribute.
@@ -630,16 +671,15 @@ class REST(RESTbase):
         * if list is larger than ASYNC_THRESHOLD, use asynchronous call.
 
         """
-        if isinstance(query, list) and len(
-                query) > self.settings.ASYNC_THRESHOLD:
+        if params is None:
+            params = {}
+        if isinstance(query, list) and len(query) > self.settings.ASYNC_THRESHOLD:
             self.logging.debug("Running async call for a list")
             return self.get_async(query, frmt, params=params, **kargs)
 
-        if isinstance(query, list) and len(
-                query) <= self.settings.ASYNC_THRESHOLD:
+        if isinstance(query, list) and len(query) <= self.settings.ASYNC_THRESHOLD:
             self.logging.debug("Running sync call for a list")
-            return [self.get_one(key, frmt, params=params, **kargs) for key in
-                    query]
+            return [self.get_one(key, frmt, params=params, **kargs) for key in query]
             # return self.get_sync(query, frmt)
 
         # OTHERWISE
@@ -654,36 +694,40 @@ class REST(RESTbase):
         # agroservices and the content defined here above
         headers = kargs.get("headers")
         if headers is None:
-            headers = {'User-Agent': self.getUserAgent()}
+            headers = {"User-Agent": self.getUserAgent()}
             if content is None:
-                headers['Accept'] = self.content_types[frmt]
+                headers["Accept"] = self.content_types[frmt]
             else:
-                headers['Accept'] = content
+                headers["Accept"] = content
         kargs.update({"headers": headers})
 
         return self.get_one(query, frmt=frmt, params=params, **kargs)
 
-    def get_one(self, query=None, frmt='json', params={}, **kargs):
+    def get_one(self, query=None, frmt="json", params=None, **kargs):
         """
 
         if query starts with http:// do not use self.url
         """
+        if params is None:
+            params = {}
         self._calls()
         url = self._build_url(query)
 
-        if url.count('//') > 1:
-            self.logging.warning("URL of the services contains a double //." +
-                                 "Check your URL and remove trailing /")
+        if url.count("//") > 1:
+            self.logging.warning(
+                "URL of the services contains a double //."
+                + "Check your URL and remove trailing /"
+            )
         self.logging.debug(url)
         try:
-            kargs['params'] = params
-            kargs['timeout'] = self.TIMEOUT
-            kargs['proxies'] = self.proxies
-            kargs['cert'] = self.cert
+            kargs["params"] = params
+            kargs["timeout"] = self.TIMEOUT
+            kargs["proxies"] = self.proxies
+            kargs["cert"] = self.cert
             # Used only in biomart with cosmic database
             # See doc/source/biomart.rst for an example
-            if hasattr(self, 'authentication'):
-                kargs['auth'] = self.authentication
+            if hasattr(self, "authentication"):
+                kargs["auth"] = self.authentication
 
             # res = self.session.get(url, **{'timeout':self.TIMEOUT, 'params':params})
             res = self.session.get(url, **kargs)
@@ -698,12 +742,24 @@ class REST(RESTbase):
             return res
         except Exception as err:
             self.logging.critical(err)
-            self.logging.critical("""Query unsuccesful. Maybe too slow response.
+            self.logging.critical(
+                """Query unsuccessful. Maybe too slow response.
     Consider increasing it with settings.TIMEOUT attribute {}""".format(
-                self.settings.TIMEOUT))
+                    self.settings.TIMEOUT
+                )
+            )
 
-    def http_post(self, query, params=None, data=None,
-                  frmt='xml', headers=None, files=None, content=None, **kargs):
+    def http_post(
+        self,
+        query,
+        params=None,
+        data=None,
+        frmt="xml",
+        headers=None,
+        files=None,
+        content=None,
+        **kargs,
+    ):
         # query and frmt are agroservices parameters. Others are post parameters
         # NOTE in requests.get you can use params parameter
         # BUT in post, you use data
@@ -713,24 +769,24 @@ class REST(RESTbase):
         # if user provide a header, we use it otherwise, we use the header from
         # agroservices and the content defined here above
         if headers is None:
-            headers = {'User-Agent': self.getUserAgent()}
+            headers = {"User-Agent": self.getUserAgent()}
             if content is None:
-                headers['Accept'] = self.content_types[frmt]
+                headers["Accept"] = self.content_types[frmt]
             else:
-                headers['Accept'] = content
+                headers["Accept"] = content
 
         self.logging.debug("Running http_post (single call mode)")
-        kargs.update({'query': query})
-        kargs.update({'headers': headers})
-        kargs.update({'files': files})
-        kargs['proxies'] = self.proxies
-        kargs['cert'] = self.cert
-        kargs.update({'params': params})
-        kargs.update({'data': data})
-        kargs.update({'frmt': frmt})
+        kargs.update({"query": query})
+        kargs.update({"headers": headers})
+        kargs.update({"files": files})
+        kargs["proxies"] = self.proxies
+        kargs["cert"] = self.cert
+        kargs.update({"params": params})
+        kargs.update({"data": data})
+        kargs.update({"frmt": frmt})
         return self.post_one(**kargs)
 
-    def post_one(self, query=None, frmt='json', **kargs):
+    def post_one(self, query=None, frmt="json", **kargs):
         self._calls()
         url = self._build_url(query)
         self.logging.debug("BioServices:: Entering post_one function")
@@ -742,38 +798,42 @@ class REST(RESTbase):
             try:
                 return res.decode()
             except:
-                self.logging.debug(
-                    "BioServices:: Could not decode the response")
+                self.logging.debug("BioServices:: Could not decode the response")
                 return res
         except Exception as err:
-            traceback.print_exc()
+            traceback.print_exception(err)
             return None
 
     @staticmethod
     def getUserAgent():
         # self.logging.info('getUserAgent: Begin')
-        urllib_agent = 'Python-requests/%s' % requests.__version__
+        urllib_agent = "Python-requests/%s" % requests.__version__
         # clientRevision = ''
-        from openalea.agroservices import version
-        clientVersion = version
-        user_agent = 'AgroServices/%s (agroservices.%s; Python %s; %s) %s' % (
-            clientVersion, os.path.basename(__file__),
-            platform.python_version(), platform.system(),
-            urllib_agent
+        from . import version
+
+        client_version = version
+        user_agent = "AgroServices/%s (agroservices.%s; Python %s; %s) %s" % (
+            client_version,
+            os.path.basename(__file__),
+            platform.python_version(),
+            platform.system(),
+            urllib_agent,
         )
         # self.logging.info('getUserAgent: user_agent: ' + user_agent)
         # self.logging.info('getUserAgent: End')
         return user_agent
 
-    def get_headers(self, content='default'):
+    def get_headers(self, content="default"):
         """
         :param str content: set to default that is application/x-www-form-urlencoded
             so that it has the same behaviour as urllib2 (Sept 2014)
 
         """
-        headers = {'User-Agent': self.getUserAgent(),
-                   'Accept': self.content_types[content],
-                   'Content-Type': self.content_types[content]}
+        headers = {
+            "User-Agent": self.getUserAgent(),
+            "Accept": self.content_types[content],
+            "Content-Type": self.content_types[content],
+        }
         # "application/json;odata=verbose" required in reactome
         # headers['Content-Type'] = "application/json;odata=verbose" required in reactome
         return headers
@@ -783,21 +843,20 @@ class REST(RESTbase):
         print(self.last_response.reason)
         print(self.last_response.status_code)
 
-    def http_delete(self, query, params=None,
-                    frmt='xml', headers=None, **kargs):
-        kargs.update({'query': query})
-        kargs.update({'params': params})
-        kargs.update({'frmt': frmt})
+    def http_delete(self, query, params=None, frmt="xml", headers=None, **kargs):
+        kargs.update({"query": query})
+        kargs.update({"params": params})
+        kargs.update({"frmt": frmt})
 
         return self.delete_one(**kargs)
 
-    def delete_one(self, query, frmt='json', **kargs):
+    def delete_one(self, query, frmt="json", **kargs):
         self._calls()
         self.logging.debug("BioServices:: Entering delete_one function")
         if query is None:
             url = self.url
         else:
-            url = '%s/%s' % (self.url, query)
+            url = "%s/%s" % (self.url, query)
         self.logging.debug(url)
         try:
             res = self.session.delete(url, **kargs)
@@ -809,7 +868,7 @@ class REST(RESTbase):
                 self.debug("BioServices:: Could not decode the response")
                 return res
         except Exception as err:
-            print(err)
+            traceback.print_exception(err)
             return None
         except:
             pass

@@ -20,17 +20,29 @@ AgroService is a Python package that provides access to IPM Web Services (at lea
 
 ## Install
 
+
+### Install pip  
+Create a virtual environment and activate it:
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+Install the package:
+```bash
+pip install . # -e for editable mode
+```
+
 ### Install conda  
 Follow official website instruction to install miniconda : http://conda.pydata.org/miniconda.html
 
 ### User
 
-**Create a new environment with agroservice installed in there :**
+**Create a new environment with agroservices installed in there :**
 ```
 conda create -n agroservices -c conda-forge -c openalea3 agroservices
 conda activate agroservices
 ```
-**In a existing environment :**
+**In an existing environment :**
 ```
 conda install -c openalea3 -c conda-forge agroservices
 ```
@@ -38,14 +50,13 @@ conda install -c openalea3 -c conda-forge agroservices
 ### From source
 ```
 # Install dependency with conda
-conda create -n agroservices -c conda-forge python
+conda create -n agroservices -c conda-forge python appdirs bs4 pygments colorlog requests requests_cache pytest jsf
 conda activate agroservices
-conda install -c conda-forge appdirs bs4 pygments colorlog requests requests_cache pytest jsf
 
-# Load agroservice and install
+# Clone agroservice and install
 git clone https://github.com/openalea/agroservices.git
 cd agroservices
-python setup.py develop
+pip install -e .
 
 # (Optional) Test your installation
 cd test; pytest

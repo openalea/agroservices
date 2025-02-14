@@ -10,8 +10,6 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration ---------------------------------------------------
@@ -20,44 +18,44 @@ import sys
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.doctest',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.coverage',
-    'sphinx.ext.todo',
-    'sphinx.ext.napoleon',
-    'nbsphinx',
-    'nbsphinx_link',
-    'sphinx_rtd_theme'
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.doctest",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.ifconfig",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.coverage",
+    "sphinx.ext.todo",
+    "sphinx.ext.napoleon",
+    "nbsphinx",
+    "nbsphinx_link",
+    "sphinx_rtd_theme",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
-autosummary_generate =True
-exclude_patterns = ['build', '_templates']
+templates_path = ["_templates"]
+autosummary_generate = True
+exclude_patterns = ["build", "_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The encoding of source files.
-#source_encoding = 'utf-8-sig'
+# source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # -- Project information -----------------------------------------------------
 
-project = u'agroservices'
-copyright = u'Cecill-C INRAE/CIRAD'
-author = u'Marc Labadie, Christian Fournier, Christophe Pradal'
+project = "agroservices"
+copyright = "Cecill-C INRAE/CIRAD"
+author = "Marc Labadie, Christian Fournier, Christophe Pradal"
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
@@ -67,7 +65,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -75,14 +73,16 @@ html_theme = 'sphinx_rtd_theme'
 # html_theme_options = {"rightsidebar": "true",
 #                       "relbarbgcolor": "black"}
 
-html_theme_options = {"sticky_navigation": "false",
-                      "collapse_navigation": "false",
-                      "display_version": "true"}
+html_theme_options = {
+    "sticky_navigation": "false",
+    "collapse_navigation": "false",
+    "display_version": "true",
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # If false, no module index is generated.
 html_domain_indices = True
@@ -103,4 +103,4 @@ html_show_sphinx = True
 html_show_copyright = True
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {"https://docs.python.org/": None}

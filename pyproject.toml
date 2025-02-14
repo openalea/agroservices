@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openalea.agroservices"
+authors = [
+  { name = "Christian Fournier"},
+  { name = "Christophe Pradal"},
+  { name = "Marc Labadie"},
+]
+description = "AgroService is a Python package that provides access to IPM Web Services (at least) and a framework to easily implement Web Services wrappers. This package is intended to be close to the webservice. Therefore the requests will have the same API that each web service."
+license.file = "LICENSE.txt"
+requires-python = ">=3.8"
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: CeCILL-C License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+]
+dynamic = ["version", "readme"]
+dependencies = [
+  "appdirs",
+  "bs4",
+  "colorlog",
+  "requests",
+  "requests_cache",
+  "pygments",
+  "jsf",
+  "pyyaml"
+]
+
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.urls]
+Homepage = "https://github.com/openalea/agroservices"
+"Bug Tracker" = "https://github.com/openalea/agroservices/issues"
+Discussions = "https://github.com/openalea/agroservices/discussions"
+Changelog = "https://github.com/openalea/agroservices/releases"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["openalea.*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "openalea.agroservices.__version__"}
+readme = {file = ["README.md"]}

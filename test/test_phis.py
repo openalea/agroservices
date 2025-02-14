@@ -1,14 +1,9 @@
-import pytest
 import requests
-from openalea.agroservices.phis.phis import Phis
+from openalea.agroservices.phis import Phis
 
 
-@pytest.fixture
-def phis():
-    return Phis()
-
-
-def test_url(phis):
+def test_url():
+    phis = Phis()
     assert phis.url is not None
     try:
         requests.get(phis.url)
@@ -18,59 +13,28 @@ def test_url(phis):
         assert True
 
 
-def test_token(phis):
+def test_token():
+    phis = Phis()
     json = '{ \
       "identifier": "phenoarch@lepse.inra.fr",\
       "password": "phenoarch"\
     }'
 
-    response, _ = phis.post_json('security/authenticate', json)
-    token = response.json()['result']['token']
-    print(token)
+    response, _ = phis.post_json("security/authenticate", json)
+    token = response.json()["result"]["token"]
     assert len(token) > 1
 
 
-def test_ws_project(phis):
+def test_ws_experiments():
+    phis = Phis()
     json = '{ \
       "identifier": "phenoarch@lepse.inra.fr",\
       "password": "phenoarch"\
     }'
 
-    response, _ = phis.post_json('security/authenticate', json)
-    token = response.json()['result']['token']
-    data = phis.ws_projects(session_id=token, project_name='EPPN2020')
+    response, _ = phis.post_json("security/authenticate", json)
+    token = response.json()["result"]["token"]
+    data = phis.ws_experiments(
+        experiment_uri="m3p:id/experiment/g2was2022", session_id=token
+    )
     print(data)
-    data = phis.ws_projects(session_id=token, project_name='G2WAS')
-    print(data)
-    data = phis.ws_projects(session_id=token, project_name='EXPOSE')
-    print(data)
-
-
-def test_ws_germplasms(phis):
-    json = '{ \
-      "identifier": "phenoarch@lepse.inra.fr",\
-      "password": "phenoarch"\
-    }'
-
-    response, _ = phis.post_json('security/authenticate', json)
-    token = response.json()['result']['token']
-    data = phis.ws_germplasms(session_id=token,
-                              germplasm_uri="http://phenome.inrae.fr/m3p/id/germplasm/accesion.2369_udel")
-    print(data)
-    data = phis.ws_germplasms(session_id=token,
-                              species_uri="http://aims.fao.org/aos/agrovoc/c_8504")
-    print(data)
-
-
-def test_ws_species(phis):
-    json = '{ \
-      "identifier": "phenoarch@lepse.inra.fr",\
-      "password": "phenoarch"\
-    }'
-
-    response, _ = phis.post_json('security/authenticate', json)
-    token = response.json()['result']['token']
-    data_name = phis.ws_species(session_id=token, name="sorghum")
-    data_uri = phis.ws_species(session_id=token,
-                               uri="http://aims.fao.org/aos/agrovoc/c_7247")
-    assert data_uri == data_name
