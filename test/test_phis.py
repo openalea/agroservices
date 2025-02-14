@@ -1,5 +1,5 @@
 import requests
-from agroservices.phis.phis import Phis
+from openalea.agroservices.phis import Phis
 
 
 def test_url():
@@ -20,8 +20,8 @@ def test_token():
       "password": "phenoarch"\
     }'
 
-    response, _ = phis.post_json('security/authenticate', json)
-    token = response.json()['result']['token']
+    response, _ = phis.post_json("security/authenticate", json)
+    token = response.json()["result"]["token"]
     assert len(token) > 1
 
 
@@ -32,8 +32,9 @@ def test_ws_experiments():
       "password": "phenoarch"\
     }'
 
-    response, _ = phis.post_json('security/authenticate', json)
-    token = response.json()['result']['token']
-    data = phis.ws_experiments(experiment_uri='m3p:id/experiment/g2was2022',
-                        session_id=token)
+    response, _ = phis.post_json("security/authenticate", json)
+    token = response.json()["result"]["token"]
+    data = phis.ws_experiments(
+        experiment_uri="m3p:id/experiment/g2was2022", session_id=token
+    )
     print(data)

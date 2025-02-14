@@ -1,9 +1,9 @@
-.. currentmodule:: agroservices.ipm
+.. currentmodule:: openalea.agroservices.ipm
 
 Agroservices IPM module
 ========================
 
-.. automodule:: agroservices.ipm
+.. automodule:: openalea.agroservices.ipm
     :members:
     :undoc-members:
     :inherited-members:

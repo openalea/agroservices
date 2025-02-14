@@ -25,27 +25,26 @@ Follow official website instruction to install miniconda : http://conda.pydata.o
 
 ### User
 
-**Create a new environment with agroservice installed in there :**
+**Create a new environment with agroservices installed in there :**
 ```
-conda create -n agroservices -c conda-forge -c openalea3 agroservices
-conda activate agroservices
+mamba create -n agroservices -c conda-forge -c openalea3 openalea.agroservices
+mamba activate agroservices
 ```
-**In a existing environment :**
+**In an existing environment :**
 ```
-conda install -c openalea3 -c conda-forge agroservices
+mamba install -c openalea3 -c conda-forge openalea.agroservices
 ```
 
 ### From source
 ```
 # Install dependency with conda
-conda create -n agroservices -c conda-forge python
-conda activate agroservices
-conda install -c conda-forge appdirs bs4 pygments colorlog requests requests_cache pytest jsf
+mamba create -n agroservices -f conda/environment.yml
+mamba activate agroservices
 
-# Load agroservice and install
+# Clone agroservice and install
 git clone https://github.com/openalea/agroservices.git
 cd agroservices
-python setup.py develop
+pip install -e .
 
 # (Optional) Test your installation
 cd test; pytest
