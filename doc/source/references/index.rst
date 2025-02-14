@@ -12,3 +12,5 @@ parameters available for the algorithms.
 .. toctree::
 
     agroservices.ipm.rst
+
+    agroservices.phis.rst
