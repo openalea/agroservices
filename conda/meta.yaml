@@ -1,6 +1,5 @@
 package:
   name: agroservices
-  version: "1.0.1"
 
 source:
   path: ..
@@ -37,7 +36,7 @@ test:
     - cd test
     - pytest -v --ignore=test_weatherdata.py --ignore=test_dss.py
 about:
-  home: "https://github.com/openalea/agroservices"
+  home: "https://openalea.readthedocs.io"
   license: GPL-v3
   summary: "AgroService is a Python package that provides access to IPM Web Services (at least) and a framework to easily implement Web Services wrappers."
 
