@@ -1,13 +1,9 @@
-channel:
+name: agroservices_dev
+channels:
   - conda-forge
+  - openalea3
 dependencies:
   - python
-  - appdirs
-  - bs4
-  - pygments
-  - colorlog
-  - requests
-  - requests_cache
-  - pytest
-  - jsf
-  - six
+  - pip
+  - pip:
+      - -e '..[test,dev,doc]'
