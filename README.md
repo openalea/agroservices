@@ -3,7 +3,7 @@
 _________________
 
 [![Docs](https://readthedocs.org/projects/agroservices/badge/?version=latest)](https://agroservices.readthedocs.io/)
-[![Build Status](https://github.com/openalea/agroservices/actions/workflows/conda-package-build.yml/badge.svg?branch=main)](https://github.com/openalea/agroservices/actions/workflows/conda-package-build.yml?query=branch%3Amaster)
+[![Build Status](https://github.com/openalea/agroservices/actions/workflows/openalea_ci.yml/badge.svg?branch=master)](https://github.com/openalea/agroservices/actions/workflows/openalea_ci.yml?query=branch%3Amaster)
 [![License](https://img.shields.io/badge/License--CeCILL-C-blue)](https://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html)
 [![Anaconda-Server Badge](https://anaconda.org/openalea3/agroservices/badges/version.svg)](https://anaconda.org/openalea3/agroservices)
 
