@@ -15,6 +15,7 @@ include-package-data = false # force explicit declaration of data (disable autom
 
 [tool.setuptools.package-data]
 "openalea.agroservices" = ["data/**/*"]
+"*" = ['*.json', '*.yaml']
 
 # enable dynamic version based on git tags
 [tool.setuptools_scm]
