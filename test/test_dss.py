@@ -112,7 +112,7 @@ def test_dss_field(dss, model):
 def test_run_model_field():
     # input with field observation
     model = ipm.get_model(DSSId="no.nibio.vips", ModelId="PSILAROBSE")
-    path = datadir + "model_input_psilarobse.json"
+    path = datadir.datadir + "model_input_psilarobse.json"
     with open(path) as json_file:
         model_input = json.load(json_file)
     res = ipm.run_model(model, model_input)
