@@ -6,5 +6,5 @@
 
 ## Contributors
 
-- Christian Fournier, <christian.pournier@inrae.fr>
+- Christian Fournier, <christian.fournier@inrae.fr>
 - Christophe Pradal, <christophe.pradal@cirad.fr>
