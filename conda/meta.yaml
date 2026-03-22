@@ -60,7 +60,7 @@ test:
   source_files:
     - test/
   commands:
-    - pytest test_IPM.py
+    - pytest test/test_IPM.py
 
 
 about:
