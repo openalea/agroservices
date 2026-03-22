@@ -1,42 +1,46 @@
-[![Documentation Status](https://readthedocs.org/projects/agroservices/badge/?version=latest)](https://agroservices.readthedocs.io/en/latest/?badge=latest)
-[![Anaconda-Server Badge](https://anaconda.org/openalea3/agroservices/badges/downloads.svg)](https://anaconda.org/openalea3/agroservices)
-[![Anaconda-Server Badge](https://anaconda.org/openalea3/agroservices/badges/version.svg)](https://anaconda.org/openalea3/agroservices)
-[![Anaconda-Server Badge](https://anaconda.org/openalea3/agroservices/badges/license.svg)](https://anaconda.org/openalea3/agroservices)
 # agroservices
 
-**authors:** 
-* [Marc Labadie](https://github.com/mlabadie)
-* [Christian Fournier](https://github.com/christian34)
-* [Christophe Pradal](https://github.com/pradal)       
+_________________
 
-**Institutes:** INRAE/CIRAD   
-**Licence:**[GPL-3](https://www.gnu.org/licenses/gpl-3.0.txt)  
-**Status:** python package   
-**Citation:**(DOI)
+[![Docs](https://readthedocs.org/projects/agroservices/badge/?version=latest)](https://agroservices.readthedocs.io/)
+[![Build Status](https://github.com/openalea/agroservices/actions/workflows/conda-package-build.yml/badge.svg?branch=main)](https://github.com/openalea/agroservices/actions/workflows/conda-package-build.yml?query=branch%3Amaster)
+[![License](https://img.shields.io/badge/License--CeCILL-C-blue)](https://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html)
+[![Anaconda-Server Badge](https://anaconda.org/openalea3/agroservices/badges/version.svg)](https://anaconda.org/openalea3/agroservices)
+
+_________________
+
+[Read Latest Documentation](https://agroservices.readthedocs.io/) - [Browse GitHub Code Repository](https://github.com/openalea/agroservices/)
+
+_________________
 
 ## Description
 
-AgroService is a Python package that provides access to IPM Web Services (at least) and a framework to easily implement Web Services wrappers. This package is intended to be close to the webservice. Therefore the requests will have the same API that each web service. The contract of agroservice is to wrap web services API into Python and to convert inputs and outputs. In the end, this package will provide transparent access to IPM Services in Python . It will allow OpenAlea to query and access data services, DSS catologue and thus execution of DSS models.
+"AgroService is a Python package that provides access to IPM Web Services (at least) and a framework to easily implement Web Services wrappers. This package is intended to be close to the webservice. Therefore the requests will have the same API that each web service."
 
 ## Install
 
-### Install conda  
-Follow official website instruction to install miniconda : http://conda.pydata.org/miniconda.html
+### Install conda
+
+Follow official website instruction to install miniconda : <http://conda.pydata.org/miniconda.html>
 
 ### User
 
 **Create a new environment with agroservices installed in there :**
-```
+
+```bash
 mamba create -n agroservices -c conda-forge -c openalea3 openalea.agroservices
 mamba activate agroservices
 ```
+
 **In an existing environment :**
-```
+
+```bash
 mamba install -c openalea3 -c conda-forge openalea.agroservices
 ```
 
 ### From source
-```
+
+```bash
 # Install dependency with conda
 mamba create -n agroservices -f conda/environment.yml
 mamba activate agroservices
@@ -51,7 +55,8 @@ cd test; pytest
 ```
 
 ## Requirements
-* python >= 3.6
+
+* python >= 3.10
 * appdirs
 * bs4
 * colorlog
@@ -60,18 +65,16 @@ cd test; pytest
 * pygments
 * jsf
 
-## Documentation
-
-You can see the complete documentation with tutorials at: xxx
-
 ## Contributing
+
 All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome.
 
 A detailed overview on how to contribute can be found in the [contributing guide](http://virtualplants.github.io/contribute/devel/workflow-github.html#workflow-github).
 
-### contributors
+### Contributors
+
+Thanks to all that ontribute making this package what it is !
 
 <a href="https://github.com/openalea/agroservices/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=H2020-IPM-openalea/agroservices" />
+  <img src="https://contrib.rocks/image?repo=openalea/agroservices" />
 </a>
-

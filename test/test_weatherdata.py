@@ -39,7 +39,7 @@ private_bystations = ipm.get_weatherdatasource(
 ######################### Public WeatherAdaptaterService #######################
 
 
-@pytest.mark.parametrize("source_id", public_bylocation.keys())
+@pytest.mark.parametrize("source_id", list(public_bylocation))
 def test_weatheradapter_public_bylocation(source_id):
     source = public_bylocation[source_id]
     params = weather_adapter_params(source)
@@ -51,7 +51,7 @@ def test_weatheradapter_public_bylocation(source_id):
         raise ValueError(res)
 
 
-@pytest.mark.parametrize("source_id", public_bystations.keys())
+@pytest.mark.parametrize("source_id", list(public_bystations))
 def test_weatheradapter_public_bystations(source_id):
     source = public_bystations[source_id]
     params = weather_adapter_params(source)
@@ -72,7 +72,7 @@ private_bystations = {
 }
 
 
-@pytest.mark.parametrize("source_id", private_bystations.keys())
+@pytest.mark.parametrize("source_id", list(private_bystations))
 def test_weatheradapter_private_bystations(source_id):
     source = private_bystations[source_id]
     credentials = ipm_credentials[source_id]

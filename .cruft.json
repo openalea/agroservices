@@ -1,0 +1,23 @@
+{
+  "template": "https://github.com/openalea/cookiecutter-openalea",
+  "commit": "0a5d3e9daaa57fd8f9668ac2d8ae07b741607a93",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "full_name": "OpenAlea",
+      "email": "christophe.pradal@cirad.fr",
+      "github_username": "openalea",
+      "project_name": "agroservices",
+      "project_slug": "agroservices",
+      "description": "\"AgroService is a Python package that provides access to IPM Web Services (at least) and a framework to easily implement Web Services wrappers. This package is intended to be close to the webservice. Therefore the requests will have the same API that each web service.\"",
+      "pure_python": true,
+      "version": "1.0.1",
+      "_copy_without_render": [
+        ".github/workflows/conda-package-build.yml"
+      ],
+      "_template": "https://github.com/openalea/cookiecutter-openalea",
+      "_commit": "0a5d3e9daaa57fd8f9668ac2d8ae07b741607a93"
+    }
+  },
+  "directory": null
+}
