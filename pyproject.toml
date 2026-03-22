@@ -14,7 +14,7 @@ include = ["openalea.*"]
 include-package-data = false # force explicit declaration of data (disable automatic inclusion)
 
 [tool.setuptools.package-data]
-"openalea.pkg_name" = ["data/**/*"]
+"openalea.agroservices" = ["data/**/*"]
 
 # enable dynamic version based on git tags
 [tool.setuptools_scm]
