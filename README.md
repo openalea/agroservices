@@ -51,7 +51,8 @@ cd agroservices
 pip install -e .
 
 # (Optional) Test your installation
-cd test; pytest
+cd test
+pytest -v
 ```
 
 ## Requirements
