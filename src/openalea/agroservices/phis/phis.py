@@ -24,7 +24,7 @@ class Phis(REST):
     def __init__(
         self,
         name="Phis",
-        url="http://147.100.202.17/m3p/rest/",
+        url="https://phenome.inrae.fr/m3p/rest/",
         callback=None,
         *args,
         **kwargs,
@@ -74,7 +74,7 @@ class Phis(REST):
 
         :param web_service: (str) name of web service requested
         :param timeout: (float) timeout for connexion in seconds
-        :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/api-docs/)
+        :param kwargs: (str) arguments relative to web service (see https://phenome.inrae.fr/m3p/api-docs/)
         :return:
             (dict) response of the server (standard http)
         """
@@ -89,7 +89,7 @@ class Phis(REST):
 
         :param web_service:  (str) name of web service requested
         :param timeout:  (float) timeout for connexion in seconds
-        :param kwargs: (str) arguments relative to web service (see http://147.100.202.17/m3p/api-docs/)
+        :param kwargs: (str) arguments relative to web service (see https://phenome.inrae.fr/m3p/api-docs/)
         :return:
             (list of dict) data relative to web service and parameters
         """
@@ -125,7 +125,7 @@ class Phis(REST):
 
     def ws_token(self, username="pheonoarch@lepse.inra.fr", password="phenoarch"):
         """Get token for PHIS web service
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param username: (str)
         :param password: (str)
@@ -144,7 +144,7 @@ class Phis(REST):
 
     def ws_projects(self, session_id, project_name=""):
         """Get all projects information if project_name is empty, or only information about project_name specified
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param project_name: (str) specify a project name to get detailed information
@@ -162,7 +162,7 @@ class Phis(REST):
         germplasm_uri=None,
     ):
         """Get information about genotypes in experiments
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str or list of str) experiment URI
@@ -203,7 +203,7 @@ class Phis(REST):
         plant_uri=None,
     ):
         """Get environment sensors values from PHIS web service
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) An experiment URI
@@ -250,7 +250,7 @@ class Phis(REST):
         self, session_id, experiment_uri, category="environment", provider="lepse"
     ):
         """Get variables information according to category specified
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) an experiment URI
@@ -273,7 +273,7 @@ class Phis(REST):
     ):
         """Get all experiments information from a project or/and a season, or only information about experiment_uri
             specified
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param project_name: (str) specify a project name to get specifics experiments information
@@ -308,7 +308,7 @@ class Phis(REST):
         provider=None,
     ):
         """Get existing label views for a specific experiment
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri:  (str) an experiment URI
@@ -329,7 +329,7 @@ class Phis(REST):
 
     def ws_observation_variables(self, session_id, experiment_uri):
         """Get existing observation variables for a specific experiment
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) an experiment URI
@@ -343,7 +343,7 @@ class Phis(REST):
 
     def ws_weighing(self, session_id, experiment_uri, date=None, variables_name=None):
         """Get weighing data for a specific experiment
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) an experiment URI
@@ -372,7 +372,7 @@ class Phis(REST):
         plant_uri=None,
     ):
         """Get plants information for an experiment
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) an experiment URI
@@ -402,7 +402,7 @@ class Phis(REST):
         self, session_id, experiment_uri, plant_uri, start_date=None, end_date=None
     ):
         """Get plant moves data during an experimentation
-             See http://147.100.202.17/m3p/api-docs/ for exact documentation
+             See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) an experiment URI
@@ -433,7 +433,7 @@ class Phis(REST):
         plant_uri=None,
     ):
         """Get watering data for a specific experiment
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) an experiment URI
@@ -478,7 +478,7 @@ class Phis(REST):
         plant_uri=None,
     ):
         """Get images analysis data for a specific experiment
-            See http://147.100.202.17/m3p/api-docs/ for exact documentation
+            See https://phenome.inrae.fr/m3p/api-docs/ for exact documentation
 
         :param session_id: (str) token got from ws_token()
         :param experiment_uri: (str) an experiment URI
