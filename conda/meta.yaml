@@ -60,7 +60,7 @@ test:
   source_files:
     - test/
   commands:
-    - pytest test/test_IPM.py
+    - pytest test/test_IPM.py test/test_dss.py test/test_dss_input_data_fakers.py test/test_weatherdata.py
 
 
 about:
