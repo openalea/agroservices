@@ -31,16 +31,14 @@ build:
 
 requirements:
   host:
-    - python
+    - python <3.14
     {% for dep in build_deps %}
     - {{ dep }}
     {% endfor  %}
 
-  build:
-    - {{ compiler("cxx") }}
 
   run:
-    - python
+    - python <3.14
     {% for dep in deps + conda_deps %}
     - {{ dep }}
     {% endfor %}
