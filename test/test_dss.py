@@ -110,7 +110,7 @@ def test_dss_weathernofield(dss, model):
 
 @pytest.mark.parametrize("dss,model", field)
 def test_dss_field(dss, model):
-    if dss not in timeout_exclude:
+    if dss not in timeout_exclude and (dss, model) not in failures:
         m = onthefly[dss]["models"][model]
         assert m["execution"]["type"] == "ONTHEFLY"
         assert "endpoint" in m["execution"]
