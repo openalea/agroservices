@@ -326,7 +326,7 @@ def set_default(fake_value, schema):
 
 
 def set_all_required(schema):
-    schema["required"] = list(schema["properties"].keys())
+    schema["required"] = list(schema["properties"])
     for k, v in schema["properties"].items():
         if v["type"] == "object":
             schema["properties"][k] = set_all_required(v)

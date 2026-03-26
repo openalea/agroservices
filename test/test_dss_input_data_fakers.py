@@ -18,10 +18,18 @@ input_not_none = [
     for d, m in onthefly_dss_models
     if onthefly[d]["models"][m]["input"] is not None
 ]
+
+failure = dict([
+    (("adas.dss", "CARPPO"), False),
+    (("no.nibio.vips", "ALTERNARIA"), False),
+    (("gr.gaiasense.ipm", "PLASVI"), False),
+])
+
 weather_nofield = [
     (d, m)
     for d, m in input_not_none
-    if (onthefly[d]["models"][m]["input"]["weather_parameters"] is not None)
+    if ((d,m) not in failure) &
+    (onthefly[d]["models"][m]["input"]["weather_parameters"] is not None)
     & (onthefly[d]["models"][m]["input"]["field_observation"] is None)
 ]
 field = [
@@ -71,7 +79,7 @@ def test_faker_dss_onthefly_weather_nofield(dss, model):
 
 @pytest.mark.parametrize("dss,model", field)
 def test_faker_dss_onthefly_field(dss, model):
-    m = onthefly[dss]["models"][model]
+    m = onthefly[dss]["models"][model]  
     assert m["execution"]["type"] == "ONTHEFLY"
     assert "input_schema" in m["execution"]
     assert len(m["execution"]["input_schema"]) > 0

@@ -324,7 +324,7 @@ def test_run_model():
     assert isinstance(res, dict)
     assert "locationResult" in res
     # fake input
-    #input_data = fakers.input_data(model)
-    #res = ipm.run_model(model, input_data)
-    #assert isinstance(res, dict)
-    #assert "locationResult" in res
+    input_data = fakers.input_data(model)
+    res = ipm.run_model(model, input_data)
+    assert isinstance(res, dict)
+    assert "locationResult" in res
