@@ -43,6 +43,7 @@ failures = dict([
     (("adas.dss", "RHOPPA"), 400),
     (("adas.dss", "DEROAG_OSR"), 400),
     (("gr.gaiasense.ipm", "PLASVI"), 400),
+    (("dk.seges", "SEPTORIAHU"), 400),
     (("uk.Warwick", "PSILRO"), 404),
     (("uk.WarwickHRI", "LAMTEQ_WarwickHRI"), 400),
     (("uk.WarwickHRI", "MELIAE_WarwickHRI"), 400),
